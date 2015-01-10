@@ -1,0 +1,40 @@
+module Frets.Util where
+
+import Diagrams.Prelude ((#))
+
+xor True False = True
+xor False True = True
+xor _ _        = False
+
+nonDecreasing (x:[]) = True
+nonDecreasing (x:y:xs) | y > x = False
+			      	   | otherwise = nonDecreasing (y:xs)
+                       
+increasing (x:[]) = True
+increasing (x:y:xs) | y >= x = False
+					| otherwise = increasing (y:xs)
+
+-- | Filter out a strictly "increasing" list.
+-- (i.e. p(x[n]) implies not p(x[m]) for all m > n,
+-- where m,n are indices of a list x, and p is a 
+-- predicate) 
+filterOutInc :: (a -> Bool) -> [a] -> [a]
+filterOutInc p [] = []
+filterOutInc p (x: ~xs) | p x = filterOutInc p xs
+					    | otherwise = (x:xs)
+
+-- ** Error handling utility functions
+
+collectErrors :: [(Bool,String)] -> Either String a
+collectErrors xs = Left ( filter fst xs #
+                     \x -> "Error(s): " ++ 
+                    (foldl1 (\a b -> a++"; "++b) (map snd x))
+                     ++ ".")
+
+collectErrList :: [(Bool,String)] -> [String]
+collectErrList [] = []
+collectErrList ((True,err):xs)  = err : (collectErrList xs)
+collectErrList ((False,err):xs) = collectErrList xs
+
+concatErrors :: [String] -> Either String a
+concatErrors xs = Left $ "Error(s): " ++ (foldl1 (\a b -> a++"; "++b) xs) ++ "."
