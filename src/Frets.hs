@@ -19,8 +19,8 @@ import Frets.Util
 
 -- TODO: Clean up newtype code
 newtype Scale = Scale ([Int], -- Intervals of the scale, must not contain 0,
-			           Int)   -- Period of the scale, the intervals must
-                              -- sum to this.
+		       Int)   -- Period of the scale, the intervals must
+                                -- sum to this.
 fromScl (Scale x) = x
 
 -- | Validates the preconditions of, and creates a scale.
@@ -39,22 +39,22 @@ infScl (Scale (xs,_)) = scanl (+) 0 (join $ repeat xs)
 -- Only used internally
 -- TODO: This might be more readable as a regular constructor
 data Str = Str {
-	pitch :: Int,   -- Non-negative integer,
-    			    -- describes the relative tuning of strings      
+    pitch :: Int,   -- Non-negative integer,
+    		      -- describes the relative tuning of strings      
     notes :: [Int]  -- Non-negative integers, a list of marked scale
-    				-- positions on the string.
+                      -- positions on the string.
 }
 
 -- | Make a string with no notes
 mkStr n = Str { pitch = n, notes = [] }
 
 newtype Fretboard = Fretboard ([Str],
-				                Int) -- The number of steps to a period in a fretboard.
+				Int) -- The number of steps to a period in a fretboard.
 fromFret (Fretboard x) = x
 
 -- | Validates the preconditions of and creates a fretboard.
 mkFret ::   [Int] -- Tuning of the fretboard, must be non-empty, non-zero.
-		  -> Int  -- Period, must be a positive number.
+          -> Int  -- Period, must be a positive number.
           -> Either [String] Fretboard
 mkFret t period | period >= 1 && (length t) >= 1 && (not $ any (<0) t)
                 = Right $ Fretboard (map mkStr t, period)
@@ -68,7 +68,7 @@ chScale :: Fretboard -> Scale -> Fretboard
 chScale f@(Fretboard (strs,p)) s@(Scale scl) = Fretboard (go (fst $ fromFret $ applyFirst f s) 1,p)
     where go :: [Str] -> Int -> [Str]
           go fb n | n < (length fb)
-                   = go (notes str1 # map (\x -> x-(pitch $ fb !! n)) #
+                  = go (notes str1 # map (\x -> x-(pitch $ fb !! n)) #
                          filterOutInc (<0) #
                          (\x -> fb & set (element n) Str{notes=x, pitch=(pitch (fb !! n))})) (n+1)
                    | otherwise = fb
@@ -78,13 +78,13 @@ chScale f@(Fretboard (strs,p)) s@(Scale scl) = Fretboard (go (fst $ fromFret $ a
 applyFirst :: Fretboard -> Scale -> Fretboard
 applyFirst (Fretboard (s:ss,p)) (Scale scl) 
     | p == (snd scl)
-	= Fretboard (Str{notes=(infScl (Scale scl)),pitch=(pitch s)}:ss,p)
+    = Fretboard (Str{notes=(infScl (Scale scl)),pitch=(pitch s)}:ss,p)
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)
 toDots    :: Double       -- Vertical spacing
-		  -> Double       -- Horizontal spacing
+          -> Double       -- Horizontal spacing
           -> [Int]        -- List of fret locations, all Ints should be non-zero.
           -> Diagram B R2 -- A diagram of the dots.
 toDots vs hs locs = foldr1 atop $ map (\x -> toDot x vs) locs
@@ -97,9 +97,9 @@ toDot n vs = circle (0.03*0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
 
 -- | Create a fretboard diagram
 toBoard ::    Int    -- Number of frets to display on board.
-		   -> Double -- Vertical spacing
+           -> Double -- Vertical spacing
            -> Double -- Horizontal spacing
-		   -> Fretboard 
+	   -> Fretboard 
            -> Diagram B R2
 toBoard n_frets vs hs fretboard = 
   emptyboard 
@@ -109,23 +109,23 @@ toBoard n_frets vs hs fretboard =
                          (map (translateX (-1/2*(n_str'-1)*hs)) dots))
     where emptyboard = emptyBoard n_frets vs hs n_str
           n_str      = length $ fst $ fromFret fretboard
-          n_str'     = fromIntegral n_str
           dots       = map (toDots vs hs) positions
           positions  = map ((takeWhile (<=n_frets)) . notes) (fst $ fromFret fretboard)
+          n_str'     = fromIntegral n_str :: Double -- Type cast
 
 
 -- | Draws an empty fretboard diagram.
 emptyBoard :: Int    -- Number of frets to display on board.
-		   -> Double -- Vertical spacing
+	   -> Double -- Vertical spacing
            -> Double -- Horizontal spacing
            -> Int    -- Number of strings
            -> Diagram B R2
 emptyBoard n_frets vs hs n_str = 
     hrule width -- Nut
-    `atop` markers
+    `atop` markers -- | Translate the strings to the proper poisitons
     `atop` strings # translateX (-width/2)
-    			   # translateY (-len/2)
-
+                   # translateY (-len/2)
+    -- | The fretboard extends out 1/2 of a vs past the last fret, hence:
     where len      = (n_frets'+1/2)*vs
     	  width    = (n_str'-1)*hs
           markers  = case () of
@@ -134,6 +134,7 @@ emptyBoard n_frets vs hs n_str =
                                        # dashingL [0.03] 0 
                                        # lwL 0.007)
                                        # translateY (-vs)
+                         -- Make the frets more visible when there is only one string.
                          | n_str == 1 -> (vcat' (with & sep .~ vs) $
           	                             replicate n_frets (hrule hs) 
                                        # lwL 0.007)
