@@ -22,6 +22,8 @@ The easiest way to run your own examples (without using a production server with
 
     python -m CGIHTTPServer 8000
 
+Then, in your web browser, you should be able to execute `127.0.0.1:8000/hsfrets.cgi?YOUR_ARGUMENTS_HERE`.
+
 Example Screenshots
 -------------------
 
