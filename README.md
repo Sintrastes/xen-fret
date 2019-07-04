@@ -17,4 +17,15 @@ So, a complete usage example looks like: `foo.bar/hsfret.cgi?period=12&frets=7&s
 
 Example Screenshots
 -------------------
-<img src="hsfret_screenshot.png" width=350 > 
+
+The example from above: Major and minor scales for a bass guitar in standard tuning:
+
+<img src="hsfret_screenshot.png" width=350>
+
+Major and minor scales for a bass in 22 tone equal temperament.
+
+<img src="hsfret_screenshot2.png" width=350>
+
+Porcupine[7] and Porcupine[8] scales for a bass guitar in 22 tone equal temperament:
+
+<img src="hsfret_screenshot3.png" width=350>
