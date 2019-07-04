@@ -45,8 +45,8 @@ Mavila[9] scale diagram for a guitar in 16 tone equal temperament:
 
 Major and minor scales on a mandolin:
 
-<p align="center"><img src="hsfret_mandolin_maj_min.png" width=350></p>
+<p align="center"><img src="img/hsfret_mandolin_maj_min.png" width=350></p>
 
 Major and minor scales on a guitar:
 
-<p align="center"><img src="hsfret_guitar_maj_min.png" width=350></p>
+<p align="center"><img src="img/hsfret_guitar_maj_min.png" width=350></p>
