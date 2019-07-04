@@ -14,3 +14,7 @@ The CGI arguments are:
 **x, y**: x and y describe the scaling of the SVG. Either an x, or a y argument is required, but not both. The program calculates the missing dimension so that none of the image is cut off, as it might be if both were specified manually.
 
 So, a complete usage example looks like: `foo.bar/hsfret.cgi?period=12&frets=7&scales=[[2,2,1,2,2,2,1],[2,1,2,2,2,1,2]]&tuning=[0,5,10,15]&x=100`, which should give two 7-fret scale diagrams for a bass guitar in standard tuning for the major and minor scales.
+
+Example Screenshots
+-------------------
+<img src="hsfret_screenshot.png" width=350 > 
