@@ -33,11 +33,11 @@ The example from above: Major and minor scales for a bass guitar in standard tun
 
 Major and minor scales for a bass in 22 tone equal temperament.
 
-<p align="center"><img src="img/hsfret_screenshot2.png" width=350></p>
+<p align="center"><img src="img/hsfret_screenshot2.png" width=200></p>
 
 Porcupine[7] and Porcupine[8] scales for a bass guitar in 22 tone equal temperament:
 
-<p align="center"><img src="img/hsfret_screenshot3.png" width=350></p>
+<p align="center"><img src="img/hsfret_screenshot3.png" width=200></p>
 
 Mavila[9] scale diagram for a guitar in 16 tone equal temperament:
 
