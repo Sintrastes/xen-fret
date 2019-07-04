@@ -19,6 +19,6 @@ executable hsfrets
   main-is: Main.hs          
   other-modules:       Frets, Frets.Util
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8, diagrams, diagrams-svg, cgi, diagrams-lib, diagrams-core, blaze-svg, bytestring, monad-loops, lens, mtl, MissingH
+  build-depends:       base >=4.7 && <4.8, diagrams >= 1.1 && <= 1.5, diagrams-svg, cgi, diagrams-lib, diagrams-core, blaze-svg, bytestring, monad-loops, lens, mtl, MissingH
   hs-source-dirs:      src
   default-language:    Haskell2010
