@@ -15,6 +15,13 @@ The CGI arguments are:
 
 So, a complete usage example looks like: `foo.bar/hsfret.cgi?period=12&frets=7&scales=[[2,2,1,2,2,2,1],[2,1,2,2,2,1,2]]&tuning=[0,5,10,15]&x=100`, which should give two 7-fret scale diagrams for a bass guitar in standard tuning for the major and minor scales.
 
+How do I run it?
+----------------
+
+The easiest way to run your own examples (without using a production server with cgi capabilities) is to rename the main executable to something like `hsfret.cgi`, move that to some directory, and then in that directory, run:
+
+    python -m CGIHTTPServer 8000
+
 Example Screenshots
 -------------------
 
