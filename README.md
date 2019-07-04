@@ -41,11 +41,11 @@ Porcupine[7] and Porcupine[8] scales for a bass guitar in 22 tone equal temperam
 
 Mavila[9] scale diagram for a guitar in 16 tone equal temperament:
 
-<p align="center"><img src="img/hsfret_16.png" width=350></p>
+<p align="center"><img src="img/hsfret_16.png" width=200></p>
 
 Major and minor scales on a mandolin:
 
-<p align="center"><img src="img/hsfret_mandolin_maj_min.png" width=350></p>
+<p align="center"><img src="img/hsfret_mandolin_maj_min.png" width=200></p>
 
 Major and minor scales on a guitar:
 
