@@ -64,14 +64,14 @@ $(deriveJSON defaultOptions ''AppData)
 defaultAppData = AppData {
       temperaments = 
         [
+            Temperament "11-TET" 11,
             Temperament "12-TET" 12,
-            Temperament "24-TET" 24,
-            Temperament "16-TET" 16,
-            Temperament "Bohlen Pierce" 13,
             Temperament "13-TET" 13,
-            Temperament "22-TET" 22,
             Temperament "16-TET" 16,
-            Temperament "19-TET" 19
+            Temperament "19-TET" 19,
+            Temperament "22-TET" 22,
+            Temperament "24-TET" 24,
+            Temperament "Bohlen Pierce" 13
         ]
     , tunings = toMap $ fromList 
         [
@@ -82,7 +82,9 @@ defaultAppData = AppData {
         ]
     , scales = toMap $ fromList 
         [
-            ("12-TET", Scale "Ionian (Major)" 
+            ("11-TET", Scale "Orgone[7]"
+                (1 :| [2, 1, 2, 1, 2, 2]))
+          , ("12-TET", Scale "Ionian (Major)" 
                 (2 :| [2,1,2,2,2,1]))
           , ("12-TET", Scale "Mixolydian" 
                 (2 :| [2,1,2,2,1,2]))
@@ -90,6 +92,24 @@ defaultAppData = AppData {
                 (2 :| [1,2,2,1,2,2]))
           , ("12-TET", Scale "Dorian" 
                 (2 :| [3,5,7,9,10]))
+          , ("13-TET", Scale "Archeotonic (Ryonian Mode)"
+                (2 :| [2,2,2,2,2,1]))
+          , ("13-TET", Scale "Oneirotonic (Dylathian Mode)"
+                (2 :| [2,1,2,2,1,2,1]))
+          , ("16-TET", Scale "mavila[7]"
+                (2 :| [2,2,2,2,2,1]))
+          , ("16-TET", Scale "Lemba"
+                (2 :| [2,2,2,2,2,1]))
+          , ("16-TET", Scale "Magic"
+                (2 :| [2,2,2,2,2,1]))
+          , ("19-TET", Scale "Ionian (Major)"
+                (2 :| [2,1,2,2,2,1]))
+          , ("22-TET", Scale "Ionian (Major)"
+                (2 :| [2,1,2,2,2,1]))
+          , ("24-TET", Scale "Ionian (Major)"
+                (2 :| [2,1,2,2,2,1]))
+          , ("Bohlen Pierce", Scale "Lambda"
+                (2 :| [2,1,2,2,2,1]))
         ]
     , preferences = defaultPreferences
 }
@@ -206,7 +226,7 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
             & inputElementConfig_initialValue .~ T.pack (show initialValue)
-            & inputElementConfig_setValue .~ (T.pack . show <$> changeSelection)
+            & inputElementConfig_setValue .~ (leftmost [T.pack . show <$> changeSelection, T.pack . show <$> itemsUpdated])
 
         changeSelection <- elDynAttr "ul" selectAttrs $ do
             itemEvents <- dyn $ itemsDyn <&> \items -> leftmost <$> forM items (\item -> do
@@ -226,6 +246,8 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
         pure (form, changeSelection)
 
     elAttr "label" ("style" =: "left: 0rem;") $ text label
+
+    let itemsUpdated = updated $ Prelude.head <$> itemsDyn
 
     let selectedStyle = "display: block;" <>
           "width: 100%;" <> "left: 0px;" <>
@@ -248,7 +270,7 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
                     else empty
 
     dynResult <- foldDyn const initialValue
-        changeSelection
+        (leftmost [changeSelection, itemsUpdated])
 
     pure dynResult
 
