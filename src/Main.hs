@@ -84,10 +84,10 @@ app = do
     temperament <- selectMaterial "Temperament" loadedTemperaments 
         (head loadedTemperaments)
 
-    f <- intEntry 10
+    f <- labeledEntry "Frets" intEntry 10
     s <- selectMaterial "Scale" loadedScales (head loadedScales)
     t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
-    x <- intEntry 82
+    x <- labeledEntry "Width" intEntry 82
 
     el "p" $ text "Fretboard preview: "
     button "Save"

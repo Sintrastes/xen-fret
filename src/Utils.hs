@@ -164,6 +164,13 @@ textEntry =
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "text"
 
+labeledEntry :: _ => T.Text -> (a -> m (Dynamic t a)) -> a -> m (Dynamic t a)
+labeledEntry label widget initialValue = elClass "div" "input-field col" $ do
+    res <- widget initialValue
+    elAttr "label" ("class" =: "active" <> "style" =: "left: 0rem;") $
+        text label
+    pure res
+
 intEntry :: _ => Int -> m (Dynamic t Int)
 intEntry initialValue =
     fmap (read @Int . T.unpack) <$> _inputElement_value <$> inputElement (
