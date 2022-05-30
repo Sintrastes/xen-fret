@@ -10,6 +10,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import Frets.Util
 import Frets
 import Graphics.Svg
+import Data.List.NonEmpty (NonEmpty, nonEmpty)
 
 -- Constants for now, TODO: allow manual control from the CGI interface.
 vs = 0.2
@@ -34,7 +35,7 @@ cgiMain = do
     -- Handle errors parsing the cgi arguments
     case handleCGIParseErrs p f s t x y of
         Left err                              -> output err
-        Right (period,frets,scales,tuning,xy) -> do
+        Right (period, frets, scales, tuning, xy) -> do
             let _fretboard = mkFret tuning period
             let _scales    = map (mkScl period) scales
             case handleScaleFretboardErrs _fretboard _scales of
@@ -53,13 +54,13 @@ format (Y y) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromI
 -- | Handle the error messages from parsing the arguments.
 handleCGIParseErrs :: Maybe Int -> Maybe Int -> Maybe [[Int]]
        -> Maybe [Int] -> Maybe Int -> Maybe Int
-       -> Either String (Int,Int,[[Int]],[Int],XorY)
+       -> Either String (Int, Int, [NonEmpty Int], NonEmpty Int, XorY)
 handleCGIParseErrs p f s t x y
   -- Valid format
   | Just p' <- p
   , Just f' <- f
-  , Just s' <- s
-  , Just t' <- t
+  , Just s' <- mapM nonEmpty =<< s
+  , Just t' <- nonEmpty =<< t
   , isJust x `xor` isJust y
   = case (x,y) of
        (Just x',_) -> Right (p',f',s',t',X x')
