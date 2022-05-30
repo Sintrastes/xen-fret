@@ -11,7 +11,13 @@ import Data.Map (Map)
 import Data.Aeson.TH
 import Data.Aeson
 
-data Temperament = Temperament String Int
+data Temperament = Temperament {
+    temperamentName :: String, 
+    period :: Int
+}
+
+instance Show Temperament where
+    show = temperamentName
 
 $(deriveJSON defaultOptions ''Temperament)
 
@@ -20,12 +26,18 @@ data Tuning = Tuning {
     stringTunings :: NonEmpty Int
 }
 
+instance Show Tuning where
+    show = tuningName
+
 $(deriveJSON defaultOptions ''Tuning)
 
 data Scale = Scale {
     scaleName  :: String,
     scaleNotes :: NonEmpty Int
 }
+
+instance Show Scale where
+    show = scaleName
 
 $(deriveJSON defaultOptions ''Scale)
 
@@ -102,3 +114,38 @@ sidebarButton x = el "li" $
 navButton x = el "li" $
     domEvent Click . fst <$>
         el' "a" (text x)
+
+textEntry :: _ => m (InputElement EventResult (DomBuilderSpace m) t)
+textEntry =
+    inputElement (
+        def & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes
+            .~ attrs)
+  where
+    attrs = "class" =: "p-form-text p-form-no-validate" <>
+        "type" =: "text"
+
+intEntry :: _ => Int -> m (Dynamic t Int)
+intEntry initialValue =
+    fmap (read @Int . T.unpack) <$> _inputElement_value <$> inputElement (
+        def & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes
+            .~ attrs
+            & inputElementConfig_initialValue
+            .~ (T.pack $ show initialValue))
+  where
+    attrs = "class" =: "p-form-text p-form-no-validate" <>
+        "type" =: "number" <>
+        "step" =: "1"
+
+positiveIntEntry :: _ => Int -> m (Dynamic t Int)
+positiveIntEntry initialValue =
+    fmap (read @Int . T.unpack) <$> _inputElement_value <$> inputElement (
+        def & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes
+            .~ attrs)
+  where
+    attrs = "class" =: "p-form-text p-form-no-validate" <>
+        "type" =: "number" <>
+        "step" =: "1" <>
+        "min" =: "0"
