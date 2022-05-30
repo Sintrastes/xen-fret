@@ -1,4 +1,6 @@
 dist
+dist-newstyle
+*.DS_Store
 cabal-dev
 *.o
 *.hi
