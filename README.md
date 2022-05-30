@@ -1,10 +1,10 @@
-# hsfret
-Hsfret is a simple web app for generating SVG microtonal scale diagrams for fretted string instruments. Specifically, for generating scale diagrams for equal temperaments. 
+# Xen fret
+Xen fret is a simple web app for generating SVG xenharmonic/microtonal scale diagrams for fretted string instruments. Specifically, for generating scale diagrams for equal temperaments. 
 
 Gettring started
 ----------------
 
-hsfret is built with [reflex-frp](https://reflex-frp.org/) and [nix](https://github.com/NixOS/nix), and can be deployed as a static webpage (with front-end  Javascript). An example of this is currently hosted at... 
+Xen fret is built with [reflex-frp](https://reflex-frp.org/) and [nix](https://github.com/NixOS/nix), and can be deployed as a static webpage (with front-end  Javascript). An example of this is currently hosted at... 
 
 Example Screenshots
 -------------------
