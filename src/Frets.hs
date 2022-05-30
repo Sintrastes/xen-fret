@@ -13,9 +13,6 @@ import Diagrams.Attributes
 import Control.Monad
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
-import Control.Monad.Loops
-import Control.Lens hiding ((#))
-import Control.Monad.State
 import Frets.Util
 
 -- TODO: Clean up newtype code
@@ -42,10 +39,10 @@ infScl (Scale (xs,_)) = scanl (+) 0 (join $ repeat xs)
 -- TODO: This might be more readable as a regular constructor
 data Str = Str {
     pitch :: Int,   -- Non-negative integer,
-                      -- describes the relative tuning of strings      
+                    -- describes the relative tuning of strings      
 
     notes :: [Int]  -- Non-negative integers, a list of marked scale
-                      -- positions on the string.
+                    -- positions on the string.
 }
 
 -- | Make a string with no notes
@@ -90,7 +87,7 @@ toDots    :: Double       -- Vertical spacing
           -> Double       -- Horizontal spacing
           -> [Int]        -- List of fret locations, all Ints should be non-zero.
           -> Diagram B -- A diagram of the dots.
-toDots vs hs locs = foldr1 atop $ map (\x -> toDot x vs) locs
+toDots vs hs locs = foldr1 atop $ map (`toDot` vs) locs
 
 -- | Create a diagram of a single dot
 toDot :: Int -> Double -> Diagram B
@@ -133,13 +130,13 @@ emptyBoard n_frets vs hs n_str =
     where len      = (n_frets'+1/2)*vs
           width    = (n_str'-1)*hs
           markers  = case () of
-                      () | n_str > 1 -> (vcat' (with & sep .~ vs) $
+                      () | n_str > 1 -> vcat' (with & sep .~ vs) (
                                              replicate n_frets (hrule width)
                                        # dashingL [0.03] 0
                                        # lwL 0.007)
                                        # translateY (-vs)
                          -- Make the frets more visible when there is only one string.
-                         | n_str == 1 -> (vcat' (with & sep .~ vs) $
+                         | n_str == 1 -> vcat' (with & sep .~ vs) (
                                              replicate n_frets (hrule hs)
                                        # lwL 0.007)
                                        # translateY (-vs)
