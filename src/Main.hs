@@ -72,10 +72,9 @@ app = do
     s <- pure $ Just [[1,3,5,6,7]] -- readInput "scales" :: CGI (Maybe [[Int]])
     t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
     x <- intEntry 52
-    y <- pure Nothing -- readInput "y" :: CGI (Maybe Int)
-
+    
     -- Handle errors parsing the arguments
-    dyn $ (zipDynWith (,) f x) <&> \(frets, xSize) -> case handleParseErrs p (Just frets) s t (Just xSize) y of
+    dyn $ (zipDynWith (,) f x) <&> \(frets, xSize) -> case handleParseErrs p (Just frets) s t (Just xSize) Nothing of
         Left err                              -> el "p" $ text $ T.pack err
         Right (period, frets, scales, tuning, xy) -> do
             let _fretboard = mkFret tuning period
