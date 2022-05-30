@@ -108,7 +108,7 @@ toBoard n_frets vs hs fretboard = frame 0.05 $
    `atop`
   -- The dots, translated to their proper positions on the fretboard
   foldl1 atop (zipWith translateX (map (*hs) [0..n_str'])
-                         (map (translateX (-1/2*(n_str'-1)*hs)) dots))
+                         (map (translateX (-0.5*(n_str'-1)*hs)) dots))
     where emptyboard = emptyBoard n_frets vs hs n_str
           n_str      = length $ fst $ fromFret fretboard
           dots       = map (toDots vs hs) positions
