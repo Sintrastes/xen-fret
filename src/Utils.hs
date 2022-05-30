@@ -6,6 +6,46 @@ import qualified Data.Text as T
 import Data.Functor
 import Control.Monad
 import Control.Monad.Fix
+import Data.List.NonEmpty
+import Data.Map (Map)
+import Data.Aeson.TH
+import Data.Aeson
+
+data Temperament = Temperament String Int
+
+$(deriveJSON defaultOptions ''Temperament)
+
+data Tuning = Tuning {
+    tuningName :: String,
+    stringTunings :: NonEmpty Int
+}
+
+$(deriveJSON defaultOptions ''Tuning)
+
+data Scale = Scale {
+    scaleName  :: String,
+    scaleNotes :: NonEmpty Int
+}
+
+$(deriveJSON defaultOptions ''Scale)
+
+data PreferenceData = PreferenceData {
+    useDarkMode :: Bool
+}
+
+$(deriveJSON defaultOptions ''PreferenceData)
+
+data AppData = AppData {
+    -- | Get the list of temperaments
+    temperaments :: [Temperament],
+    -- | Get the tunings associated with a temperament.
+    tunings :: Map String [Tuning],
+    -- | Get the scales associated with a temperament.
+    scales  :: Map String [Scale],
+    preferences :: PreferenceData
+}
+
+$(deriveJSON defaultOptions ''AppData)
 
 -- | Nav bar widget.
 materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m (Event t e)
@@ -22,6 +62,8 @@ materialNavBar tabs = mdo
     (navBarEvents, toggleMenuEvent) <- elAttr "div" ("style" =: "user-select: none;") $ elAttr "nav" ("class" =: "unselectable nav-wrapper") $ el "div" $ do
         navMenu <- elAttr' "a" ("class" =: "unselectable-btn sidenav-trigger" <> "unselectable" =: "on") $
             elClass "i" "material-icons" $ text "menu"
+
+        elClass "a" "brand-logo" $ text "Xen Fret"
         
         elAttr "ul" ("id" =: "nav-mobile" <> "class" =: "left hide-on-med-and-down") $ do
             menuEvents <- forM tabs (\tab -> do
