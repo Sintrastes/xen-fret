@@ -136,7 +136,7 @@ materialNavBar tabs = mdo
 
         elClass "a" "brand-logo" $ text "Xen Fret"
         
-        elAttr "ul" ("id" =: "nav-mobile" <> "class" =: "left hide-on-med-and-down") $ do
+        elAttr "ul" ("id" =: "nav-mobile" <> "class" =: "right hide-on-med-and-down") $ do
             menuEvents <- forM tabs (\tab -> do
                 btnEvents <- navButton (T.pack $ show tab)
                 pure $ tab <$ btnEvents)
