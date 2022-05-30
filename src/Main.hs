@@ -81,11 +81,11 @@ app = do
 
     el "p" $ text "Configuration options:"
 
-    temperament <- selectMaterial "Temperament" loadedTemperaments 
+    temperament <- selectMaterial "Temperament" (pure loadedTemperaments) 
         (head loadedTemperaments)
 
     f <- labeledEntry "Frets" intEntry 10
-    s <- selectMaterial "Scale" loadedScales (head loadedScales)
+    s <- selectMaterial "Scale" (pure loadedScales) (head loadedScales)
     t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
     x <- labeledEntry "Width" intEntry 82
 
