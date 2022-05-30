@@ -201,18 +201,19 @@ button label = do
     domEvent Click . fst <$> elAttr' "a" attributes
       (text label)
 
-selectMaterial :: _ => Show a => T.Text -> [a] -> a -> m (Dynamic t a)
-selectMaterial label items initialValue = elClass "div" "input-field col s12" $ mdo
+selectMaterial :: (Reflex t, MonadHold t m, MonadWidget t m) => Show a => T.Text -> (Dynamic t [a]) -> a -> m (Dynamic t a)
+selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12" $ mdo
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
             & inputElementConfig_initialValue .~ T.pack (show initialValue)
             & inputElementConfig_setValue .~ (T.pack . show <$> changeSelection)
 
-        changeSelection <- elDynAttr "ul" selectAttrs $
-            leftmost <$> forM items (\item -> do
+        changeSelection <- elDynAttr "ul" selectAttrs $ do
+            itemEvents <- dyn $ itemsDyn <&> \items -> leftmost <$> forM items (\item -> do
                 el "li" $
                    (item <$) . domEvent Click . fst <$> el' "span" (
                         text $ T.pack $ show item))
+            switchHold never itemEvents
 
         elSvg "svg" ("class" =: "caret" <>
             "height" =: "24" <>
