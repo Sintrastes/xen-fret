@@ -14,12 +14,13 @@ cabal-version:       >=1.10
 
 executable xen-fret
   main-is: Main.hs          
-  other-modules:       Frets, Frets.Util
+  other-modules:       Frets, Frets.Util, Utils
   default-extensions:
       OverloadedStrings
     , PartialTypeSignatures
     , FlexibleContexts
     , TypeFamilies
+    , RecursiveDo
   build-depends:
       base
     , diagrams
