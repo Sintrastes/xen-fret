@@ -6,7 +6,8 @@ import qualified Data.Text as T
 import Data.Functor
 import Control.Monad
 import Control.Monad.Fix
-import Data.List.NonEmpty
+import Data.List.NonEmpty hiding (fromList)
+import Data.MultiMap
 import Data.Map (Map)
 import Data.Aeson.TH
 import Data.Aeson
@@ -23,6 +24,7 @@ $(deriveJSON defaultOptions ''Temperament)
 
 data Tuning = Tuning {
     tuningName :: String,
+    instrument :: String,
     stringTunings :: NonEmpty Int
 }
 
@@ -58,6 +60,37 @@ data AppData = AppData {
 }
 
 $(deriveJSON defaultOptions ''AppData)
+
+defaultAppData = AppData {
+      temperaments = 
+        [
+            Temperament "12-TET" 12,
+            Temperament "24-TET" 24,
+            Temperament "16-TET" 16,
+            Temperament "Bohlen Pierce" 13,
+            Temperament "13-TET" 13,
+            Temperament "22-TET" 22,
+            Temperament "16-TET" 16,
+            Temperament "19-TET" 19
+        ]
+    , tunings = toMap $ fromList 
+        [
+            ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
+                (0 :| [5, 10, 15, 19, 24])),
+            ("22-TET", Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
+                (0 :| [9, 18, 27, 35, 44]))
+        ]
+    , scales = toMap $ fromList 
+        [
+            ("12-TET", Scale "Ionian (Major)" 
+                (0 :| [2,4,5,7,9,11]))
+        ]
+    , preferences = defaultPreferences
+}
+
+defaultPreferences = PreferenceData {
+    useDarkMode = False
+}
 
 -- | Nav bar widget.
 materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m (Event t e)
