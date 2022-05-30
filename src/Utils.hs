@@ -149,3 +149,8 @@ positiveIntEntry initialValue =
         "type" =: "number" <>
         "step" =: "1" <>
         "min" =: "0"
+
+button label = do
+    let attributes = "class" =: "waves-effect waves-light btn"
+    domEvent Click . fst <$> elAttr' "a" attributes
+      (text label)
