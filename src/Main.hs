@@ -15,6 +15,7 @@ import Reflex.Dom.Old (elDynHtml')
 import Language.Javascript.JSaddle.Warp
 import qualified Data.Text as T
 import Utils hiding(Scale)
+import Data.Functor
 
 -- Constants for now, TODO: allow manual control from the CGI interface.
 vs :: Double
@@ -67,14 +68,14 @@ app = do
     materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
 
     p <- pure $ Just 22 -- readInput "period" :: CGI (Maybe Int)
-    f <- pure $ Just 14 -- readInput "frets" :: CGI (Maybe Int)
+    f <- intEntry 14
     s <- pure $ Just [[1,3,5,6,7]] -- readInput "scales" :: CGI (Maybe [[Int]])
     t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
     x <- pure $ Just 52 -- readInput "x" :: CGI (Maybe Int)
     y <- pure Nothing -- readInput "y" :: CGI (Maybe Int)
 
     -- Handle errors parsing the arguments
-    case handleParseErrs p f s t x y of
+    dyn $ f <&> \frets -> case handleParseErrs p (Just frets) s t x y of
         Left err                              -> el "p" $ text $ T.pack err
         Right (period, frets, scales, tuning, xy) -> do
             let _fretboard = mkFret tuning period
@@ -92,6 +93,7 @@ app = do
                             elDynHtml' "div" (constDyn $ T.pack $
                                 foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
                             pure ()
+    blank
 
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String

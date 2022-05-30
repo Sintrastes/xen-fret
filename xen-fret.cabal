@@ -22,6 +22,7 @@ executable xen-fret
     , TypeFamilies
     , RecursiveDo
     , TemplateHaskell
+    , TypeApplications
   build-depends:
       base
     , diagrams
