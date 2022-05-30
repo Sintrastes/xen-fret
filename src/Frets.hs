@@ -14,16 +14,18 @@ import Control.Monad
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import Frets.Util
+import Data.List.NonEmpty (NonEmpty ((:|)), toList)
+import qualified Data.List.NonEmpty as NonEmpty
 
 -- TODO: Clean up newtype code
-newtype Scale = Scale ([Int], -- Intervals of the scale, must not contain 0,
+newtype Scale = Scale (NonEmpty Int, -- Intervals of the scale, must not contain 0,
                        Int)   -- Period of the scale, the intervals must
 
                                 -- sum to this.
 fromScl (Scale x) = x
 
 -- | Validates the preconditions of, and creates a scale.
-mkScl :: Int -> [Int] -> Either [String] Scale
+mkScl :: Int -> NonEmpty Int -> Either [String] Scale
 mkScl n xs | not $ any (<=0) xs
                    , sum xs == n
            = Right (Scale (xs,n))
@@ -33,7 +35,7 @@ mkScl n xs | not $ any (<=0) xs
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 infScl :: Scale -> [Int]
-infScl (Scale (xs,_)) = scanl (+) 0 (join $ repeat xs)
+infScl (Scale (xs,_)) = scanl (+) 0 (join $ repeat $ toList xs)
 
 -- Only used internally
 -- TODO: This might be more readable as a regular constructor
@@ -48,16 +50,16 @@ data Str = Str {
 -- | Make a string with no notes
 mkStr n = Str { pitch = n, notes = [] }
 
-newtype Fretboard = Fretboard ([Str],
-                                Int) -- The number of steps to a period in a fretboard.
+newtype Fretboard = Fretboard (NonEmpty Str,
+                               Int) -- The number of steps to a period in a fretboard.
 fromFret (Fretboard x) = x
 
 -- | Validates the preconditions of and creates a fretboard.
-mkFret ::   [Int] -- Tuning of the fretboard, must be non-empty, non-zero.
+mkFret ::   (NonEmpty Int) -- Tuning of the fretboard, must be non-empty, non-zero.
           -> Int  -- Period, must be a positive number.
           -> Either [String] Fretboard
 mkFret t period | period >= 1 && not (null t) && not (any (<0) t)
-                = Right $ Fretboard (map mkStr t, period)
+                = Right $ Fretboard (NonEmpty.map mkStr t, period)
                 | otherwise
                 = Left $ collectErrList [(null t, "Tuning is empty -- no strings specified"),
                                           (period < 1   , "Period must be a positive number"),
@@ -66,19 +68,19 @@ mkFret t period | period >= 1 && not (null t) && not (any (<0) t)
 -- | Change the scale of a fretboard
 chScale :: Fretboard -> Scale -> Fretboard
 chScale f@(Fretboard (strs,p)) s@(Scale scl) = Fretboard (go (fst $ fromFret $ applyFirst f s) 1,p)
-    where go :: [Str] -> Int -> [Str]
+    where go :: NonEmpty Str -> Int -> NonEmpty Str
           go fb n | n < length fb
-                  = go (notes str1 # map (\x -> x - pitch (fb !! n)) #
+                  = go (notes str1 # map (\x -> x - pitch (toList fb !! n)) #
                          filterOutInc (<0) #
-                         (\x -> fb & set (element n) Str{notes=x, pitch=pitch (fb !! n)})) (n+1)
+                         (\x -> fb & set (element n) Str{notes=x, pitch=pitch (toList fb !! n)})) (n+1)
                    | otherwise = fb
-              where str1 = head fb
+              where str1 = NonEmpty.head fb
 
 -- | Applies the scale to the first string
 applyFirst :: Fretboard -> Scale -> Fretboard
-applyFirst (Fretboard (s:ss,p)) (Scale scl)
+applyFirst (Fretboard (s :| ss,p)) (Scale scl)
     | p == (snd scl)
-    = Fretboard (Str{notes=(infScl (Scale scl)),pitch=(pitch s)}:ss,p)
+    = Fretboard (Str { notes = infScl (Scale scl), pitch = pitch s } :| ss, p)
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
@@ -110,14 +112,13 @@ toBoard n_frets vs hs fretboard =
     where emptyboard = emptyBoard n_frets vs hs n_str
           n_str      = length $ fst $ fromFret fretboard
           dots       = map (toDots vs hs) positions
-          positions  = map (takeWhile (<=n_frets) . notes) (fst $ fromFret fretboard)
+          positions  = map (takeWhile (<=n_frets) . notes) (toList $ fst $ fromFret fretboard)
           n_str'     = fromIntegral n_str :: Double -- Type cast
 
 
 -- | Draws an empty fretboard diagram.
 emptyBoard :: Int    -- Number of frets to display on board.
            -> Double -- Vertical spacing
-
            -> Double -- Horizontal spacing
            -> Int    -- Number of strings
            -> Diagram B
