@@ -52,12 +52,19 @@ header = do
     "type" =: "text/css" <>
     "rel" =: "stylesheet") blank
 
-data Pages = Home | Preferences
+data Pages = 
+    Home 
+  | Preferences 
+  | Temperaments
+  | Tunings
+  | Scales
+  | EditScale
+  | EditTemperament
     deriving(Show)
 
 app :: _ => m ()
 app = do
-    materialNavBar [Home, Preferences]
+    materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
 
     p <- pure $ Just 22 -- readInput "period" :: CGI (Maybe Int)
     f <- pure $ Just 14 -- readInput "frets" :: CGI (Maybe Int)
