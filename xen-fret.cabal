@@ -31,6 +31,7 @@ executable xen-fret
     , svg-builder
     , bytestring
     , containers
+    , multimap
     , aeson
     , reflex-dom
     , jsaddle-warp
