@@ -10,10 +10,11 @@ import Frets.Util
 import Frets
 import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
-import Reflex.Dom.Core
+import Reflex.Dom.Core hiding(Home)
 import Reflex.Dom.Old (elDynHtml')
 import Language.Javascript.JSaddle.Warp
 import qualified Data.Text as T
+import Utils
 
 -- Constants for now, TODO: allow manual control from the CGI interface.
 vs :: Double
@@ -24,16 +25,48 @@ hs = 0.5/5
 
 data XorY = X Int | Y Int
 
+header :: _ => m ()
+header = do
+  el "title" $ text "Xen Fret"
+  elAttr "meta" (
+    "name" =: "viewport" <>
+    "content" =: "width=device-width, initial-scale=1") blank
+  elAttr "script" (
+    "src" =: "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js") blank
+  elAttr "link" (
+    "id" =: "css-style" <>
+    "href" =: "https://sintrastes.github.io/demos/montague/materialize.min.css" <>
+    "type" =: "text/css" <>
+    "rel" =: "stylesheet") blank
+  elAttr "link" (
+    "href" =: "https://fonts.googleapis.com/icon?family=Material+Icons" <>
+    "type" =: "text/css" <>
+    "rel" =: "stylesheet") blank
+  elAttr "link" (
+    "href" =: "https://sintrastes.github.io/demos/montague/w3.css" <>
+    "type" =: "text/css" <>
+    "rel" =: "stylesheet") blank
+  elAttr "link" (
+    "id" =: "material-colors" <>
+    "href" =: "https://sintrastes.github.io/demos/montague/material-colors-default.css" <>
+    "type" =: "text/css" <>
+    "rel" =: "stylesheet") blank
+
+data Pages = Home | Preferences
+    deriving(Show)
+
 app :: _ => m ()
 app = do
+    materialNavBar [Home, Preferences]
+
     p <- pure $ Just 22 -- readInput "period" :: CGI (Maybe Int)
-    f <- pure $ Just 23 -- readInput "frets" :: CGI (Maybe Int)
+    f <- pure $ Just 14 -- readInput "frets" :: CGI (Maybe Int)
     s <- pure $ Just [[1,3,5,6,7]] -- readInput "scales" :: CGI (Maybe [[Int]])
     t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
     x <- pure $ Just 52 -- readInput "x" :: CGI (Maybe Int)
     y <- pure Nothing -- readInput "y" :: CGI (Maybe Int)
 
-    -- Handle errors parsing the cgi arguments
+    -- Handle errors parsing the arguments
     case handleParseErrs p f s t x y of
         Left err                              -> el "p" $ text $ T.pack err
         Right (period, frets, scales, tuning, xy) -> do
@@ -41,7 +74,7 @@ app = do
             let _scales    = map (mkScl period) scales
             case handleScaleFretboardErrs _fretboard _scales of
                 Left err                 -> el "p" $ text $ T.pack $ concatErrors err
-                Right (fretboard,scales) -> do
+                Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
                     let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
                     case xy of
                         X x -> do
@@ -99,4 +132,4 @@ indexErrs xs = go 1 xs []
           fmt errs = foldl1 (\x y -> x++", "++y) errs
 
 main :: IO ()
-main = run 3911 $ mainWidget app
+main = run 3911 $ mainWidgetWithHead header app
