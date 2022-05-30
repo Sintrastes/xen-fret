@@ -16,6 +16,9 @@ import Language.Javascript.JSaddle.Warp
 import qualified Data.Text as T
 import Utils hiding(Scale)
 import Data.Functor
+import Control.Applicative
+import qualified Data.Map as Map
+import qualified Data.List.NonEmpty as NE
 
 -- Constants for now, TODO: allow manual control from the CGI interface.
 vs :: Double
@@ -69,21 +72,28 @@ data Pages =
 
 app :: _ => m ()
 app = do
+    let appData = defaultAppData
+
+    let loadedTemperaments = temperaments appData
+    let Just loadedScales = Map.lookup "12-TET" $ scales appData
+
     materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
 
     el "p" $ text "Configuration options:"
 
-    p <- pure $ Just 22 -- readInput "period" :: CGI (Maybe Int)
-    f <- intEntry 14
-    s <- pure $ Just [[1,3,5,6,7]] -- readInput "scales" :: CGI (Maybe [[Int]])
-    t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
-    x <- intEntry 52
+    temperament <- selectMaterial "Temperament" loadedTemperaments 
+        (head loadedTemperaments)
 
-    el "p" $ text "Fretboard preview:"
+    f <- intEntry 10
+    s <- selectMaterial "Scale" loadedScales (head loadedScales)
+    t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
+    x <- intEntry 82
+
+    el "p" $ text "Fretboard preview: "
     button "Save"
 
     -- Handle errors parsing the arguments
-    dyn $ (zipDynWith (,) f x) <&> \(frets, xSize) -> case handleParseErrs p (Just frets) s t (Just xSize) Nothing of
+    dyn $ (liftA2 (,) (liftA2 (,) f x) (liftA2 (,) s temperament)) <&> \((frets, xSize), (scale, temperament')) -> case handleParseErrs (Just $ period $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
         Left err                              -> el "p" $ text $ T.pack err
         Right (period, frets, scales, tuning, xy) -> do
             let _fretboard = mkFret tuning period

@@ -7,8 +7,8 @@ import Data.Functor
 import Control.Monad
 import Control.Monad.Fix
 import Data.List.NonEmpty hiding (fromList)
-import Data.MultiMap
-import Data.Map (Map)
+import Data.MultiMap (fromList, toMap)
+import Data.Map (Map, empty)
 import Data.Aeson.TH
 import Data.Aeson
 
@@ -83,7 +83,13 @@ defaultAppData = AppData {
     , scales = toMap $ fromList 
         [
             ("12-TET", Scale "Ionian (Major)" 
-                (0 :| [2,4,5,7,9,11]))
+                (2 :| [2,1,2,2,2,1]))
+          , ("12-TET", Scale "Mixolydian" 
+                (2 :| [2,1,2,2,1,2]))
+          , ("12-TET", Scale "Minor" 
+                (2 :| [1,2,2,1,2,2]))
+          , ("12-TET", Scale "Dorian" 
+                (2 :| [3,5,7,9,10]))
         ]
     , preferences = defaultPreferences
 }
@@ -187,3 +193,57 @@ button label = do
     let attributes = "class" =: "waves-effect waves-light btn"
     domEvent Click . fst <$> elAttr' "a" attributes
       (text label)
+
+selectMaterial :: _ => Show a => T.Text -> [a] -> a -> m (Dynamic t a)
+selectMaterial label items initialValue = elClass "div" "input-field col s12" $ mdo
+    (form, changeSelection) <- elClass "div" "select-wrapper" $ do
+        (form, _) <- el' "div" $ inputElement $ def
+            & inputElementConfig_initialValue .~ T.pack (show initialValue)
+            & inputElementConfig_setValue .~ (T.pack . show <$> changeSelection)
+
+        changeSelection <- elDynAttr "ul" selectAttrs $
+            leftmost <$> forM items (\item -> do
+                el "li" $
+                   (item <$) . domEvent Click . fst <$> el' "span" (
+                        text $ T.pack $ show item))
+
+        elSvg "svg" ("class" =: "caret" <>
+            "height" =: "24" <>
+            "viewBox" =: "0 0 24 24" <>
+            "width" =: "24" <>
+            "xmlns" =: "http://www.w3.org/2000/svg") $ do
+                elSvg "path" ("d" =: "M7 10l5 5 5-5z") $ pure ()
+                elSvg "path" ("d" =: "M0 0h24v24H0z" <> "fill" =: "none") $ pure ()
+
+        pure (form, changeSelection)
+
+    elAttr "label" ("style" =: "left: 0rem;") $ text label
+
+    let selectedStyle = "display: block;" <>
+          "width: 100%;" <> "left: 0px;" <>
+          "top: 0px;" <> "height: auto;" <> "transform-origin: 0px 0px;" <>
+          "opacity: 1;" <> "transform: scaleX(1) scaleY(1);"
+
+    let inputClicks = form &
+            domEvent Click
+
+    dropdownOpenDyn <- foldDyn const False $
+        leftmost [
+            True <$ inputClicks,
+            False <$ changeSelection
+        ]
+
+    let selectAttrs = dropdownOpenDyn <&> \dropdownOpen ->
+            "class" =: "dropdown-content select-dropdown" <>
+                if dropdownOpen
+                    then "style" =: selectedStyle
+                    else empty
+
+    dynResult <- foldDyn const initialValue
+        changeSelection
+
+    pure dynResult
+
+elSvg tag a1 a2 = do
+  elDynAttrNS' (Just "http://www.w3.org/2000/svg") tag (constDyn a1) a2
+  return ()
