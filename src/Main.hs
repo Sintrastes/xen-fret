@@ -1,6 +1,5 @@
 module Main where
 
-import Network.CGI
 import Data.Maybe (isJust, isNothing)
 import Control.Monad
 import Data.Either
@@ -11,40 +10,48 @@ import Frets.Util
 import Frets
 import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
+import Reflex.Dom.Core
+import Reflex.Dom.Old (elDynHtml')
+import Language.Javascript.JSaddle.Warp
+import qualified Data.Text as T
 
 -- Constants for now, TODO: allow manual control from the CGI interface.
+vs :: Double
 vs = 0.2
+
+hs :: Double
 hs = 0.5/5
 
 data XorY = X Int | Y Int
 
--- | CGI entry-point:
--- Read in the CGI arguments, then either output an appropriate
--- error message, or output the svg of the fretboard scale
--- diagram requested.
--- TODO: Maybe use the error monad transformer here.
-cgiMain :: CGI CGIResult
-cgiMain = do
-    p <- readInput "period" :: CGI (Maybe Int)
-    f <- readInput "frets" :: CGI (Maybe Int)
-    s <- readInput "scales" :: CGI (Maybe [[Int]])
-    t <- readInput "tuning" :: CGI (Maybe [Int])
-    x <- readInput "x" :: CGI (Maybe Int)
-    y <- readInput "y" :: CGI (Maybe Int)
+app :: _ => m ()
+app = do
+    p <- pure $ Just 22 -- readInput "period" :: CGI (Maybe Int)
+    f <- pure $ Just 23 -- readInput "frets" :: CGI (Maybe Int)
+    s <- pure $ Just [[1,3,5,6,7]] -- readInput "scales" :: CGI (Maybe [[Int]])
+    t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
+    x <- pure $ Just 52 -- readInput "x" :: CGI (Maybe Int)
+    y <- pure Nothing -- readInput "y" :: CGI (Maybe Int)
 
     -- Handle errors parsing the cgi arguments
-    case handleCGIParseErrs p f s t x y of
-        Left err                              -> output err
+    case handleParseErrs p f s t x y of
+        Left err                              -> el "p" $ text $ T.pack err
         Right (period, frets, scales, tuning, xy) -> do
             let _fretboard = mkFret tuning period
             let _scales    = map (mkScl period) scales
             case handleScaleFretboardErrs _fretboard _scales of
-                Left err                 -> output $ concatErrors err
+                Left err                 -> el "p" $ text $ T.pack $ concatErrors err
                 Right (fretboard,scales) -> do
                     let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
                     case xy of
-                        X x -> output $ foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams
-                        Y y -> output $ foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams
+                        X x -> do
+                            elDynHtml' "div" (constDyn $ T.pack $
+                                foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams)
+                            pure ()
+                        Y y -> do
+                            elDynHtml' "div" (constDyn $ T.pack $
+                                foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
+                            pure ()
 
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String
@@ -52,10 +59,10 @@ format (X x) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromI
 format (Y y) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral y)) Nothing "" [] False) d
 
 -- | Handle the error messages from parsing the arguments.
-handleCGIParseErrs :: Maybe Int -> Maybe Int -> Maybe [[Int]]
+handleParseErrs :: Maybe Int -> Maybe Int -> Maybe [[Int]]
        -> Maybe [Int] -> Maybe Int -> Maybe Int
        -> Either String (Int, Int, [NonEmpty Int], NonEmpty Int, XorY)
-handleCGIParseErrs p f s t x y
+handleParseErrs p f s t x y
   -- Valid format
   | Just p' <- p
   , Just f' <- f
@@ -92,4 +99,4 @@ indexErrs xs = go 1 xs []
           fmt errs = foldl1 (\x y -> x++", "++y) errs
 
 main :: IO ()
-main = runCGI (handleErrors cgiMain)
+main = run 3911 $ mainWidget app
