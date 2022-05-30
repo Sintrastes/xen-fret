@@ -103,7 +103,7 @@ toBoard ::    Int    -- Number of frets to display on board.
            -> Double -- Horizontal spacing
            -> Fretboard
            -> Diagram B
-toBoard n_frets vs hs fretboard = frame 0.05 $
+toBoard n_frets vs hs fretboard = frame 0.005 $
   emptyboard
    `atop`
   -- The dots, translated to their proper positions on the fretboard
