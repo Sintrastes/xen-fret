@@ -10,7 +10,7 @@ import Frets.Util
 import Frets
 import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
-import Reflex.Dom.Core hiding(Home)
+import Reflex.Dom.Core hiding(Home, button)
 import Reflex.Dom.Old (elDynHtml')
 import Language.Javascript.JSaddle.Warp
 import qualified Data.Text as T
@@ -71,11 +71,16 @@ app :: _ => m ()
 app = do
     materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
 
+    el "p" $ text "Configuration options:"
+
     p <- pure $ Just 22 -- readInput "period" :: CGI (Maybe Int)
     f <- intEntry 14
     s <- pure $ Just [[1,3,5,6,7]] -- readInput "scales" :: CGI (Maybe [[Int]])
     t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
     x <- intEntry 52
+
+    el "p" $ text "Fretboard preview:"
+    button "Save"
 
     -- Handle errors parsing the arguments
     dyn $ (zipDynWith (,) f x) <&> \(frets, xSize) -> case handleParseErrs p (Just frets) s t (Just xSize) Nothing of
@@ -85,7 +90,7 @@ app = do
             let _scales    = map (mkScl period) scales
             case handleScaleFretboardErrs _fretboard _scales of
                 Left err                 -> el "p" $ text $ T.pack $ concatErrors err
-                Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                Right (fretboard,scales) -> elAttr "div" ("class" =: "main-column" <> "style" =: "text-align: center;") $ do
                     let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
                     case xy of
                         X x -> do
