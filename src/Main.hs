@@ -14,7 +14,7 @@ import Reflex.Dom.Core hiding(Home)
 import Reflex.Dom.Old (elDynHtml')
 import Language.Javascript.JSaddle.Warp
 import qualified Data.Text as T
-import Utils
+import Utils hiding(Scale)
 
 -- Constants for now, TODO: allow manual control from the CGI interface.
 vs :: Double

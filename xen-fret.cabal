@@ -21,6 +21,7 @@ executable xen-fret
     , FlexibleContexts
     , TypeFamilies
     , RecursiveDo
+    , TemplateHaskell
   build-depends:
       base
     , diagrams
@@ -28,6 +29,8 @@ executable xen-fret
     , diagrams-svg
     , svg-builder
     , bytestring
+    , containers
+    , aeson
     , reflex-dom
     , jsaddle-warp
     , text
