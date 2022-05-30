@@ -6,13 +6,10 @@ xor True False = True
 xor False True = True
 xor _ _        = False
 
-nonDecreasing (x:[]) = True
-nonDecreasing (x:y:xs) | y > x = False
-			      	   | otherwise = nonDecreasing (y:xs)
-                       
-increasing (x:[]) = True
+increasing []  = True
+increasing [_] = True
 increasing (x:y:xs) | y >= x = False
-					| otherwise = increasing (y:xs)
+                    | otherwise = increasing (y:xs)
 
 -- | Filter out a strictly "increasing" list.
 -- (i.e. p(x[n]) implies not p(x[m]) for all m > n,
@@ -20,8 +17,8 @@ increasing (x:y:xs) | y >= x = False
 -- predicate) 
 filterOutInc :: (a -> Bool) -> [a] -> [a]
 filterOutInc p [] = []
-filterOutInc p (x: ~xs) | p x = filterOutInc p xs
-					    | otherwise = (x:xs)
+filterOutInc p (x: xs) | p x = filterOutInc p xs
+                       | otherwise = x:xs
 
 -- ** Error handling utility functions
 
@@ -32,8 +29,8 @@ filterOutInc p (x: ~xs) | p x = filterOutInc p xs
 -- not if the condition evaluates to false.
 collectErrors :: [(Bool,String)] -> Either String a
 collectErrors xs = Left ( filter fst xs #
-                     \x -> "Error(s): " ++ 
-                    (foldl1 (\a b -> a++"; "++b) (map snd x))
+                     \x -> "Error(s): " ++
+                    foldl1 (\a b -> a++"; "++b) (map snd x)
                      ++ ".")
 
 -- | collectErrList works similarly to collectErrors, but instead
@@ -41,9 +38,9 @@ collectErrors xs = Left ( filter fst xs #
 -- error messages.
 collectErrList :: [(Bool,String)] -> [String]
 collectErrList [] = []
-collectErrList ((True,err):xs)  = err : (collectErrList xs)
+collectErrList ((True,err):xs)  = err : collectErrList xs
 collectErrList ((False,err):xs) = collectErrList xs
 
 -- | Format a list of error strings
-concatErrors :: [String] -> Either String a
-concatErrors xs = Left $ "Error(s): " ++ (foldl1 (\a b -> a++"; "++b) xs) ++ "."
+concatErrors :: [String] -> String
+concatErrors xs = "Error(s): " ++ foldl1 (\a b -> a++"; "++b) xs ++ "."
