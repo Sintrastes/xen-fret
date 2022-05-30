@@ -4,7 +4,7 @@ import Network.CGI
 import Data.Maybe (isJust, isNothing)
 import Control.Monad
 import Data.Either
-import Diagrams.Prelude hiding (output)
+import Diagrams.Prelude ( renderDia, mkWidth, Diagram )
 import Diagrams.Backend.SVG
 import qualified Data.ByteString.Lazy.Char8 as B
 import Frets.Util
