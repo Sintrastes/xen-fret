@@ -1,6 +1,6 @@
 module Main where
 
-import Data.Maybe (isJust, isNothing)
+import Data.Maybe (isJust, isNothing, fromJust)
 import Control.Monad
 import Data.Either
 import Diagrams.Prelude ( renderDia, mkWidth, Diagram )
@@ -37,6 +37,10 @@ header = do
     "content" =: "width=device-width, initial-scale=1") blank
   elAttr "script" (
     "src" =: "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js") blank
+  elAttr "link" (
+    "href" =: "https://sintrastes.github.io/demos/xen_fret/main.css" <>
+    "type" =: "text/css" <>
+    "rel" =: "stylesheet") blank
   elAttr "link" (
     "id" =: "css-style" <>
     "href" =: "https://sintrastes.github.io/demos/montague/materialize.min.css" <>
@@ -75,42 +79,49 @@ app = do
     let appData = defaultAppData
 
     let loadedTemperaments = temperaments appData
-    let Just loadedScales = Map.lookup "12-TET" $ scales appData
 
     materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
 
-    el "p" $ text "Configuration options:"
+    elAttr "div" ("style" =: "display: flex;height:100%;") $ do
+        (temperament, f, s, t, x) <- elClass "div" "main-pane-left" $ do
+            el "p" $ text "Configuration options:"
 
-    temperament <- selectMaterial "Temperament" (pure loadedTemperaments) 
-        (head loadedTemperaments)
+            temperament <- selectMaterial "Temperament" (pure loadedTemperaments) 
+                (head loadedTemperaments)
 
-    f <- labeledEntry "Frets" intEntry 10
-    s <- selectMaterial "Scale" (pure loadedScales) (head loadedScales)
-    t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
-    x <- labeledEntry "Width" intEntry 82
+            let Just initialScales = Map.lookup "12-TET" $ scales appData
 
-    el "p" $ text "Fretboard preview: "
-    button "Save"
+            let loadedScales = (\x -> fromJust $ Map.lookup (temperamentName x) $ scales appData) <$> temperament
 
-    -- Handle errors parsing the arguments
-    dyn $ (liftA2 (,) (liftA2 (,) f x) (liftA2 (,) s temperament)) <&> \((frets, xSize), (scale, temperament')) -> case handleParseErrs (Just $ period $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
-        Left err                              -> el "p" $ text $ T.pack err
-        Right (period, frets, scales, tuning, xy) -> do
-            let _fretboard = mkFret tuning period
-            let _scales    = map (mkScl period) scales
-            case handleScaleFretboardErrs _fretboard _scales of
-                Left err                 -> el "p" $ text $ T.pack $ concatErrors err
-                Right (fretboard,scales) -> elAttr "div" ("class" =: "main-column" <> "style" =: "text-align: center;") $ do
-                    let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
-                    case xy of
-                        X x -> do
-                            elDynHtml' "div" (constDyn $ T.pack $
-                                foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams)
-                            pure ()
-                        Y y -> do
-                            elDynHtml' "div" (constDyn $ T.pack $
-                                foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
-                            pure ()
+            f <- labeledEntry "Frets" intEntry 10
+            s <- selectMaterial "Scale" loadedScales (head initialScales)
+            t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
+            x <- labeledEntry "Width" intEntry 82
+
+            button "Save"
+
+            pure (temperament, f, s, t, x)
+
+        elClass "div" "main-pane-right" $ do
+            -- Handle errors parsing the arguments
+            dyn $ (liftA2 (,) (liftA2 (,) f x) (liftA2 (,) s temperament)) <&> \((frets, xSize), (scale, temperament')) -> case handleParseErrs (Just $ period $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
+                Left err                              -> el "p" $ text $ T.pack err
+                Right (period, frets, scales, tuning, xy) -> do
+                    let _fretboard = mkFret tuning period
+                    let _scales    = map (mkScl period) scales
+                    case handleScaleFretboardErrs _fretboard _scales of
+                        Left err                 -> el "p" $ text $ T.pack $ concatErrors err
+                        Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                            let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
+                            case xy of
+                                X x -> do
+                                    elDynHtml' "div" (constDyn $ T.pack $
+                                        foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams)
+                                    pure ()
+                                Y y -> do
+                                    elDynHtml' "div" (constDyn $ T.pack $
+                                        foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
+                                    pure ()
     blank
 
 -- | Generate the formatted SVG output from a diagram.
