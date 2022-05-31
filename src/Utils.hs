@@ -16,6 +16,7 @@ data Temperament = Temperament {
     temperamentName :: String, 
     period :: Int
 }
+    deriving(Eq)
 
 instance Show Temperament where
     show = temperamentName
@@ -27,6 +28,7 @@ data Tuning = Tuning {
     instrument :: String,
     stringTunings :: NonEmpty Int
 }
+    deriving(Eq)
 
 instance Show Tuning where
     show = tuningName
@@ -37,6 +39,7 @@ data Scale = Scale {
     scaleName  :: String,
     scaleNotes :: NonEmpty Int
 }
+    deriving(Eq)
 
 instance Show Scale where
     show = scaleName
@@ -221,11 +224,17 @@ button label = do
     domEvent Click . fst <$> elAttr' "a" attributes
       (text label)
 
-selectMaterial :: (Reflex t, MonadHold t m, MonadWidget t m) => Show a => T.Text -> (Dynamic t [a]) -> a -> m (Dynamic t a)
+selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m) => Show a => T.Text -> (Dynamic t [a]) -> a -> m (Dynamic t a)
 selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12" $ mdo
+    initialItems <- sample $ current itemsDyn
+
+    let initialValueActual = if (initialValue `elem` initialItems) 
+        then initialValue
+        else Prelude.head initialItems
+
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
-            & inputElementConfig_initialValue .~ T.pack (show initialValue)
+            & inputElementConfig_initialValue .~ (T.pack $ show initialValueActual)
             & inputElementConfig_setValue .~ (leftmost [T.pack . show <$> changeSelection, T.pack . show <$> itemsUpdated])
 
         changeSelection <- elDynAttr "ul" selectAttrs $ do
@@ -269,7 +278,7 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
                     then "style" =: selectedStyle
                     else empty
 
-    dynResult <- foldDyn const initialValue
+    dynResult <- foldDyn const initialValueActual
         (leftmost [changeSelection, itemsUpdated])
 
     pure dynResult
