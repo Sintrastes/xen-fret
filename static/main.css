@@ -1,0 +1,28 @@
+
+.main-pane-left {
+    float: left;
+    width: 50%;
+    border-style: solid;
+    padding: 25px;
+}
+
+.main-pane-right {
+    float: left;
+    width: 50%;
+    border-style: solid;
+    padding: 25px;
+}
+
+@media (max-width: 800px) {
+    .main-pane-left {
+        float: left;
+        width: 100%;
+        border-style: solid;
+        padding: 25px;
+    }
+    
+    .main-pane-right {
+        width: 0%;
+        display: none;
+    }
+}
