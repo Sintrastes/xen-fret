@@ -1,4 +1,14 @@
 # Xen fret
+
+<p align="center">
+  <a href="https://haskell.org/">
+    <img src="https://img.shields.io/badge/Language-Haskell-blue">
+  </a>
+  <a href="https://github.com/Sintrastes/xen-fret/actions/workflows/build.yml">
+    <img src="https://github.com/Sintrastes/xen-fret/actions/workflows/build.yml/badge.svg">
+  </a>
+</p>
+
 Xen fret is a simple web app for generating SVG xenharmonic/microtonal scale diagrams for fretted string instruments. Specifically, for generating scale diagrams for equal temperaments. 
 
 Gettring started
