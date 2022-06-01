@@ -11,7 +11,7 @@ reflex-platform.project ({ pkgs, ... }: {
 
   packages = {
     frontend = ./frontend;
-    common = ./common;
+    xen-fret = ./common;
   };
 
   shells = {
