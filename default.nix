@@ -23,5 +23,10 @@ reflex-platform.project ({ pkgs, ... }: {
   };
 
   overrides = self: super: {
+      doctest = self.callHackageDirect {
+        pkg = "doctest";
+        ver = "0.16.3";
+        sha256 = "qU50YWyeM1QI3lGQwboJ0iUlC4c4YTOrv3u/aVagRlg=";
+      } {};
   };
 })
