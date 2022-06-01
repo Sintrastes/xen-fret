@@ -1,4 +1,5 @@
-module Main where
+
+module App where
 
 import Data.Maybe (isJust, isNothing, fromJust)
 import Control.Monad
@@ -12,7 +13,6 @@ import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button)
 import Reflex.Dom.Old (elDynHtml')
-import Language.Javascript.JSaddle.Warp
 import qualified Data.Text as T
 import Utils hiding(Scale)
 import Data.Functor
@@ -168,6 +168,3 @@ indexErrs xs = go 1 xs []
           go n ((Right _):xs)   idx = go (n+1) xs idx
 
           fmt errs = foldl1 (\x y -> x++", "++y) errs
-
-main :: IO ()
-main = run 3911 $ mainWidgetWithHead header app

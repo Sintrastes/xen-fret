@@ -1,4 +1,4 @@
-name:                xen-fret
+name:                warp-frontend
 version:             0.1.0.0
 -- synopsis:            
 -- description:         
@@ -12,9 +12,8 @@ build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
 
-executable xen-fret
+executable warp-frontend
   main-is: Main.hs          
-  other-modules:       Frets, Frets.Util, Utils
   default-extensions:
       OverloadedStrings
     , PartialTypeSignatures
@@ -25,6 +24,7 @@ executable xen-fret
     , TypeApplications
   build-depends:
       base
+    , xen-fret
     , diagrams
     , diagrams-lib
     , diagrams-svg
