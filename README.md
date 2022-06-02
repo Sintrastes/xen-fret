@@ -42,30 +42,3 @@ If you use Xen Fret, or find it useful, consider supporting it's development eff
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=45F7QR92B4XUY&no_recurring=0&currency_code=USD)
 [![Donate with Ethereum](https://en.cryptobadges.io/badge/micro/0x61531fCA114507138ebefc74Db5C152845b77Cad)](https://en.cryptobadges.io/donate/0x61531fCA114507138ebefc74Db5C152845b77Cad)
-
-Example Screenshots
--------------------
-
-The example from above: Major and minor scales for a bass guitar in standard tuning:
-
-<p align="center"><img src="img/hsfret_screenshot.png" width=350></p>
-
-Major and minor scales for a bass in 22 tone equal temperament.
-
-<p align="center"><img src="img/hsfret_screenshot2.png" width=200></p>
-
-Porcupine[7] and Porcupine[8] scales for a bass guitar in 22 tone equal temperament:
-
-<p align="center"><img src="img/hsfret_screenshot3.png" width=200></p>
-
-Mavila[9] scale diagram for a guitar in 16 tone equal temperament:
-
-<p align="center"><img src="img/hsfret_16.png" width=200></p>
-
-Major and minor scales on a mandolin:
-
-<p align="center"><img src="img/hsfret_mandolin_maj_min.png" width=200></p>
-
-Major and minor scales on a guitar:
-
-<p align="center"><img src="img/hsfret_guitar_maj_min.png" width=350></p>
