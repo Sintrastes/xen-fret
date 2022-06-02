@@ -17,7 +17,7 @@ jobs:
           binary-caches-parallel-connections = 40
     - name: Build webapp with nix
       run: |
-        nix-build -A ghcjs.frontend -o result
+        nix-build --show-trace -A ghcjs.frontend -o result
         tar -cvzf xen-fret-js-frontend.tar.gz result/*
     - name: Archive webapp
       uses: actions/upload-artifact@v2
