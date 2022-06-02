@@ -35,6 +35,14 @@ cabal build frontend
 
 to build with [cabal](https://www.haskell.org/cabal/).
 
+Like this project?
+------------------
+
+If you use Xen Fret, or find it useful, consider supporting it's development efforts by buying me a coffee ☕, or a beer 🍺!
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=45F7QR92B4XUY&no_recurring=0&currency_code=USD)
+[![Donate with Ethereum](https://en.cryptobadges.io/badge/micro/0x61531fCA114507138ebefc74Db5C152845b77Cad)](https://en.cryptobadges.io/donate/0x61531fCA114507138ebefc74Db5C152845b77Cad)
+
 Example Screenshots
 -------------------
 
