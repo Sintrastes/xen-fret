@@ -1,1 +1,1 @@
-packages: ./common/common.cabal ./warp-frontend/*.cabal 
+packages: ./xen-fret/xen-fret.cabal ./frontend/*.cabal 
