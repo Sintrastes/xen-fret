@@ -64,9 +64,9 @@ header = do
     "type" =: "text/css" <>
     "rel" =: "stylesheet") blank
 
-data Pages = 
-    Home 
-  | Preferences 
+data Pages =
+    Home
+  | Preferences
   | Temperaments
   | Tunings
   | Scales
@@ -76,17 +76,18 @@ data Pages =
 
 app :: _ => m ()
 app = do
-    let appData = defaultAppData
-
-    let loadedTemperaments = temperaments appData
-
     materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
+    mainPage defaultAppData
+
+mainPage :: _ => AppData -> m ()
+mainPage appData = do
+    let loadedTemperaments = temperaments appData
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
         (temperament, f, s, t, x) <- elClass "div" "main-pane-left" $ do
             el "p" $ text "Configuration options:"
 
-            temperament <- selectMaterial "Temperament" (pure loadedTemperaments) 
+            temperament <- selectMaterial "Temperament" (pure loadedTemperaments)
                 (head loadedTemperaments)
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
@@ -104,25 +105,25 @@ app = do
 
         elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ (liftA2 (,) (liftA2 (,) f x) (liftA2 (,) s temperament)) <&> \((frets, xSize), (scale, temperament')) -> case handleParseErrs (Just $ period $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
-                Left err                              -> el "p" $ text $ T.pack err
-                Right (period, frets, scales, tuning, xy) -> do
-                    let _fretboard = mkFret tuning period
-                    let _scales    = map (mkScl period) scales
-                    case handleScaleFretboardErrs _fretboard _scales of
-                        Left err                 -> el "p" $ text $ T.pack $ concatErrors err
-                        Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                            let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
-                            case xy of
-                                X x -> do
-                                    elDynHtml' "div" (constDyn $ T.pack $
-                                        foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams)
-                                    pure ()
-                                Y y -> do
-                                    elDynHtml' "div" (constDyn $ T.pack $
-                                        foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
-                                    pure ()
-    blank
+            dyn $ liftA2 (,) (liftA2 (,) f x) (liftA2 (,) s temperament) <&> \((frets, xSize), (scale, temperament')) -> case handleParseErrs (Just $ period $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
+              Left err                              -> el "p" $ text $ T.pack err
+              Right (period, frets, scales, tuning, xy) -> do
+                  let _fretboard = mkFret tuning period
+                  let _scales    = map (mkScl period) scales
+                  case handleScaleFretboardErrs _fretboard _scales of
+                      Left err                 -> el "p" $ text $ T.pack $ concatErrors err
+                      Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                          let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
+                          case xy of
+                              X x -> do
+                                  elDynHtml' "div" (constDyn $ T.pack $
+                                      foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams)
+                                  pure ()
+                              Y y -> do
+                                  elDynHtml' "div" (constDyn $ T.pack $
+                                      foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
+                                  pure ()
+        blank
 
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String
