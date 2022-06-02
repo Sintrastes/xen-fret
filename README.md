@@ -1,4 +1,4 @@
-# Xen fret
+# Xen Fret
 
 <p align="center">
   <a href="https://haskell.org/">
@@ -9,12 +9,31 @@
   </a>
 </p>
 
-Xen fret is a simple web app for generating SVG xenharmonic/microtonal scale diagrams for fretted string instruments. Specifically, for generating scale diagrams for equal temperaments. 
+Xen Fret is a simple web app for generating SVG xenharmonic/microtonal scale diagrams for fretted string instruments. Specifically, for generating scale diagrams for equal temperaments. 
 
 Gettring started
 ----------------
 
-Xen fret is built with [reflex-frp](https://reflex-frp.org/) and [nix](https://github.com/NixOS/nix), and can be deployed as a static webpage (with front-end  Javascript). An example of this is currently hosted at... 
+Xen Fret is currently hosted [here](https://sintrastes.github.io/demos/xen_fret/) as a static page on github pages. In the future, we may add desktop and mobile versions.
+
+Building
+--------
+
+Xen Fret is built with [reflex-frp](https://reflex-frp.org/) and [nix](https://github.com/NixOS/nix), and can be deployed as a static webpage (with front-end Javascript). To build a static front-end with nix, simply run `nix-build -A ghcjs.frontend`.
+
+Xen fret can also be built as a native executable thanks to [jsaddle](https://github.com/ghcjs/jsaddle). To build Xen Fret this way, simply run:
+
+```
+nix-build -A ghc.frontend
+```
+
+to build with nix, or 
+
+```
+cabal build frontend
+```
+
+to build with [cabal](https://www.haskell.org/cabal/).
 
 Example Screenshots
 -------------------
