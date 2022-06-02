@@ -125,6 +125,18 @@ mainPage appData = do
                                   pure ()
         blank
 
+temperamentPage :: _ => m ()
+temperamentPage = el "p" $ text "Temperament"
+
+tuningPage :: _ => m ()
+tuningPage = el "p" $ text "Tuning"
+
+scalePage :: _ => m ()
+scalePage = el "p" $ text "Scales"
+
+preferencePage :: _ => m ()
+preferencePage = el "p" $ text "Preferences"
+
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String
 format (X x) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral x)) Nothing "" [] False) d
