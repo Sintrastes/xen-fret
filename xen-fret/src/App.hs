@@ -76,8 +76,16 @@ data Pages =
 
 app :: _ => m ()
 app = do
-    materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
-    mainPage defaultAppData
+    navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
+    currentPage <- holdDyn Home navEvents
+
+    dyn $ currentPage <&> \case
+        Home -> mainPage defaultAppData
+        Temperaments -> temperamentPage
+        Tunings -> tuningPage
+        Scales -> scalePage
+        Preferences -> preferencePage
+    blank
 
 mainPage :: _ => AppData -> m ()
 mainPage appData = do

@@ -21,6 +21,7 @@ library
     , RecursiveDo
     , TemplateHaskell
     , TypeApplications
+    , LambdaCase
   build-depends:
       base
     , diagrams
