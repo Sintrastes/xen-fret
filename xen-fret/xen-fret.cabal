@@ -1,15 +1,10 @@
 name:                xen-fret
-version:             0.1.0.0
--- synopsis:            
--- description:         
+version:             0.1.0.0   
 license:             AGPL-3
 license-file:        LICENSE
 author:              Nathan BeDell
-maintainer:          nbedell@tulane.edu
--- copyright:           
--- category:            
+maintainer:          nbedell@tulane.edu         
 build-type:          Simple
--- extra-source-files:  
 cabal-version:       >=1.10
 
 library       
