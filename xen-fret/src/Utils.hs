@@ -15,7 +15,7 @@ import Control.Monad.IO.Class
 
 data Temperament = Temperament {
     temperamentName :: String, 
-    period :: Int
+    divisions :: Int
 }
     deriving(Eq)
 
