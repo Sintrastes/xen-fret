@@ -24,6 +24,7 @@ import System.Info
 import System.Directory
 import Data.List
 import Data.Aeson
+import Control.Monad.IO.Class
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -83,6 +84,11 @@ loadAppData dataFile = do
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(e :: SomeException) -> return defaultAppData)
     pure loadedData
+
+persistAppData dynAppData dataFile = 
+    prerender (pure never) $ performEvent $ updated dynAppData <&> 
+        \newData ->
+            liftIO $ encodeFile dataFile newData
 
 app :: _ => m ()
 app = do
