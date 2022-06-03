@@ -102,10 +102,10 @@ app = do
 
     dyn $ currentPage <&> \case
         Home -> mainPage appDir
-        Temperaments -> temperamentPage
-        Tunings -> tuningPage
-        Scales -> scalePage
-        Preferences -> preferencePage
+        Temperaments -> temperamentPage appDir
+        Tunings -> tuningPage appDir
+        Scales -> scalePage appDir
+        Preferences -> preferencePage appDir
     blank
 
 mainPage :: _ => FilePath -> m ()
@@ -155,17 +155,32 @@ mainPage appDir = do
                                   pure ()
         blank
 
-temperamentPage :: _ => m ()
-temperamentPage = el "p" $ text "Temperament"
+temperamentPage :: _ => FilePath -> m ()
+temperamentPage appDir = do
+    appData <- loadAppData (appDir <> "/app_data.json")
+    let currentTemperaments = temperaments appData
+    forM_ currentTemperaments $ \temperament ->
+        el "p" $ text $ T.pack $ show temperament
 
-tuningPage :: _ => m ()
-tuningPage = el "p" $ text "Tuning"
+tuningPage :: _ => FilePath -> m ()
+tuningPage appDir = do
+    appData <- loadAppData (appDir <> "/app_data.json")
+    let currentTunings = tunings appData
+    forM_ currentTunings $ \tuning ->
+        el "p" $ text $ T.pack $ show tuning
 
-scalePage :: _ => m ()
-scalePage = el "p" $ text "Scales"
+scalePage :: _ => FilePath -> m ()
+scalePage appDir = do
+    appData <- loadAppData (appDir <> "/app_data.json")
+    let currentScales = scales appData
+    forM_ currentScales $ \scale ->
+        el "p" $ text $ T.pack $ show scale
 
-preferencePage :: _ => m ()
-preferencePage = el "p" $ text "Preferences"
+preferencePage :: _ => FilePath -> m ()
+preferencePage appDir = do
+    appData <- loadAppData (appDir <> "/app_data.json")
+    let currentPrefs = preferences appData
+    el "p" $ text "Preferences"
 
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String
