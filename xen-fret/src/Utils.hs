@@ -311,3 +311,66 @@ elSvg tag a1 a2 = do
 liftFrontend d x = do
     res <- current <$> prerender (pure d) (liftIO x)
     sample res
+
+modalHeader :: _ => T.Text -> m ()
+modalHeader txt = do
+    elAttr "h5" ("style" =: "margin-top: 0em; margin-bottom:1em;") $ text txt
+    pure ()
+
+-- | Helper function to open a simple Ok/Cancel modal dialog.
+modal :: (MonadFix m, PostBuild t m, MonadHold t m, DomBuilder t m)
+      => Event t () -> m (Dynamic t a) -> m (Event t (Maybe a))
+modal onClick contents = mdo
+    (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
+        res <- elClass "div" "modal-content"
+            contents
+
+        let okAttrs = "class" =: "modal-close waves-effect waves-green btn-flat" <>
+                "data-role" =: "button"
+
+        let cancelAttrs = "class" =: "negative modal-close waves-effect waves-green btn-flat" <>
+                "data-role" =: "button"
+
+        (onCancel, onSubmit) <- elClass "div" "modal-footer p-modal-button-container" $ do
+            onCancel <- domEvent Click . fst <$>
+                elAttr' "a" cancelAttrs
+                    (text "Cancel")
+            onSubmit <- domEvent Click . fst <$>
+                elAttr' "a" okAttrs
+                    (text "Ok")
+
+            pure (onCancel, onSubmit)
+
+        pure (res, onCancel, onSubmit)
+
+    let events = leftmost
+            [
+                Open   <$ onClick,
+                Closed <$ onCancel,
+                Closed <$ onSubmit
+            ]
+
+    modalVisibility <- foldDyn const Closed events
+
+    elDynAttr "div" overlayAttrs $ pure ()
+
+    let modalAttrs = modalVisibility <&> \case
+            Closed -> "style" =: "display: none;"
+            Open   -> "class" =: "modal open" <> "style" =: ("overflow: visible;" <> "z-index: 1003;" <>
+                    "display: block;" <> "background-color: transparent;" <>
+                    "top: 10%;" <> "transform: scaleX(1) scaleY(1);")
+    
+    let overlayAttrs = modalVisibility <&> \case
+            Open -> "class" =: "modal-overlay" <>
+                "style" =: "z-index: 1002; display: block; opacity: 0.5;"
+            _ -> empty
+
+    pure $ leftmost
+      [
+        Just <$> tag (current res) onSubmit
+      , Nothing <$ onCancel
+      ]
+
+data ModalEvent =
+      Open
+    | Closed
