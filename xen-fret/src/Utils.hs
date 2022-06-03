@@ -11,6 +11,7 @@ import Data.MultiMap (fromList, toMap)
 import Data.Map (Map, empty)
 import Data.Aeson.TH
 import Data.Aeson
+import Control.Monad.IO.Class
 
 data Temperament = Temperament {
     temperamentName :: String, 
@@ -306,3 +307,7 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
 elSvg tag a1 a2 = do
   elDynAttrNS' (Just "http://www.w3.org/2000/svg") tag (constDyn a1) a2
   return ()
+
+liftFrontend d x = do
+    res <- current <$> prerender (pure d) (liftIO x)
+    sample res
