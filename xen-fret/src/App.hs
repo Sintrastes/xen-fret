@@ -19,6 +19,11 @@ import Data.Functor
 import Control.Applicative
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
+import Control.Exception
+import System.Info
+import System.Directory
+import Data.List
+import Data.Aeson
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -73,21 +78,33 @@ data Pages =
   | EditTemperament
     deriving(Show)
 
+loadAppData dataFile = do
+    loadedData :: AppData <- liftFrontend defaultAppData $
+        catch (fromJust <$> decodeFileStrict dataFile)
+            (\(e :: SomeException) -> return defaultAppData)
+    pure loadedData
+
 app :: _ => m ()
 app = do
+    -- Setup the application directory.
+    appDir <- if "android" `isInfixOf` os
+        then pure "/data/data/org.xenfret.app"
+        else liftFrontend "/" getHomeDirectory <&> (<> "/.xenfret")
+    
     navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
     currentPage <- holdDyn Home navEvents
 
     dyn $ currentPage <&> \case
-        Home -> mainPage defaultAppData
+        Home -> mainPage appDir
         Temperaments -> temperamentPage
         Tunings -> tuningPage
         Scales -> scalePage
         Preferences -> preferencePage
     blank
 
-mainPage :: _ => AppData -> m ()
-mainPage appData = do
+mainPage :: _ => FilePath -> m ()
+mainPage appDir = do
+    appData <- loadAppData (appDir <> "/app_data.json")
     let loadedTemperaments = temperaments appData
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
