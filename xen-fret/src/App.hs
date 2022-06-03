@@ -20,12 +20,11 @@ import Control.Applicative
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
 
--- Constants for now, TODO: allow manual control from the CGI interface.
-vs :: Double
-vs = 0.2
+baseVerticalSpacing :: Double
+baseVerticalSpacing = 0.2
 
-hs :: Double
-hs = 0.5/5
+baseHorizontalSpacing :: Double
+baseHorizontalSpacing = 0.5/5
 
 data XorY = X Int | Y Int
 
@@ -121,7 +120,7 @@ mainPage appData = do
                   case handleScaleFretboardErrs _fretboard _scales of
                       Left err                 -> el "p" $ text $ T.pack $ concatErrors err
                       Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                          let diagrams = map (toBoard frets vs hs . chScale fretboard) scales
+                          let diagrams = map (toBoard frets baseVerticalSpacing baseHorizontalSpacing . chScale fretboard) scales
                           case xy of
                               X x -> do
                                   elDynHtml' "div" (constDyn $ T.pack $
