@@ -12,10 +12,12 @@ import Data.Map (Map, empty)
 import Data.Aeson.TH
 import Data.Aeson
 import Control.Monad.IO.Class
+import Data.Ratio
 
 data Temperament = Temperament {
     temperamentName :: String, 
-    divisions :: Int
+    divisions :: Int,
+    period :: Rational
 }
     deriving(Eq)
 
@@ -68,14 +70,14 @@ $(deriveJSON defaultOptions ''AppData)
 defaultAppData = AppData {
       temperaments = 
         [
-            Temperament "11-TET" 11,
-            Temperament "12-TET" 12,
-            Temperament "13-TET" 13,
-            Temperament "16-TET" 16,
-            Temperament "19-TET" 19,
-            Temperament "22-TET" 22,
-            Temperament "24-TET" 24,
-            Temperament "Bohlen Pierce" 13
+            Temperament "11-TET" 11 (2 % 1),
+            Temperament "12-TET" 12 (2 % 1),
+            Temperament "13-TET" 13 (2 % 1),
+            Temperament "16-TET" 16 (2 % 1),
+            Temperament "19-TET" 19 (2 % 1),
+            Temperament "22-TET" 22 (2 % 1),
+            Temperament "24-TET" 24 (2 % 1),
+            Temperament "Bohlen Pierce" 13 (3 % 1)
         ]
     , tunings = toMap $ fromList 
         [
