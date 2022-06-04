@@ -141,12 +141,12 @@ mainPage appDir = do
             dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) (liftA2 (,) verticalScaling horizontalScaling) <&> \((frets, xSize), (scale, temperament'), (verticalScaling', horizontalScaling')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
               Left err                              -> el "p" $ text $ T.pack err
               Right (period, frets, scales, tuning, xy) -> do
-                  let _fretboard = mkFret tuning period
-                  let _scales    = map (mkScl period) scales
+                  let _fretboard = makeFret tuning period
+                  let _scales    = map (makeScale period) scales
                   case handleScaleFretboardErrs _fretboard _scales of
                       Left err                 -> el "p" $ text $ T.pack $ concatErrors err
                       Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                          let diagrams = map (board frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . chScale fretboard) scales
+                          let diagrams = map (board frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . changeScale fretboard) scales
                           case xy of
                               X x -> do
                                   elDynHtml' "div" (constDyn $ T.pack $

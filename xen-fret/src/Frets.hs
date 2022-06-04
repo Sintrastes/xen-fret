@@ -1,9 +1,9 @@
 
 module Frets (
-    mkScl,
-    mkFret,
-    chScale,
-    infScl,
+    makeScale,
+    makeFret,
+    changeScale,
+    repeatingNotes,
     board,
     Fretboard(),
     Scale(),
@@ -25,8 +25,8 @@ newtype Scale = Scale (NonEmpty Int, -- Intervals of the scale, must not contain
 fromScl (Scale x) = x
 
 -- | Validates the preconditions of, and creates a scale.
-mkScl :: Int -> NonEmpty Int -> Either [String] Scale
-mkScl n xs | not $ any (<=0) xs
+makeScale :: Int -> NonEmpty Int -> Either [String] Scale
+makeScale n xs | not $ any (<=0) xs
                    , sum xs == n
            = Right (Scale (xs,n))
                    | otherwise
@@ -34,8 +34,8 @@ mkScl n xs | not $ any (<=0) xs
                                     (any (<=0) xs , "Non-positive intervals are not allowed")]
 
 -- | Generate an infinite list of the notes of the scale, from 0.
-infScl :: Scale -> [Int]
-infScl (Scale (xs,_)) = scanl (+) 0 (join $ repeat $ toList xs)
+repeatingNotes :: Scale -> [Int]
+repeatingNotes (Scale (xs,_)) = scanl (+) 0 (join $ repeat $ toList xs)
 
 -- Only used internally
 -- TODO: This might be more readable as a regular constructor
@@ -55,10 +55,10 @@ newtype Fretboard = Fretboard (NonEmpty Str,
 fromFret (Fretboard x) = x
 
 -- | Validates the preconditions of and creates a fretboard.
-mkFret ::   (NonEmpty Int) -- Tuning of the fretboard, must be non-empty, non-zero.
+makeFret :: (NonEmpty Int) -- Tuning of the fretboard, must be non-empty, non-zero.
           -> Int  -- Period, must be a positive number.
           -> Either [String] Fretboard
-mkFret t period | period >= 1 && not (null t) && not (any (<0) t)
+makeFret t period | period >= 1 && not (null t) && not (any (<0) t)
                 = Right $ Fretboard (NonEmpty.map mkStr t, period)
                 | otherwise
                 = Left $ collectErrList [(null t, "Tuning is empty -- no strings specified"),
@@ -66,8 +66,8 @@ mkFret t period | period >= 1 && not (null t) && not (any (<0) t)
                                           (any (<0) t   , "No strings can have a non-positive tuning")]
 
 -- | Change the scale of a fretboard
-chScale :: Fretboard -> Scale -> Fretboard
-chScale f@(Fretboard (strs,p)) s@(Scale scl) = Fretboard (go (fst $ fromFret $ applyFirst f s) 1,p)
+changeScale :: Fretboard -> Scale -> Fretboard
+changeScale f@(Fretboard (strs,p)) s@(Scale scl) = Fretboard (go (fst $ fromFret $ applyFirst f s) 1,p)
     where go :: NonEmpty Str -> Int -> NonEmpty Str
           go fb n | n < length fb
                   = go (notes str1 # map (\x -> x - pitch (toList fb !! n)) #
@@ -79,8 +79,8 @@ chScale f@(Fretboard (strs,p)) s@(Scale scl) = Fretboard (go (fst $ fromFret $ a
 -- | Applies the scale to the first string
 applyFirst :: Fretboard -> Scale -> Fretboard
 applyFirst (Fretboard (s :| ss,p)) (Scale scl)
-    | p == (snd scl)
-    = Fretboard (Str { notes = infScl (Scale scl), pitch = pitch s } :| ss, p)
+    | p == snd scl
+    = Fretboard (Str { notes = repeatingNotes (Scale scl), pitch = pitch s } :| ss, p)
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
