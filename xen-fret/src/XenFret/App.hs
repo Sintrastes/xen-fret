@@ -123,42 +123,44 @@ mainPage appDir = do
     let loadedTemperaments = temperaments appData
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
-        (temperament, f, s, t, x, verticalScaling, horizontalScaling) <- elClass "div" "main-pane-left" $ do
+        dynArgs <- elClass "div" "main-pane-left" $ do
             el "p" $ text "Configuration options:"
 
-            temperament <- selectMaterial "Temperament" (pure loadedTemperaments)
+            temperamentDyn <- selectMaterial "Temperament" (pure loadedTemperaments)
                 (head loadedTemperaments)
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
 
-            let loadedScales = (\x -> fromJust $ Map.lookup (temperamentName x) $ scales appData) <$> temperament
+            let loadedScales = (\x -> fromJust $ Map.lookup (temperamentName x) $ scales appData) <$> 
+                    temperamentDyn
 
-            s <- selectMaterial "Scale" loadedScales (head initialScales)
-            t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
-            x <- labeledEntry "Scale" intEntry 82
-            f <- labeledEntry "Number of Frets" intEntry 10
-            verticalScaling <- labeledEntry "Vertical Spacing" intEntry 200
-            horizontalScaling <- labeledEntry "Horizontal Spacing" intEntry 200
+            scaleDyn <- selectMaterial "Scale" loadedScales (head initialScales)
+            sizeDyn <- labeledEntry "Size" intEntry 82
+            fretsDyn <- labeledEntry "Number of Frets" intEntry 10
+            verticalScalingDyn <- labeledEntry "Vertical Spacing" intEntry 200
+            horizontalScalingDyn <- labeledEntry "Horizontal Spacing" intEntry 200
             checkbox "Use realistic fret spacing" False
 
             button "Save"
 
-            pure (temperament, f, s, t, x, verticalScaling, horizontalScaling)
+            pure $ (,,,,,) <$>
+                fretsDyn <*> 
+                sizeDyn <*> 
+                scaleDyn <*>
+                temperamentDyn <*>
+                verticalScalingDyn <*>
+                horizontalScalingDyn
 
-        let dynArgs = (,,,,,) <$>
-              f <*> x <*> s <*>
-              temperament <*>
-              verticalScaling <*>
-              horizontalScaling
+        tuning <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
 
         elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament', verticalScaling', horizontalScaling') -> 
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling) -> 
                 let 
-                    verticalSpacing   = (int2Double verticalScaling' / 200.0) * baseVerticalSpacing
-                    horizontalSpacing = (int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing
+                    verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
+                    horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
                 in
-                    case handleParseErrs (Just $ divisions $ temperament') (Just frets) t (Just xSize) Nothing of
+                    case handleParseErrs (Just $ divisions $ temperament) (Just frets) tuning (Just xSize) Nothing of
                         Left err                              -> el "p" $ text $ T.pack err
                         Right (period, frets, tuning, xy) -> do
                             let _fretboard = makeFret tuning period
