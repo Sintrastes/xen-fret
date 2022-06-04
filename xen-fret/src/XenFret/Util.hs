@@ -1,4 +1,4 @@
-module Frets.Util where
+module XenFret.Util where
 
 import Diagrams.Prelude ((#))
 

@@ -7,14 +7,14 @@ import Data.Either
 import Diagrams.Prelude ( renderDia, mkWidth, Diagram )
 import Diagrams.Backend.SVG
 import qualified Data.ByteString.Lazy.Char8 as B
-import Frets.Util
-import Frets
+import XenFret.Util
+import XenFret
 import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button)
 import Reflex.Dom.Old (elDynHtml')
+import Reflex.Dom.Extras
 import qualified Data.Text as T
-import Utils
 import Data.Functor
 import Control.Applicative
 import qualified Data.Map as Map
@@ -27,8 +27,8 @@ import Data.Aeson
 import Control.Monad.IO.Class
 import GHC.Float
 import Language.Javascript.JSaddle (eval, liftJSM)
-import Frets.Data
-import Frets.AppData
+import XenFret.Data
+import XenFret.AppData
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2

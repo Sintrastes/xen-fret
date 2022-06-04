@@ -1,5 +1,5 @@
 
-module Frets (
+module XenFret (
     makeFret,
     changeScale,
     repeatingNotes,
@@ -11,11 +11,10 @@ import Diagrams.Attributes
 import Control.Monad
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
-import Frets.Util
-import Utils
+import XenFret.Util
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import qualified Data.List.NonEmpty as NonEmpty
-import Frets.Data
+import XenFret.Data
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]

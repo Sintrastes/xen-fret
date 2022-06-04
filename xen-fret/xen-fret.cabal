@@ -9,11 +9,11 @@ cabal-version:       >=1.10
 
 library       
   exposed-modules:       
-      Frets,
-      Frets.Data,
-      Frets.AppData,
-      Frets.Util, 
-      Utils,
+      XenFret,
+      XenFret.Data,
+      XenFret.AppData,
+      XenFret.Util, 
+      Reflex.Dom.Extras,
       App
   default-extensions:
       OverloadedStrings
