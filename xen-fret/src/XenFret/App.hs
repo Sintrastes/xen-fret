@@ -175,22 +175,29 @@ mainPage appDir = do
 temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
-    let currentTemperaments = temperaments appData
+    let initialTemperaments = temperaments appData
 
     newTemperamentEvent <- button "New Temperament"
 
     newTemperamentSubmitted <- modal newTemperamentEvent $ 
         temperamentForm def
 
-    prerender (pure ()) $ performEvent_ $ newTemperamentSubmitted <&> \case
-        Nothing -> pure ()
-        Just _  -> toast "Added new temperament" 
+    updatedTemperaments <- switch . current <$> (prerender (pure never) $ performEvent $ newTemperamentSubmitted <&> \case
+        Nothing -> pure initialTemperaments
+        Just temperament -> do
+            toast "Added new temperament" 
+            pure (initialTemperaments ++ [temperament]))
 
-    elClass "ul" "collection" $ do
-        forM_ currentTemperaments (\temperament -> do
-            elClass "li" "collection-item" $ do
-                el "span" $ text $
-                    T.pack $ show temperament)
+    dynTemperaments <- holdDyn initialTemperaments 
+        updatedTemperaments
+
+    dyn $ dynTemperaments <&> \currentTemperaments ->
+        elClass "ul" "collection" $ do
+            forM_ currentTemperaments (\temperament -> do
+                elClass "li" "collection-item" $ do
+                    el "span" $ text $
+                        T.pack $ show temperament)
+    blank
 
 temperamentForm :: _ => Temperament -> m (Dynamic t Temperament)
 temperamentForm initialValue = do
