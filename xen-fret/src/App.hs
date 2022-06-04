@@ -136,26 +136,37 @@ mainPage appDir = do
 
             pure (temperament, f, s, t, x, verticalScaling, horizontalScaling)
 
+        let dynArgs = (,,,,,) <$>
+              f <*> x <*> s <*>
+              temperament <*>
+              verticalScaling <*>
+              horizontalScaling
+
         elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) (liftA2 (,) verticalScaling horizontalScaling) <&> \((frets, xSize), (scale, temperament'), (verticalScaling', horizontalScaling')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) t (Just xSize) Nothing of
-              Left err                              -> el "p" $ text $ T.pack err
-              Right (period, frets, tuning, xy) -> do
-                  let _fretboard = makeFret tuning period
-                  case handleScaleFretboardErrs _fretboard [Right scale] of
-                      Left err                 -> el "p" $ text $ T.pack $ concatErrors err
-                      Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                          let diagrams = map (board frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . changeScale fretboard) [scale]
-                          case xy of
-                              X x -> do
-                                  elDynHtml' "div" (constDyn $ T.pack $
-                                      foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (X x)) diagrams)
-                                  pure ()
-                              Y y -> do
-                                  elDynHtml' "div" (constDyn $ T.pack $
-                                      foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
-                                  pure ()
-        blank
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament', verticalScaling', horizontalScaling') -> 
+                let 
+                    verticalSpacing   = (int2Double verticalScaling' / 200.0) * baseVerticalSpacing
+                    horizontalSpacing = (int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing
+                in
+                    case handleParseErrs (Just $ divisions $ temperament') (Just frets) t (Just xSize) Nothing of
+                        Left err                              -> el "p" $ text $ T.pack err
+                        Right (period, frets, tuning, xy) -> do
+                            let _fretboard = makeFret tuning period
+                            case handleScaleFretboardErrs _fretboard [Right scale] of
+                                Left err                 -> el "p" $ text $ T.pack $ concatErrors err
+                                Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                                    let diagrams = map (board frets verticalSpacing horizontalSpacing . changeScale fretboard) [scale]
+                                    case xy of
+                                        X x -> do
+                                            elDynHtml' "div" (constDyn $ T.pack $
+                                                foldl1 (\x y -> x ++ "\n &nbsp;&nbsp;&nbsp; \n" ++ y) $ map (format (X x)) diagrams)
+                                            pure ()
+                                        Y y -> do
+                                            elDynHtml' "div" (constDyn $ T.pack $
+                                                foldl1 (\x y -> x++"\n &nbsp;&nbsp;&nbsp; \n"++y) $ map (format (Y y)) diagrams)
+                                            pure ()
+            blank    
 
 temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = do
