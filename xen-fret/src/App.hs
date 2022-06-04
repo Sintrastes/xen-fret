@@ -26,6 +26,7 @@ import Data.List
 import Data.Aeson
 import Control.Monad.IO.Class
 import GHC.Float
+import Language.Javascript.JSaddle (eval, liftJSM)
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -173,8 +174,29 @@ temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentTemperaments = temperaments appData
+
+    newTemperamentEvent <- button "New Temperament"
+
+    newTemperamentSubmitted <- modal newTemperamentEvent $ 
+        temperamentForm def
+
+    prerender (pure ()) $ performEvent_ $ newTemperamentSubmitted <&> \case
+        Nothing -> pure ()
+        Just _  -> toast "Added new temperament" 
+    
     forM_ currentTemperaments $ \temperament ->
         el "p" $ text $ T.pack $ show temperament
+
+temperamentForm :: _ => Temperament -> m (Dynamic t Temperament)
+temperamentForm initialValue = do
+    modalHeader "Add New Temperament"
+
+    let formContents = Temperament <$>
+            form (temperamentName =. labeledEntry "Name" textEntry) <*>
+            form (divisions =. labeledEntry "Divisions" intEntry) <*>
+            form (period =. labeledEntry "Period" rationalEntry)
+    
+    initForm formContents $ initialValue
 
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do
@@ -242,3 +264,7 @@ indexErrs xs = go 1 xs []
           go n ((Right _):xs)   idx = go (n+1) xs idx
 
           fmt errs = foldl1 (\x y -> x++", "++y) errs
+
+toast message = do
+    liftJSM $ eval ("console.log(\"toast\"); M.toast({html: '" <> message <> "'})" :: T.Text)
+    pure ()

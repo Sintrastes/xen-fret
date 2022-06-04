@@ -5,6 +5,7 @@ import Reflex.Dom.Core
 import qualified Data.Text as T
 import Data.Functor
 import Control.Monad
+import Control.Applicative (liftA2)
 import Control.Monad.Fix
 import Data.List.NonEmpty hiding (fromList)
 import Data.MultiMap (fromList, toMap)
@@ -13,39 +14,63 @@ import Data.Aeson.TH
 import Data.Aeson
 import Control.Monad.IO.Class
 import Data.Ratio
+import Data.Default
+import Data.Profunctor
+import Data.Functor.Compose
+
+type Form t m a b
+    = Star (Compose m (Dynamic t)) a b
+
+type SForm t m a = Form t m a a
+
+form :: DomBuilder t m => (a -> m (Dynamic t b)) -> Form t m a b
+form f = Star (Compose . f)
+
+initForm :: DomBuilder t m => Form t m a b -> a -> m (Dynamic t b)
+initForm (Star f) x = getCompose $ f x
+
+(=.) :: Profunctor f => (x -> y) -> f y a -> f x a
+(=.) = lmap
 
 data Temperament = Temperament {
-    temperamentName :: String, 
+    temperamentName :: T.Text, 
     divisions :: Int,
     period :: Rational
 }
     deriving(Eq)
 
+instance Default Temperament where
+    def = Temperament {
+        temperamentName = "",
+        divisions = 12,
+        period = 2 % 1
+    }
+
 instance Show Temperament where
-    show = temperamentName
+    show = T.unpack . temperamentName
 
 $(deriveJSON defaultOptions ''Temperament)
 
 data Tuning = Tuning {
-    tuningName :: String,
-    instrument :: String,
+    tuningName :: T.Text,
+    instrument :: T.Text,
     stringTunings :: NonEmpty Int
 }
     deriving(Eq)
 
 instance Show Tuning where
-    show = tuningName
+    show = T.unpack . tuningName
 
 $(deriveJSON defaultOptions ''Tuning)
 
 data Scale = Scale {
-    scaleName  :: String,
+    scaleName  :: T.Text,
     scaleIntervals :: NonEmpty Int
 }
     deriving(Eq)
 
 instance Show Scale where
-    show = scaleName
+    show = T.unpack . scaleName
 
 $(deriveJSON defaultOptions ''Scale)
 
@@ -59,9 +84,9 @@ data AppData = AppData {
     -- | Get the list of temperaments
     temperaments :: [Temperament],
     -- | Get the tunings associated with a temperament.
-    tunings :: Map String [Tuning],
+    tunings :: Map T.Text [Tuning],
     -- | Get the scales associated with a temperament.
-    scales  :: Map String [Scale],
+    scales  :: Map T.Text [Scale],
     preferences :: PreferenceData
 }
 
@@ -200,12 +225,13 @@ navButton x = el "li" $
     domEvent Click . fst <$>
         el' "a" (text x)
 
-textEntry :: _ => m (InputElement EventResult (DomBuilderSpace m) t)
-textEntry =
-    inputElement (
+textEntry :: _ => T.Text -> m (Dynamic t T.Text)
+textEntry initialValue =
+    _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
-            .~ attrs)
+            .~ attrs
+            & inputElementConfig_initialValue .~ initialValue)
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "text"
@@ -235,12 +261,23 @@ positiveIntEntry initialValue =
     fmap (read @Int . T.unpack) <$> _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
-            .~ attrs)
+            .~ attrs
+            & inputElementConfig_initialValue
+            .~ (T.pack $ show initialValue))
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "number" <>
         "step" =: "1" <>
         "min" =: "0"
+
+rationalEntry :: _ => Rational -> m (Dynamic t Rational)
+rationalEntry initialValue = el "div" $ do
+    num <- elAttr "div" ("style" =: "display: inline-block;width:60px;margin-right: 7.5px;") $ 
+        positiveIntEntry $ fromIntegral $ numerator initialValue
+    el "span" $ text "/"
+    denom <- elAttr "div" ("style" =: "display: inline-block;width:60px;margin-left: 5px;") $ 
+        positiveIntEntry $ fromIntegral $ denominator initialValue
+    pure $ liftA2 (%) (toInteger <$> num) (toInteger <$> denom)
 
 button label = do
     let attributes = "class" =: "waves-effect waves-light btn"
