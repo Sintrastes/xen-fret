@@ -26,12 +26,12 @@ fromScl (Scale x) = x
 
 -- | Validates the preconditions of, and creates a scale.
 makeScale :: Int -> NonEmpty Int -> Either [String] Scale
-makeScale n xs | not $ any (<=0) xs
+makeScale n xs | not $ any (<= 0) xs
                    , sum xs == n
            = Right (Scale (xs,n))
                    | otherwise
            = Left $ collectErrList [(sum xs /= n  , "The sum of the intervals is not equal to the period"),
-                                    (any (<=0) xs , "Non-positive intervals are not allowed")]
+                                    (any (<= 0) xs , "Non-positive intervals are not allowed")]
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]
@@ -55,10 +55,10 @@ newtype Fretboard = Fretboard (NonEmpty Str,
 fromFret (Fretboard x) = x
 
 -- | Validates the preconditions of and creates a fretboard.
-makeFret :: (NonEmpty Int) -- Tuning of the fretboard, must be non-empty, non-zero.
+makeFret :: NonEmpty Int -- Tuning of the fretboard, must be non-empty, non-zero.
           -> Int  -- Period, must be a positive number.
           -> Either [String] Fretboard
-makeFret t period | period >= 1 && not (null t) && not (any (<0) t)
+makeFret t period | period >= 1 && not (null t) && not (any (< 0) t)
                 = Right $ Fretboard (NonEmpty.map mkStr t, period)
                 | otherwise
                 = Left $ collectErrList [(null t, "Tuning is empty -- no strings specified"),
@@ -94,7 +94,7 @@ frettingDots vs hs locs = foldr1 atop $ map (`frettingDot` vs) locs
 -- | Create a diagram of a single dot
 frettingDot :: Int -> Double -> Diagram B
 frettingDot 0 vs = circle 0.03 # lwL 0.007
-frettingDot n vs = circle (0.03*0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
+frettingDot n vs = circle (0.03 * 0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
         where n'  = fromIntegral n  :: Double
 
 -- | Create a fretboard diagram
@@ -104,16 +104,17 @@ board ::    Int    -- Number of frets to display on board.
            -> Fretboard
            -> Diagram B
 board nFrets vs hs fretboard = frame 0.005 $
-  emptyboard
-   `atop`
-  -- The dots, translated to their proper positions on the fretboard
-  foldl1 atop (zipWith translateX (map (*hs) [0..nStr'])
-                         (map (translateX (-0.5*(nStr'-1)*hs)) dots))
-    where emptyboard = emptyBoard nFrets vs hs nStr
-          nStr       = length $ fst $ fromFret fretboard
-          dots       = map (frettingDots vs hs) positions
-          positions  = map (takeWhile (<= nFrets) . notes) (toList $ fst $ fromFret fretboard)
-          nStr'      = fromIntegral nStr :: Double -- Type cast
+    emptyboard
+       `atop`
+    -- The dots, translated to their proper positions on the fretboard
+    foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
+                    (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))
+  where 
+    emptyboard = emptyBoard nFrets vs hs nStr
+    nStr       = length $ fst $ fromFret fretboard
+    dots       = map (frettingDots vs hs) positions
+    positions  = map (takeWhile (<= nFrets) . notes) (toList $ fst $ fromFret fretboard)
+    nStr'      = fromIntegral nStr :: Double -- Type cast
 
 
 -- | Draws an empty fretboard diagram.
@@ -128,24 +129,28 @@ emptyBoard nFrets vs hs nStr =
     `atop` strings # translateX (-width/2)
                    # translateY (-len/2)
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
-    where len      = (nFrets'+1/2)*vs
-          width    = (nStr'-1)*hs
-          markers  = case () of
-                      () | nStr > 1 -> vcat' (with & sep .~ vs) (
-                                             replicate nFrets (hrule width)
-                                       # dashingL [0.03] 0
-                                       # lwL 0.007)
-                                       # translateY (-vs)
-                         -- Make the frets more visible when there is only one string.
-                         | nStr == 1 -> vcat' (with & sep .~ vs) (
-                                             replicate nFrets (hrule hs)
-                                       # lwL 0.007)
-                                       # translateY (-vs)
-                         | otherwise -> error "Must have at least one string."
-          strings = hcat' (with & sep .~ hs) $
-                                                replicate nStr (vrule len)
+  where
+    len      = (nFrets' + 1/2) * vs
+    width    = (nStr' - 1) * hs
+    markers  = case () of
+        () | nStr > 1 -> vcat' 
+                (with & sep .~ vs) 
+                (replicate nFrets (hrule width)
+                    # dashingL [0.03] 0
+                    # lwL 0.007)
+                  # translateY (-vs)
+           -- Make the frets more visible when there is only one string.
+           | nStr == 1 -> vcat' 
+                (with & sep .~ vs) 
+                (replicate nFrets (hrule hs)
+                    # lwL 0.007)
+                  # translateY (-vs)
+           | otherwise -> 
+               error "Must have at least one string."
+    strings = hcat' (with & sep .~ hs) $
+        replicate nStr (vrule len)
 
-          -- Type casts
-          nFrets' = fromIntegral nFrets :: Double
-          nStr'   = fromIntegral nStr :: Double
+    -- Type casts
+    nFrets' = fromIntegral nFrets :: Double
+    nStr'   = fromIntegral nStr :: Double
 
