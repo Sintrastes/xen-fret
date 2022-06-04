@@ -8,13 +8,13 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library       
-  exposed-modules:       
-      XenFret,
+  exposed-modules:   
+      XenFret,    
+      XenFret.App,
       XenFret.Data,
       XenFret.AppData,
       XenFret.Util, 
-      Reflex.Dom.Extras,
-      App
+      Reflex.Dom.Extras
   default-extensions:
       OverloadedStrings
     , PartialTypeSignatures
