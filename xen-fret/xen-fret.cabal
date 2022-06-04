@@ -10,6 +10,8 @@ cabal-version:       >=1.10
 library       
   exposed-modules:       
       Frets,
+      Frets.Data,
+      Frets.AppData,
       Frets.Util, 
       Utils,
       App
