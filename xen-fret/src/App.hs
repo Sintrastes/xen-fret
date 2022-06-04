@@ -146,7 +146,7 @@ mainPage appDir = do
                   case handleScaleFretboardErrs _fretboard _scales of
                       Left err                 -> el "p" $ text $ T.pack $ concatErrors err
                       Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                          let diagrams = map (toBoard frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . chScale fretboard) scales
+                          let diagrams = map (board frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . chScale fretboard) scales
                           case xy of
                               X x -> do
                                   elDynHtml' "div" (constDyn $ T.pack $
