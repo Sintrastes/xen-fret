@@ -183,9 +183,12 @@ temperamentPage appDir = do
     prerender (pure ()) $ performEvent_ $ newTemperamentSubmitted <&> \case
         Nothing -> pure ()
         Just _  -> toast "Added new temperament" 
-    
-    forM_ currentTemperaments $ \temperament ->
-        el "p" $ text $ T.pack $ show temperament
+
+    elClass "ul" "collection" $ do
+        forM_ currentTemperaments (\temperament -> do
+            elClass "li" "collection-item" $ do
+                el "span" $ text $
+                    T.pack $ show temperament)
 
 temperamentForm :: _ => Temperament -> m (Dynamic t Temperament)
 temperamentForm initialValue = do
@@ -202,15 +205,22 @@ tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentTunings = tunings appData
-    forM_ currentTunings $ \tuning ->
-        el "p" $ text $ T.pack $ show tuning
+    elClass "ul" "collection" $ do
+        forM_ currentTunings (\tuning -> do
+            elClass "li" "collection-item" $ do
+                el "span" $ text $
+                    T.pack $ show tuning)
 
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentScales = scales appData
-    forM_ currentScales $ \scale ->
-        el "p" $ text $ T.pack $ show scale
+    
+    elClass "ul" "collection" $ do
+        forM_ currentScales (\scale -> do
+            elClass "li" "collection-item" $ do
+                el "span" $ text $
+                    T.pack $ show scale)
 
 preferencePage :: _ => FilePath -> m ()
 preferencePage appDir = do
