@@ -1,5 +1,5 @@
 
-module App where
+module XenFret.App where
 
 import Data.Maybe (isJust, isNothing, fromJust)
 import Control.Monad

@@ -1,6 +1,6 @@
 module Main where
 
-import App
+import XenFret.App
 import Language.Javascript.JSaddle.Warp
 import Reflex.Dom.Core
 
