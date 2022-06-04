@@ -40,7 +40,7 @@ $(deriveJSON defaultOptions ''Tuning)
 
 data Scale = Scale {
     scaleName  :: String,
-    scaleNotes :: NonEmpty Int
+    scaleIntervals :: NonEmpty Int
 }
     deriving(Eq)
 
