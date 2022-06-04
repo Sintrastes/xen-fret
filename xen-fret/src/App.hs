@@ -14,7 +14,7 @@ import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button)
 import Reflex.Dom.Old (elDynHtml')
 import qualified Data.Text as T
-import Utils hiding(Scale)
+import Utils
 import Data.Functor
 import Control.Applicative
 import qualified Data.Map as Map
@@ -138,15 +138,14 @@ mainPage appDir = do
 
         elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) (liftA2 (,) verticalScaling horizontalScaling) <&> \((frets, xSize), (scale, temperament'), (verticalScaling', horizontalScaling')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) (Just $ [NE.toList $ scaleIntervals scale]) t (Just xSize) Nothing of
+            dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) (liftA2 (,) verticalScaling horizontalScaling) <&> \((frets, xSize), (scale, temperament'), (verticalScaling', horizontalScaling')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) t (Just xSize) Nothing of
               Left err                              -> el "p" $ text $ T.pack err
-              Right (period, frets, scales, tuning, xy) -> do
+              Right (period, frets, tuning, xy) -> do
                   let _fretboard = makeFret tuning period
-                  let _scales    = map (makeScale period) scales
-                  case handleScaleFretboardErrs _fretboard _scales of
+                  case handleScaleFretboardErrs _fretboard [Right scale] of
                       Left err                 -> el "p" $ text $ T.pack $ concatErrors err
-                      Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                          let diagrams = map (board frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . changeScale fretboard) scales
+                      Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                          let diagrams = map (board frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) ((int2Double horizontalScaling' / 200.0) * baseHorizontalSpacing) . changeScale fretboard) [scale]
                           case xy of
                               X x -> do
                                   elDynHtml' "div" (constDyn $ T.pack $
@@ -191,28 +190,30 @@ format (X x) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromI
 format (Y y) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral y)) Nothing "" [] False) d
 
 -- | Handle the error messages from parsing the arguments.
-handleParseErrs :: Maybe Int -> Maybe Int -> Maybe [[Int]]
-       -> Maybe [Int] -> Maybe Int -> Maybe Int
-       -> Either String (Int, Int, [NonEmpty Int], NonEmpty Int, XorY)
-handleParseErrs p f s t x y
+handleParseErrs :: Maybe Int 
+    -> Maybe Int
+    -> Maybe [Int] 
+    -> Maybe Int
+    -> Maybe Int
+    -> Either String (Int, Int, NonEmpty Int, XorY)
+handleParseErrs period frets tuning x y
   -- Valid format
-  | Just p' <- p
-  , Just f' <- f
-  , Just s' <- mapM nonEmpty =<< s
-  , Just t' <- nonEmpty =<< t
+  | Just period' <- period
+  , Just frets' <- frets
+  , Just tuning' <- nonEmpty =<< tuning
   , isJust x `xor` isJust y
   = case (x,y) of
-       (Just x',_) -> Right (p',f',s',t',X x')
-       (_,Just y') -> Right (p',f',s',t',Y y')
+       (Just x',_) -> Right (period',frets',tuning',X x')
+       (_,Just y') -> Right (period',frets',tuning',Y y')
        _           -> Left "Must have either x or y specified."
   -- Errors, invalid format
   |  otherwise
-  = collectErrors [(isNothing p, "Error parsing period, should be an integer"),
-                   (isNothing f, "Error parsing frets, should be an integer"),
-                   (isNothing s, "Error parsing scales, should be a list of a list of integers (e.a. [[1,2,3],[4,5,6]])"),
-                   (isNothing t, "Error parsing tuning, should be a list of integers, (e.a. [1,2,3])"),
-                   (isNothing x && isNothing y, "Neither given an x, nor a y"),
-                   (isJust x && isJust y, "Given both an x and a y, only one or the other can be given")]
+  = collectErrors [
+      (isNothing period, "Error parsing period, should be an integer"),
+      (isNothing frets, "Error parsing frets, should be an integer"),
+      (isNothing tuning, "Error parsing tuning, should be a list of integers, (e.a. [1,2,3])"),
+      (isNothing x && isNothing y, "Neither given an x, nor a y"),
+      (isJust x && isJust y, "Given both an x and a y, only one or the other can be given")]
 
 -- | Handle the error messages from constructing the scales and fretboard
 handleScaleFretboardErrs :: Either [String] Fretboard -> [Either [String] Scale] -> Either [String] (Fretboard,[Scale])
