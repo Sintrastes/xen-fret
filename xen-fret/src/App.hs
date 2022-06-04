@@ -25,6 +25,7 @@ import System.Directory
 import Data.List
 import Data.Aeson
 import Control.Monad.IO.Class
+import GHC.Float
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -114,7 +115,7 @@ mainPage appDir = do
     let loadedTemperaments = temperaments appData
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
-        (temperament, f, s, t, x) <- elClass "div" "main-pane-left" $ do
+        (temperament, f, s, t, x, verticalScaling) <- elClass "div" "main-pane-left" $ do
             el "p" $ text "Configuration options:"
 
             temperament <- selectMaterial "Temperament" (pure loadedTemperaments)
@@ -128,14 +129,15 @@ mainPage appDir = do
             s <- selectMaterial "Scale" loadedScales (head initialScales)
             t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
             x <- labeledEntry "Width" intEntry 82
+            verticalScaling <- labeledEntry "Vertical Spacing" intEntry 200
 
             button "Save"
 
-            pure (temperament, f, s, t, x)
+            pure (temperament, f, s, t, x, verticalScaling)
 
         elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ liftA2 (,) (liftA2 (,) f x) (liftA2 (,) s temperament) <&> \((frets, xSize), (scale, temperament')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
+            dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) verticalScaling <&> \((frets, xSize), (scale, temperament'), verticalScaling') -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
               Left err                              -> el "p" $ text $ T.pack err
               Right (period, frets, scales, tuning, xy) -> do
                   let _fretboard = mkFret tuning period
@@ -143,7 +145,7 @@ mainPage appDir = do
                   case handleScaleFretboardErrs _fretboard _scales of
                       Left err                 -> el "p" $ text $ T.pack $ concatErrors err
                       Right (fretboard,scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                          let diagrams = map (toBoard frets baseVerticalSpacing baseHorizontalSpacing . chScale fretboard) scales
+                          let diagrams = map (toBoard frets ((int2Double verticalScaling' / 200.0) * baseVerticalSpacing) baseHorizontalSpacing . chScale fretboard) scales
                           case xy of
                               X x -> do
                                   elDynHtml' "div" (constDyn $ T.pack $
