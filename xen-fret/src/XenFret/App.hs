@@ -100,6 +100,11 @@ app = do
     appDir <- if "android" `isInfixOf` os
         then pure "/data/data/org.xenfret.app"
         else liftFrontend "/" getHomeDirectory <&> (<> "/.xenfret")
+
+    toastOnErrors $ liftFrontend (Right ()) $ catch
+        (do createDirectoryIfMissing True appDir
+            pure $ Right ())
+        (\(e :: SomeException) -> pure $ Left e)
     
     navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
     currentPage <- holdDyn Home navEvents
@@ -190,6 +195,12 @@ temperamentPage appDir = do
 
     dynTemperaments <- holdDyn initialTemperaments 
         updatedTemperaments
+
+    let dynAppData = dynTemperaments <&> \t ->
+            appData { temperaments = t }
+
+    persistAppData dynAppData
+        (appDir <> "/app_data.json")
 
     dyn $ dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
@@ -283,7 +294,3 @@ indexErrs xs = go 1 xs []
           go n ((Right _):xs)   idx = go (n+1) xs idx
 
           fmt errs = foldl1 (\x y -> x++", "++y) errs
-
-toast message = do
-    liftJSM $ eval ("console.log(\"toast\"); M.toast({html: '" <> message <> "'})" :: T.Text)
-    pure ()

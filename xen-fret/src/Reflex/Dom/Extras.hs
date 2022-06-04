@@ -18,6 +18,7 @@ import Data.Default
 import Data.Profunctor
 import Data.Functor.Compose
 import XenFret.AppData
+import Language.Javascript.JSaddle (eval, liftJSM)
 
 type Form t m a b
     = Star (Compose m (Dynamic t)) a b
@@ -215,6 +216,10 @@ liftFrontend d x = do
     res <- current <$> prerender (pure d) (liftIO x)
     sample res
 
+liftFrontend' d x = do
+    res <- current <$> prerender (pure d) x
+    sample res
+
 modalHeader :: _ => T.Text -> m ()
 modalHeader txt = do
     elAttr "h5" ("style" =: "margin-top: 0em; margin-bottom:1em;") $ text txt
@@ -277,3 +282,16 @@ modal onClick contents = mdo
 data ModalEvent =
       Open
     | Closed
+
+toast message = do
+    liftJSM $ eval ("console.log(\"toast\"); M.toast({html: '" <> message <> "'})" :: T.Text)
+    pure ()
+
+toastOnErrors x = do
+    res <- x
+    case res of
+        Left  e ->
+            liftFrontend' () $
+                toast $ "An exception occured when loading Bedelibry: " <> T.pack (show e)
+        Right _ ->
+            pure ()
