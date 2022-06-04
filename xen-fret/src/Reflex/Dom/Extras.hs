@@ -1,5 +1,5 @@
 
-module Utils where
+module Reflex.Dom.Extras where
 
 import Reflex.Dom.Core
 import qualified Data.Text as T
@@ -17,7 +17,7 @@ import Data.Ratio
 import Data.Default
 import Data.Profunctor
 import Data.Functor.Compose
-import Frets.AppData
+import XenFret.AppData
 
 type Form t m a b
     = Star (Compose m (Dynamic t)) a b

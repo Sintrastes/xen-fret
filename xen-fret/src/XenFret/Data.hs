@@ -1,5 +1,5 @@
 
-module Frets.Data where
+module XenFret.Data where
 
 import qualified Data.Text as T
 import Data.Default

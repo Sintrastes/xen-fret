@@ -1,8 +1,8 @@
 
-module Frets.AppData where
+module XenFret.AppData where
 
 import Data.Aeson.TH
-import Frets.Data
+import XenFret.Data
 import qualified Data.Text as T
 import Data.Map hiding(fromList)
 import Data.MultiMap
