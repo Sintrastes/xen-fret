@@ -27,6 +27,8 @@ import Data.Aeson
 import Control.Monad.IO.Class
 import GHC.Float
 import Language.Javascript.JSaddle (eval, liftJSM)
+import Frets.Data
+import Frets.AppData
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -215,7 +217,7 @@ scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentScales = scales appData
-    
+
     elClass "ul" "collection" $ do
         forM_ currentScales (\scale -> do
             elClass "li" "collection-item" $ do
