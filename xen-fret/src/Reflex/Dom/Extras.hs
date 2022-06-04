@@ -220,6 +220,14 @@ liftFrontend' d x = do
     res <- current <$> prerender (pure d) x
     sample res
 
+checkbox :: _ => T.Text -> Bool -> m (Dynamic t Bool)
+checkbox label initialValue = do
+    el "form" $ el "p" $ el "label" $ do
+        res <- _checkbox_value <$> Reflex.Dom.Core.checkbox initialValue def
+        elClass "span" "checkbox" $ pure ()
+        text label
+        return res
+
 modalHeader :: _ => T.Text -> m ()
 modalHeader txt = do
     elAttr "h5" ("style" =: "margin-top: 0em; margin-bottom:1em;") $ text txt

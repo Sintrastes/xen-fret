@@ -11,7 +11,7 @@ import XenFret.Util
 import XenFret
 import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
-import Reflex.Dom.Core hiding(Home, button)
+import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Old (elDynHtml')
 import Reflex.Dom.Extras
 import qualified Data.Text as T
@@ -133,12 +133,13 @@ mainPage appDir = do
 
             let loadedScales = (\x -> fromJust $ Map.lookup (temperamentName x) $ scales appData) <$> temperament
 
-            f <- labeledEntry "Frets" intEntry 10
             s <- selectMaterial "Scale" loadedScales (head initialScales)
             t <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
-            x <- labeledEntry "Width" intEntry 82
+            x <- labeledEntry "Scale" intEntry 82
+            f <- labeledEntry "Number of Frets" intEntry 10
             verticalScaling <- labeledEntry "Vertical Spacing" intEntry 200
             horizontalScaling <- labeledEntry "Horizontal Spacing" intEntry 200
+            checkbox "Use realistic fret spacing" False
 
             button "Save"
 
