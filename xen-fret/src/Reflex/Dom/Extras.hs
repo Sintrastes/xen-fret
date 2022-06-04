@@ -149,18 +149,26 @@ button label = do
     domEvent Click . fst <$> elAttr' "a" attributes
       (text label)
 
-selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m) => Show a => T.Text -> (Dynamic t [a]) -> a -> m (Dynamic t a)
-selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12" $ mdo
+selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) => 
+     T.Text 
+  -> T.Text
+  -> (Dynamic t [a]) 
+  -> a -> m (Dynamic t (Maybe a))
+selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-field col s12" $ mdo
     initialItems <- sample $ current itemsDyn
 
     let initialValueActual = if (initialValue `elem` initialItems) 
-        then initialValue
-        else Prelude.head initialItems
+        then Just initialValue
+        else headMay initialItems
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
-            & inputElementConfig_initialValue .~ (T.pack $ show initialValueActual)
-            & inputElementConfig_setValue .~ (leftmost [T.pack . show <$> changeSelection, T.pack . show <$> itemsUpdated])
+            & inputElementConfig_initialValue .~ (maybe missingText (T.pack . show) initialValueActual)
+            & inputElementConfig_setValue .~ (
+                leftmost [
+                    (T.pack . show) <$> changeSelection, 
+                    maybe missingText (T.pack . show) <$> itemsUpdated]
+                )
 
         changeSelection <- elDynAttr "ul" selectAttrs $ do
             itemEvents <- dyn $ itemsDyn <&> \items -> leftmost <$> forM items (\item -> do
@@ -181,7 +189,7 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
 
     elAttr "label" ("style" =: "left: 0rem;") $ text label
 
-    let itemsUpdated = updated $ Prelude.head <$> itemsDyn
+    let itemsUpdated = updated $ headMay <$> itemsDyn
 
     let selectedStyle = "display: block;" <>
           "width: 100%;" <> "left: 0px;" <>
@@ -204,9 +212,12 @@ selectMaterial label itemsDyn initialValue = elClass "div" "input-field col s12"
                     else empty
 
     dynResult <- foldDyn const initialValueActual
-        (leftmost [changeSelection, itemsUpdated])
+        (leftmost [Just <$> changeSelection, itemsUpdated])
 
     pure dynResult
+
+headMay [] = Nothing
+headMay (x:xs) = Just x
 
 elSvg tag a1 a2 = do
   elDynAttrNS' (Just "http://www.w3.org/2000/svg") tag (constDyn a1) a2

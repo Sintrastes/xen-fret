@@ -126,15 +126,22 @@ mainPage appDir = do
         dynArgs <- elClass "div" "main-pane-left" $ do
             el "p" $ text "Configuration options:"
 
-            temperamentDyn <- selectMaterial "Temperament" (pure loadedTemperaments)
+            temperamentDyn <- selectMaterial "Temperament" 
+                "No Temperaments Defined" 
+                (pure loadedTemperaments)
                 (head loadedTemperaments)
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
 
-            let loadedScales = (\x -> fromJust $ Map.lookup (temperamentName x) $ scales appData) <$> 
-                    temperamentDyn
+            let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+                    temperament <- temperamentMay
+                    Map.lookup (temperamentName temperament) $ scales appData)
 
-            scaleDyn <- selectMaterial "Scale" loadedScales (head initialScales)
+            scaleDyn <- selectMaterial "Scale"
+                "No Scales Defined" 
+                loadedScales 
+                (head initialScales)
+            
             sizeDyn <- labeledEntry "Size" intEntry 82
             fretsDyn <- labeledEntry "Number of Frets" intEntry 10
             verticalScalingDyn <- labeledEntry "Vertical Spacing" intEntry 200
@@ -160,15 +167,15 @@ mainPage appDir = do
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
                 in
-                    case handleParseErrs (Just $ divisions $ temperament) (Just frets) tuning (Just xSize) Nothing of
+                    case handleParseErrs (divisions <$> temperament) (Just frets) tuning (Just xSize) Nothing of
                         Left err                              -> el "p" $ text $ T.pack err
                         Right (period, frets, tuning, xy) -> do
                             let _fretboard = makeFret tuning period
-                            case handleScaleFretboardErrs _fretboard [Right scale] of
+                            case handleScaleFretboardErrs _fretboard [maybe (Left ["No scales defined"]) Right scale] of
                                 Left err                 -> el "p" $ text $ T.pack $ concatErrors err
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
                                     let diagram = board frets verticalSpacing horizontalSpacing $ 
-                                            changeScale fretboard scale
+                                            changeScale fretboard (fromJust scale)
                                     case xy of
                                         X x -> do
                                             elDynHtml' "div" (constDyn $ T.pack $
