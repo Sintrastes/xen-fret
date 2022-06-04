@@ -4,7 +4,7 @@ module Frets (
     mkFret,
     chScale,
     infScl,
-    toBoard,
+    board,
     Fretboard(),
     Scale(),
 ) where
@@ -85,25 +85,25 @@ applyFirst (Fretboard (s :| ss,p)) (Scale scl)
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)
-toDots    :: Double       -- Vertical spacing
+frettingDots :: Double       -- Vertical spacing
           -> Double       -- Horizontal spacing
           -> [Int]        -- List of fret locations, all Ints should be non-zero.
           -> Diagram B -- A diagram of the dots.
-toDots vs hs locs = foldr1 atop $ map (`toDot` vs) locs
+frettingDots vs hs locs = foldr1 atop $ map (`frettingDot` vs) locs
 
 -- | Create a diagram of a single dot
-toDot :: Int -> Double -> Diagram B
-toDot 0 vs = circle 0.03 # lwL 0.007
-toDot n vs = circle (0.03*0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
+frettingDot :: Int -> Double -> Diagram B
+frettingDot 0 vs = circle 0.03 # lwL 0.007
+frettingDot n vs = circle (0.03*0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
         where n'  = fromIntegral n  :: Double
 
 -- | Create a fretboard diagram
-toBoard ::    Int    -- Number of frets to display on board.
+board ::    Int    -- Number of frets to display on board.
            -> Double -- Vertical spacing
            -> Double -- Horizontal spacing
            -> Fretboard
            -> Diagram B
-toBoard n_frets vs hs fretboard = frame 0.005 $
+board n_frets vs hs fretboard = frame 0.005 $
   emptyboard
    `atop`
   -- The dots, translated to their proper positions on the fretboard
@@ -111,7 +111,7 @@ toBoard n_frets vs hs fretboard = frame 0.005 $
                          (map (translateX (-0.5*(n_str'-1)*hs)) dots))
     where emptyboard = emptyBoard n_frets vs hs n_str
           n_str      = length $ fst $ fromFret fretboard
-          dots       = map (toDots vs hs) positions
+          dots       = map (frettingDots vs hs) positions
           positions  = map (takeWhile (<=n_frets) . notes) (toList $ fst $ fromFret fretboard)
           n_str'     = fromIntegral n_str :: Double -- Type cast
 
