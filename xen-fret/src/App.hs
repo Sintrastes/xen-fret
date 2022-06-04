@@ -138,7 +138,7 @@ mainPage appDir = do
 
         elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) (liftA2 (,) verticalScaling horizontalScaling) <&> \((frets, xSize), (scale, temperament'), (verticalScaling', horizontalScaling')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) (Just $ [NE.toList $ scaleNotes scale]) t (Just xSize) Nothing of
+            dyn $ liftA3 (,,) (liftA2 (,) f x) (liftA2 (,) s temperament) (liftA2 (,) verticalScaling horizontalScaling) <&> \((frets, xSize), (scale, temperament'), (verticalScaling', horizontalScaling')) -> case handleParseErrs (Just $ divisions $ temperament') (Just frets) (Just $ [NE.toList $ scaleIntervals scale]) t (Just xSize) Nothing of
               Left err                              -> el "p" $ text $ T.pack err
               Right (period, frets, scales, tuning, xy) -> do
                   let _fretboard = makeFret tuning period
