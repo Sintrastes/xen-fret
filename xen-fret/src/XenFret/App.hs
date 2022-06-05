@@ -26,7 +26,7 @@ import Data.List
 import Data.Aeson
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (eval, liftJSM)
+import Language.Javascript.JSaddle (eval, liftJSM, jsg3)
 import XenFret.Data
 import XenFret.AppData
 
@@ -125,7 +125,7 @@ mainPage appDir = do
     let loadedTemperaments = temperaments appData
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
-        dynArgs <- elClass "div" "main-pane-left" $ do
+        (saveEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
             el "p" $ text "Configuration options:"
 
             temperamentDyn <- selectMaterial "Temperament" 
@@ -150,19 +150,19 @@ mainPage appDir = do
             horizontalScalingDyn <- labeledEntry "Horizontal Spacing" intEntry 200
             checkbox "Use realistic fret spacing" False
 
-            button "Save"
+            saveEvent <- button "Save"
 
-            pure $ (,,,,,) <$>
+            pure (saveEvent, (,,,,,) <$>
                 fretsDyn <*> 
                 sizeDyn <*> 
                 scaleDyn <*>
                 temperamentDyn <*>
                 verticalScalingDyn <*>
-                horizontalScalingDyn
+                horizontalScalingDyn)
 
         tuning <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
 
-        elClass "div" "main-pane-right" $ do
+        diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
             dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling) -> 
                 let 
@@ -170,11 +170,15 @@ mainPage appDir = do
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
                 in
                     case handleParseErrs (divisions <$> temperament) (Just frets) tuning (Just xSize) Nothing of
-                        Left err                              -> el "p" $ text $ T.pack err
+                        Left err -> do
+                            el "p" $ text $ T.pack err
+                            pure Nothing
                         Right (period, frets, tuning, xy) -> do
                             let _fretboard = makeFret tuning period
                             case handleScaleFretboardErrs _fretboard [maybe (Left ["No scales defined"]) Right scale] of
-                                Left err                 -> el "p" $ text $ T.pack $ concatErrors err
+                                Left err -> do
+                                    el "p" $ text $ T.pack $ concatErrors err
+                                    pure Nothing
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
                                     let diagram = board frets verticalSpacing horizontalSpacing $ 
                                             changeScale fretboard (fromJust scale)
@@ -182,12 +186,27 @@ mainPage appDir = do
                                         X x -> do
                                             elDynHtml' "div" (constDyn $ T.pack $
                                                 format (X x) diagram)
-                                            pure ()
+                                            pure $ Just $ format (X x) diagram
                                         Y y -> do
                                             elDynHtml' "div" (constDyn $ T.pack $
                                                 format (Y y) diagram)
-                                            pure ()
-            blank    
+                                            pure $ Just $ format (Y y) diagram
+
+        diagramDyn <- holdDyn Nothing
+            diagramUpdated
+
+        prerender (pure never) $ performEvent $ saveEvent <&> \_ -> do
+            maybeSvgText <- sample $ current diagramDyn
+            case maybeSvgText of
+                Just svgText -> do
+                    liftJSM $ jsg3 ("download" :: T.Text) svgText
+                        ("diagram.svg" :: T.Text) 
+                        ("image/svg" :: T.Text)
+                    pure ()
+                Nothing -> 
+                    toast "Invalid diagram. Cannot save."
+
+        blank    
 
 temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = do
