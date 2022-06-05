@@ -89,7 +89,7 @@ changeScale f@(Fretboard strs period) key s@(Scale _ intervals) =
 applyFirst :: Fretboard -> Int -> Scale -> Fretboard
 applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
     | period == sum intervals
-        = Fretboard (Str { notes = filterOutInc (< 0) $ (+ key) <$> repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
+        = Fretboard (Str { notes = filterOutInc (< 0) $ (+ (key `mod` period)) <$> repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
