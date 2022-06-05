@@ -146,12 +146,12 @@ mainPage appDir = do
                     loadedScales 
                     (head initialScales)
 
-            keyDyn <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
+            (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
                 keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
                     labeledEntry "Key" positiveIntEntry 0
-                elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                offsetDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
                     labeledEntry "Fret Offset" intEntry 0
-                pure keyDyn
+                pure (keyDyn, offsetDyn)
 
             elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Display Options:"
             
@@ -174,20 +174,21 @@ mainPage appDir = do
 
             saveEvent <- button "Save"
 
-            pure (saveEvent, (,,,,,,) <$>
+            pure (saveEvent, (,,,,,,,) <$>
                 fretsDyn <*> 
                 sizeDyn <*> 
                 scaleDyn <*>
                 temperamentDyn <*>
                 verticalScalingDyn <*>
                 horizontalScalingDyn <*>
-                keyDyn)
+                keyDyn <*>
+                offsetDyn)
 
         tuning <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key) -> 
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset) -> 
                 let 
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
@@ -203,7 +204,7 @@ mainPage appDir = do
                                     el "p" $ text $ T.pack $ concatErrors err
                                     pure Nothing
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                                    let diagram = board frets verticalSpacing horizontalSpacing $ 
+                                    let diagram = board offset frets verticalSpacing horizontalSpacing $ 
                                             changeScale fretboard key (fromJust scale)
                                     case xy of
                                         X x -> do
