@@ -233,7 +233,7 @@ liftFrontend' d x = do
 
 checkbox :: _ => T.Text -> Bool -> m (Dynamic t Bool)
 checkbox label initialValue = do
-    elAttr "form" ("style" =: "padding-left: 10px;") $ el "p" $ el "label" $ do
+    el "form" $ el "p" $ el "label" $ do
         res <- _checkbox_value <$> Reflex.Dom.Core.checkbox initialValue def
         elClass "span" "checkbox" $ text label
         return res
