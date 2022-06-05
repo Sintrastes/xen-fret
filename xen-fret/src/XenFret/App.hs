@@ -134,11 +134,17 @@ mainPage appDir = do
                     (pure loadedTemperaments)
                     (head loadedTemperaments)
 
+            let Just initialTunings = Map.lookup "12-TET" $ tunings appData
+
+            let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+                    temperament <- temperamentMay
+                    Map.lookup (temperamentName temperament) $ tunings appData)
+
             tuningDyn <- elClass "div" "row" $
                 selectMaterial "Instrument/Tuning" 
                     "No Tunings Defined" 
-                    (pure ["Standard Tuning"])
-                    "Standard Tuning"
+                    loadedTunings
+                    (head initialTunings)
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
 
@@ -180,7 +186,7 @@ mainPage appDir = do
 
             saveEvent <- button "Save"
 
-            pure (saveEvent, (,,,,,,,) <$>
+            pure (saveEvent, (,,,,,,,,) <$>
                 fretsDyn <*> 
                 sizeDyn <*> 
                 scaleDyn <*>
@@ -188,18 +194,17 @@ mainPage appDir = do
                 verticalScalingDyn <*>
                 horizontalScalingDyn <*>
                 keyDyn <*>
-                offsetDyn)
-
-        tuning <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
+                offsetDyn <*>
+                tuningDyn)
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset) -> 
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset, tuning) -> 
                 let 
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
                 in
-                    case handleParseErrs (divisions <$> temperament) (Just frets) tuning (Just xSize) Nothing of
+                    case handleParseErrs (divisions <$> temperament) (Just frets) (NE.toList . stringTunings <$> tuning) (Just xSize) Nothing of
                         Left err -> do
                             el "p" $ text $ T.pack err
                             pure Nothing
