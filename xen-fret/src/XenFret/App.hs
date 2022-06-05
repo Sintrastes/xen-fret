@@ -49,12 +49,12 @@ header = do
   elAttr "script" (
     "src" =: "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js") blank
   elAttr "link" (
-    "href" =: "https://sintrastes.github.io/demos/xen_fret/main.css" <>
+    "id" =: "css-style" <>
+    "href" =: "https://sintrastes.github.io/demos/montague/materialize.min.css" <>
     "type" =: "text/css" <>
     "rel" =: "stylesheet") blank
   elAttr "link" (
-    "id" =: "css-style" <>
-    "href" =: "https://sintrastes.github.io/demos/montague/materialize.min.css" <>
+    "href" =: "https://sintrastes.github.io/demos/xen_fret/main.css" <>
     "type" =: "text/css" <>
     "rel" =: "stylesheet") blank
   elAttr "link" (
@@ -133,6 +133,12 @@ mainPage appDir = do
                     "No Temperaments Defined" 
                     (pure loadedTemperaments)
                     (head loadedTemperaments)
+
+            tuningDyn <- elClass "div" "row" $
+                selectMaterial "Instrument/Tuning" 
+                    "No Tunings Defined" 
+                    (pure ["Standard Tuning"])
+                    "Standard Tuning"
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
 
