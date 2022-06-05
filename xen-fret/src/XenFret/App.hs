@@ -290,7 +290,7 @@ temperamentForm initialValue = do
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
-    let currentTunings = tunings appData
+    let currentTunings = join $ Map.elems $ tunings appData
     elClass "ul" "collection" $ do
         forM_ currentTunings (\tuning -> do
             elClass "li" "collection-item" $ do
@@ -300,7 +300,7 @@ tuningPage appDir = do
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
-    let currentScales = scales appData
+    let currentScales = join $ Map.elems $ scales appData
 
     elClass "ul" "collection" $ do
         forM_ currentScales (\scale -> do
