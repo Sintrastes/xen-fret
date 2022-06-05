@@ -4,6 +4,7 @@ module XenFret (
     changeScale,
     repeatingNotes,
     board,
+    transpose,
     Fretboard()
 ) where
 
@@ -23,27 +24,34 @@ repeatingNotes (Scale _ xs) = scanl (+) 0 (join $ repeat $ toList xs)
 data Str = Str {
     -- | Non-negative integer,
     --    describes the relative tuning of strings 
-    pitch :: Int,        
+    pitch :: Int,
     -- | Non-negative integers, a list of marked scale
     --   positions on the string.
-    notes :: [Int]  
+    notes :: [Int]
 }
 
 -- | Make a string with no notes
 mkStr n = Str { pitch = n, notes = [] }
 
+transposeStr n (Str pitch notes) = Str pitch (fmap (+ 1) notes)
+
 data Fretboard = Fretboard {
     -- | Non-empty list of strings in a fretboard 
     fretboardStrings :: NonEmpty Str,
     -- | The number of steps to a period in a fretboard.
-    fretboardPeriod :: Int 
+    fretboardPeriod :: Int
 }
+
+transpose :: Int -> Fretboard -> Fretboard
+transpose n (Fretboard strings period) = Fretboard
+    (fmap (transposeStr n) strings)
+    period
 
 -- | Validates the preconditions of and creates a fretboard.
 makeFret :: NonEmpty Int -- Tuning of the fretboard, must be non-empty, non-zero.
          -> Int  -- Period, must be a positive number.
          -> Either [String] Fretboard
-makeFret tuning period 
+makeFret tuning period
     | period >= 1 && not (null tuning) && not (any (< 0) tuning)
         = Right $ Fretboard (NonEmpty.map mkStr tuning) period
     | otherwise
@@ -53,27 +61,28 @@ makeFret tuning period
             (any (<0) tuning , "No strings can have a non-positive tuning")]
 
 -- | Change the scale of a fretboard
-changeScale :: Fretboard -> Scale -> Fretboard
-changeScale f@(Fretboard strs period) s@(Scale _ intervals) = 
+changeScale :: Fretboard -> Int -> Scale -> Fretboard
+changeScale f@(Fretboard strs period) key s@(Scale _ intervals) =
     Fretboard
-        (go (fretboardStrings $ applyFirst f s) 1) 
+        (go (fretboardStrings $ applyFirst f key s) key 1)
         period
-  where 
-    go :: NonEmpty Str -> Int -> NonEmpty Str
-    go fb n 
+  where
+    go :: NonEmpty Str -> Int -> Int -> NonEmpty Str
+    go fb key n
         | n < length fb
-            = go (notes str1 # map (\x -> x - pitch (toList fb !! n)) 
-                    # filterOutInc (<0) 
-                    # (\x -> fb & set (element n) Str{ notes = x, pitch = pitch (toList fb !! n)})) 
+            = go (notes str1 # map (\x -> x - pitch (toList fb !! n))
+                    # filterOutInc (< 0)
+                    # (\x -> fb & set (element n) Str { notes = x, pitch = pitch (toList fb !! n)}))
+                 key
                  (n + 1)
         | otherwise = fb
       where str1 = NonEmpty.head fb
 
 -- | Applies the scale to the first string
-applyFirst :: Fretboard -> Scale -> Fretboard
-applyFirst (Fretboard (s :| ss) period) (Scale name intervals)
+applyFirst :: Fretboard -> Int -> Scale -> Fretboard
+applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
     | period == sum intervals
-        = Fretboard (Str { notes = repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
+        = Fretboard (Str { notes = (+ key) <$> repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
@@ -82,7 +91,7 @@ frettingDots :: Double       -- Vertical spacing
           -> Double       -- Horizontal spacing
           -> [Int]        -- List of fret locations, all Ints should be non-zero.
           -> Diagram B -- A diagram of the dots.
-frettingDots vs hs locs = foldr1 atop $ map (`frettingDot` vs) locs
+frettingDots vs hs = foldr (atop . (`frettingDot` vs)) mempty
 
 -- | Create a diagram of a single dot
 frettingDot :: Int -> Double -> Diagram B
@@ -102,7 +111,7 @@ board nFrets vs hs fretboard = frame 0.005 $
     -- The dots, translated to their proper positions on the fretboard
     foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
                     (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))
-  where 
+  where
     emptyboard = emptyBoard nFrets vs hs nStr
     nStr       = length $ fretboardStrings fretboard
     dots       = map (frettingDots vs hs) positions
@@ -119,9 +128,9 @@ emptyBoard :: Int    -- Number of frets to display on board.
 emptyBoard nFrets vs hs nStr =
      -- Nut
     hrule width
-        `atop` markers 
+        `atop` markers
         -- The strings translated to their proper poisitons
-        `atop` strings 
+        `atop` strings
             # translateX (-width/2)
             # translateY (-len/2)
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
@@ -129,19 +138,19 @@ emptyBoard nFrets vs hs nStr =
     len      = (nFrets' + 1/2) * vs
     width    = (nStr' - 1) * hs
     markers  = case () of
-        () | nStr > 1 -> vcat' 
-                (with & sep .~ vs) 
+        () | nStr > 1 -> vcat'
+                (with & sep .~ vs)
                 (replicate nFrets (hrule width)
                     # dashingL [0.03] 0
                     # lwL 0.007)
                   # translateY (-vs)
            -- Make the frets more visible when there is only one string.
-           | nStr == 1 -> vcat' 
-                (with & sep .~ vs) 
+           | nStr == 1 -> vcat'
+                (with & sep .~ vs)
                 (replicate nFrets (hrule hs)
                     # lwL 0.007)
                   # translateY (-vs)
-           | otherwise -> 
+           | otherwise ->
                error "Must have at least one string."
     strings = hcat' (with & sep .~ hs) $
         replicate nStr (vrule len)
