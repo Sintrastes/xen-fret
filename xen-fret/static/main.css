@@ -26,3 +26,13 @@
         display: none;
     }
 }
+
+/** Tweak row spacing */
+
+.input-field {
+    margin-bottom: 5px;
+}
+
+.row {
+    margin-bottom: 0px;
+}
