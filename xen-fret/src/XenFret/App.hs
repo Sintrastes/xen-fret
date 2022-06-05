@@ -22,7 +22,7 @@ import qualified Data.List.NonEmpty as NE
 import Control.Exception
 import System.Info
 import System.Directory
-import Data.List
+import Data.List hiding (transpose)
 import Data.Aeson
 import Control.Monad.IO.Class
 import GHC.Float
@@ -146,11 +146,12 @@ mainPage appDir = do
                     loadedScales 
                     (head initialScales)
 
-            elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
-                elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
-                    labeledEntry "Key" intEntry 0
+            keyDyn <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
+                keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                    labeledEntry "Key" positiveIntEntry 0
                 elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
                     labeledEntry "Fret Offset" intEntry 0
+                pure keyDyn
 
             elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Display Options:"
             
@@ -173,19 +174,20 @@ mainPage appDir = do
 
             saveEvent <- button "Save"
 
-            pure (saveEvent, (,,,,,) <$>
+            pure (saveEvent, (,,,,,,) <$>
                 fretsDyn <*> 
                 sizeDyn <*> 
                 scaleDyn <*>
                 temperamentDyn <*>
                 verticalScalingDyn <*>
-                horizontalScalingDyn)
+                horizontalScalingDyn <*>
+                keyDyn)
 
         tuning <- pure $ Just [0,5,10] -- readInput "tuning" :: CGI (Maybe [Int])
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling) -> 
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key) -> 
                 let 
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
@@ -202,7 +204,7 @@ mainPage appDir = do
                                     pure Nothing
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
                                     let diagram = board frets verticalSpacing horizontalSpacing $ 
-                                            changeScale fretboard (fromJust scale)
+                                            changeScale fretboard key (fromJust scale)
                                     case xy of
                                         X x -> do
                                             elDynHtml' "div" (constDyn $ T.pack $
