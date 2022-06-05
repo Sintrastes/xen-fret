@@ -19,13 +19,13 @@ import XenFret.Data
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]
-repeatingNotes (Scale _ xs) = 
-  scanl (+) 
+repeatingNotes (Scale _ xs) =
+  scanl (+)
        -- Start one period down to account for
        -- transpositions.
-       (-period) 
+       (-period)
        (join $ repeat $ toList xs)
-  where 
+  where
     period = sum xs
 
 data Str = Str {
@@ -99,19 +99,19 @@ frettingDots :: Int
   -> Double    -- Horizontal spacing
   -> [Int]     -- List of fret locations, all Ints should be non-zero.
   -> Diagram B -- A diagram of the dots.
-frettingDots offset vs hs = 
-    foldr (atop . (`frettingDot` vs)) mempty
+frettingDots offset vs hs =
+    foldr (atop . frettingDot offset vs) mempty
   . fmap ((-offset) +)
   . filterOutInc (< offset)
 
 -- | Create a diagram of a single dot
-frettingDot :: Int -> Double -> Diagram B
-frettingDot 0 vs = circle 0.03 # lwL 0.007
-frettingDot n vs = circle (0.03 * 0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
+frettingDot :: Int -> Double -> Int -> Diagram B
+frettingDot 0 vs 0 = circle 0.03 # lwL 0.007
+frettingDot _ vs n = circle (0.03 * 0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
         where n'  = fromIntegral n  :: Double
 
 -- | Create a fretboard diagram
-board :: Int   
+board :: Int
   -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
