@@ -102,7 +102,7 @@ textEntry initialValue =
         "type" =: "text"
 
 labeledEntry :: _ => T.Text -> (a -> m (Dynamic t a)) -> a -> m (Dynamic t a)
-labeledEntry label widget initialValue = elClass "div" "input-field col" $ do
+labeledEntry label widget initialValue = elClass "div" "input-field" $ do
     res <- widget initialValue
     elAttr "label" ("class" =: "active" <> "style" =: "left: 0rem;") $
         text label
@@ -154,7 +154,7 @@ selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) =>
   -> T.Text
   -> (Dynamic t [a]) 
   -> a -> m (Dynamic t (Maybe a))
-selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-field col s12" $ mdo
+selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-field" $ mdo
     initialItems <- sample $ current itemsDyn
 
     let initialValueActual = if (initialValue `elem` initialItems) 
@@ -233,10 +233,9 @@ liftFrontend' d x = do
 
 checkbox :: _ => T.Text -> Bool -> m (Dynamic t Bool)
 checkbox label initialValue = do
-    el "form" $ el "p" $ el "label" $ do
+    elAttr "form" ("style" =: "padding-left: 10px;") $ el "p" $ el "label" $ do
         res <- _checkbox_value <$> Reflex.Dom.Core.checkbox initialValue def
-        elClass "span" "checkbox" $ pure ()
-        text label
+        elClass "span" "checkbox" $ text label
         return res
 
 modalHeader :: _ => T.Text -> m ()

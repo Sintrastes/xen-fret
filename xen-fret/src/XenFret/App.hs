@@ -126,12 +126,13 @@ mainPage appDir = do
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
         (saveEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
-            el "p" $ text "Configuration options:"
+            elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
 
-            temperamentDyn <- selectMaterial "Temperament" 
-                "No Temperaments Defined" 
-                (pure loadedTemperaments)
-                (head loadedTemperaments)
+            temperamentDyn <- elClass "div" "row" $
+                selectMaterial "Temperament" 
+                    "No Temperaments Defined" 
+                    (pure loadedTemperaments)
+                    (head loadedTemperaments)
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
 
@@ -139,16 +140,36 @@ mainPage appDir = do
                     temperament <- temperamentMay
                     Map.lookup (temperamentName temperament) $ scales appData)
 
-            scaleDyn <- selectMaterial "Scale"
-                "No Scales Defined" 
-                loadedScales 
-                (head initialScales)
+            scaleDyn <- elClass "div" "row" $
+                selectMaterial "Scale"
+                    "No Scales Defined" 
+                    loadedScales 
+                    (head initialScales)
+
+            elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
+                elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                    labeledEntry "Key" intEntry 0
+                elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                    labeledEntry "Fret Offset" intEntry 0
+
+            elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Display Options:"
             
-            sizeDyn <- labeledEntry "Size" intEntry 82
-            fretsDyn <- labeledEntry "Number of Frets" intEntry 10
-            verticalScalingDyn <- labeledEntry "Vertical Spacing" intEntry 200
-            horizontalScalingDyn <- labeledEntry "Horizontal Spacing" intEntry 200
-            checkbox "Use realistic fret spacing" False
+            (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
+                sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                    labeledEntry "Size" intEntry 82
+                fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                    labeledEntry "Number of Frets" intEntry 10
+                pure (sizeDyn, fretsDyn)
+
+            (verticalScalingDyn, horizontalScalingDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
+                verticalScalingDyn   <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                    labeledEntry "Vertical Spacing" intEntry 200
+                horizontalScalingDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                    labeledEntry "Horizontal Spacing" intEntry 200
+                pure (verticalScalingDyn, horizontalScalingDyn)
+            
+            elClass "div" "col s12" $ 
+                checkbox "Use realistic fret spacing" False
 
             saveEvent <- button "Save"
 
