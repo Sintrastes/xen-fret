@@ -19,7 +19,14 @@ import XenFret.Data
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]
-repeatingNotes (Scale _ xs) = scanl (+) 0 (join $ repeat $ toList xs)
+repeatingNotes (Scale _ xs) = 
+  scanl (+) 
+       -- Start one period down to account for
+       -- transpositions.
+       (-period) 
+       (join $ repeat $ toList xs)
+  where 
+    period = sum xs
 
 data Str = Str {
     -- | Non-negative integer,
@@ -82,7 +89,7 @@ changeScale f@(Fretboard strs period) key s@(Scale _ intervals) =
 applyFirst :: Fretboard -> Int -> Scale -> Fretboard
 applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
     | period == sum intervals
-        = Fretboard (Str { notes = (+ key) <$> repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
+        = Fretboard (Str { notes = filterOutInc (< 0) $ (+ key) <$> repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
