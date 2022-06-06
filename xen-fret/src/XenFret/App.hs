@@ -4,7 +4,8 @@ module XenFret.App where
 import Data.Maybe (isJust, isNothing, fromJust)
 import Control.Monad
 import Data.Either
-import Diagrams.Prelude ( renderDia, mkWidth, Diagram )
+import Diagrams.Prelude ( renderDia, mkWidth, Diagram, (===) )
+import qualified Diagrams.Prelude as D
 import Diagrams.Backend.SVG
 import qualified Data.ByteString.Lazy.Char8 as B
 import XenFret.Util
@@ -215,8 +216,10 @@ mainPage appDir = do
                                     el "p" $ text $ T.pack $ concatErrors err
                                     pure Nothing
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                                    let diagram = board offset frets verticalSpacing horizontalSpacing $ 
-                                            changeScale fretboard key (fromJust scale)
+                                    let diagram = board 
+                                            (maybe "" show scale) offset 
+                                            frets verticalSpacing horizontalSpacing $ 
+                                                changeScale fretboard key (fromJust scale)
                                     case xy of
                                         X x -> do
                                             elDynHtml' "div" (constDyn $ T.pack $
