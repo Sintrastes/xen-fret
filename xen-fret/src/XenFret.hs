@@ -119,7 +119,7 @@ board :: String
   -> Fretboard
   -> Diagram B
 board scaleName offset nFrets vs hs fretboard = frame 0.005 $
-    ((alignedText 0.7 0.5 scaleName # scale 0.075) <> strutY 0.12)
+    ((alignedText 0.7 0.5 scaleName # scale 0.075) <> strutY 0.12 <> strutX 1.0)
         ===
     (emptyboard
        `atop`
