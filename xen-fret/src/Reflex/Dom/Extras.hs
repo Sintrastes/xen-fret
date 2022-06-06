@@ -240,7 +240,7 @@ checkbox label initialValue = do
 
 modalHeader :: _ => T.Text -> m ()
 modalHeader txt = do
-    elAttr "h5" ("style" =: "margin-top: 0em; margin-bottom:1em;") $ text txt
+    elAttr "h4" ("style" =: "margin-top: 0em; padding-bottom:30px;") $ text txt
     pure ()
 
 -- | Helper function to open a simple Ok/Cancel modal dialog.

@@ -36,6 +36,13 @@ data Tuning = Tuning {
 instance Show Tuning where
     show = T.unpack . tuningName
 
+instance Default Tuning where
+    def = Tuning {
+        tuningName = "",
+        instrument = "",
+        stringTunings = 0 :| []
+    }
+
 $(deriveJSON defaultOptions ''Tuning)
 
 data Scale = Scale {

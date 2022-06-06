@@ -291,11 +291,26 @@ tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentTunings = join $ Map.elems $ tunings appData
+
+    newTuningEvent <- button "New Tuning"
+    newTuningSubmitted <- modal newTuningEvent $ 
+        tuningForm def
+
     elClass "ul" "collection" $ do
         forM_ currentTunings (\tuning -> do
             elClass "li" "collection-item" $ do
                 el "span" $ text $
                     T.pack $ show tuning)
+
+tuningForm :: _ => Tuning -> m (Dynamic t Tuning)
+tuningForm initialValue = do
+    modalHeader "Add New Tuning"
+
+    labeledEntry "Instrument" textEntry ""
+    labeledEntry "Name" textEntry ""
+    labeledEntry "Intervals" textEntry ""
+    
+    pure $ pure initialValue
 
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
