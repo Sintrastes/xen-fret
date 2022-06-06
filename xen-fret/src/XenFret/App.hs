@@ -283,7 +283,8 @@ temperamentForm initialValue = do
     let formContents = Temperament <$>
             form (temperamentName =. labeledEntry "Name" textEntry) <*>
             form (divisions =. labeledEntry "Divisions" intEntry) <*>
-            form (period =. labeledEntry "Period" rationalEntry)
+            form (period =. labeledEntry "Period" rationalEntry) <*>
+            pure Nothing
     
     initForm formContents $ initialValue
 

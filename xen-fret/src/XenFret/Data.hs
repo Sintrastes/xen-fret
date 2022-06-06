@@ -10,7 +10,8 @@ import Data.Ratio
 data Temperament = Temperament {
     temperamentName :: T.Text, 
     divisions :: Int,
-    period :: Rational
+    period :: Rational,
+    noteNames :: Maybe [T.Text]
 }
     deriving(Eq)
 
@@ -18,7 +19,8 @@ instance Default Temperament where
     def = Temperament {
         temperamentName = "",
         divisions = 12,
-        period = 2 % 1
+        period = 2 % 1,
+        noteNames = Nothing
     }
 
 instance Show Temperament where
