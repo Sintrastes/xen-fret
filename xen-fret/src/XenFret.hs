@@ -124,21 +124,20 @@ board offset nFrets vs hs fretboard = frame 0.005 $
     foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
         (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))
   where
-    emptyboard = emptyBoard offset nFrets vs hs nStr
+    emptyboard = emptyBoard nFrets vs hs nStr
     nStr       = length $ fretboardStrings fretboard
     dots       = map (frettingDots offset vs hs) positions
-    positions  = map (takeWhile (<= nFrets) . notes) (toList $ fretboardStrings fretboard)
+    positions  = map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
 
 
 -- | An empty fretboard diagram.
-emptyBoard :: Int
-           -> Int    -- Number of frets to display on board.
-           -> Double -- Vertical spacing
-           -> Double -- Horizontal spacing
-           -> Int    -- Number of strings
-           -> Diagram B
-emptyBoard offset nFrets vs hs nStr =
+emptyBoard :: Int    -- Number of frets to display on board.
+  -> Double -- Vertical spacing
+  -> Double -- Horizontal spacing
+  -> Int    -- Number of strings
+  -> Diagram B
+emptyBoard nFrets vs hs nStr =
     nut
         `atop` fretMarkers
         -- The strings translated to their proper poisitons
@@ -148,19 +147,19 @@ emptyBoard offset nFrets vs hs nStr =
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
   where
     nut      = hrule width
-    len      = ((nFrets' - offset') + 1/2) * vs
+    len      = (nFrets' + 1/2) * vs
     width    = (nStr' - 1) * hs
     fretMarkers  = case () of
         () | nStr > 1 -> vcat'
                 (with & sep .~ vs)
-                (replicate (nFrets - offset) (hrule width)
+                (replicate nFrets (hrule width)
                     # dashingL [0.03] 0
                     # lwL 0.007)
                   # translateY (-vs)
            -- Make the frets more visible when there is only one string.
            | nStr == 1 -> vcat'
                 (with & sep .~ vs)
-                (replicate (nFrets - offset) (hrule hs)
+                (replicate nFrets (hrule hs)
                     # lwL 0.007)
                   # translateY (-vs)
            | otherwise ->
@@ -171,5 +170,4 @@ emptyBoard offset nFrets vs hs nStr =
     -- Type casts
     nFrets' = fromIntegral nFrets :: Double
     nStr'   = fromIntegral nStr :: Double
-    offset'   = fromIntegral offset :: Double
 
