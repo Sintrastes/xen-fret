@@ -30,14 +30,29 @@ $(deriveJSON defaultOptions ''AppData)
 defaultAppData = AppData {
       temperaments = 
         [
-            Temperament "11-TET" 11 (2 % 1),
-            Temperament "12-TET" 12 (2 % 1),
-            Temperament "13-TET" 13 (2 % 1),
-            Temperament "16-TET" 16 (2 % 1),
-            Temperament "19-TET" 19 (2 % 1),
-            Temperament "22-TET" 22 (2 % 1),
-            Temperament "24-TET" 24 (2 % 1),
-            Temperament "Bohlen Pierce" 13 (3 % 1)
+            Temperament "11-TET" 11 (2 % 1) Nothing,
+            Temperament "12-TET" 12 (2 % 1)
+                  (Just 
+                    [
+                      "A",
+                      "A#/Bb",
+                      "B",
+                      "C",
+                      "C#/Db",
+                      "D",
+                      "D#/Eb",
+                      "E",
+                      "F",
+                      "F#/Gb",
+                      "G",
+                      "G#/Ab"
+                    ]),
+            Temperament "13-TET" 13 (2 % 1) Nothing,
+            Temperament "16-TET" 16 (2 % 1) Nothing,
+            Temperament "19-TET" 19 (2 % 1) Nothing,
+            Temperament "22-TET" 22 (2 % 1) Nothing,
+            Temperament "24-TET" 24 (2 % 1) Nothing,
+            Temperament "Bohlen Pierce" 13 (3 % 1) Nothing
         ]
     , tunings = toMap $ fromList 
         [
