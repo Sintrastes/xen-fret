@@ -170,7 +170,7 @@ mainPage appDir = do
             
             (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
                 sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
-                    labeledEntry "Size" intEntry 82
+                    labeledEntry "Size" intEntry 280
                 fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
                     labeledEntry "Number of Frets" intEntry 10
                 pure (sizeDyn, fretsDyn)
