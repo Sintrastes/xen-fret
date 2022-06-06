@@ -111,18 +111,21 @@ frettingDot _ vs n = circle (0.03 * 0.8) # fc black # lwL 0.007 # translateY (-n
         where n'  = fromIntegral n  :: Double
 
 -- | Create a fretboard diagram
-board :: Int
+board :: String 
+  -> Int
   -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Fretboard
   -> Diagram B
-board offset nFrets vs hs fretboard = frame 0.005 $
-    emptyboard
+board scaleName offset nFrets vs hs fretboard = frame 0.005 $
+    ((alignedText 0.7 0.5 scaleName # scale 0.075) <> strutY 0.12)
+        ===
+    (emptyboard
        `atop`
     -- The dots, translated to their proper positions on the fretboard
     foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
-        (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))
+        (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)))
   where
     emptyboard = emptyBoard nFrets vs hs nStr
     nStr       = length $ fretboardStrings fretboard
