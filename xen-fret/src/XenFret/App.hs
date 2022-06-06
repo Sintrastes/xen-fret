@@ -163,7 +163,7 @@ mainPage appDir = do
                 keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
                     labeledEntry "Key" positiveIntEntry 0
                 offsetDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
-                    labeledEntry "Fret Offset" intEntry 0
+                    labeledEntry "Fret Offset" positiveIntEntry 0
                 pure (keyDyn, offsetDyn)
 
             elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Display Options:"
