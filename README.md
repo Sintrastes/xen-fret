@@ -16,6 +16,13 @@ Gettring started
 
 Xen Fret is currently hosted [here](https://sintrastes.github.io/demos/xen_fret/) as a static page on github pages. In the future, we may add desktop and mobile versions.
 
+Contributing
+------------
+
+Default tuning for an EDO doesn't make sense? Default set of scales looking a bit sparse for your favorite temperament? Find an error in the data set of scales/tunings/temperaments? Either [file an issue](https://github.com/Sintrastes/xen-fret/issues/new) to let me know, or (if you have some techincal knowledge) contribute a fix yourself. The default dataset bundled with the app can be found [here](https://github.com/Sintrastes/xen-fret/blob/master/xen-fret/src/XenFret/AppData.hs#L30).
+
+Interested in contributing to some more technical issues but don't know where to start? Feel free to [reach out](mailto:nbedell@tulane.edu).
+
 Building
 --------
 
