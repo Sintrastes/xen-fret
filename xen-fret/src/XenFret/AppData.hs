@@ -66,6 +66,8 @@ defaultAppData = AppData {
                 (0 :| [4, 8, 12, 16, 20])),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
                 (0 :| [5, 10, 15, 19, 24])),
+            ("12-TET", Tuning "Standard Tuning (7 String)" "Seven-String Guitar" 
+                (0 :| [5, 10, 15, 20, 14, 29])),
             ("12-TET", Tuning "Drop D" "Six-String Guitar" 
                 (0 :| [7, 12, 17, 21, 26])),
             ("12-TET", Tuning "DADGAD" "Six-String Guitar" 
@@ -84,6 +86,10 @@ defaultAppData = AppData {
                 (0 :| [7, 14, 21, 28, 35])),
             ("16-TET", Tuning "Diminished Fourths Tuning" "Six-String Guitar"
                 (0 :| [6, 12, 18, 24, 30])),
+            ("16-TET", Tuning "Wide Fourths Tuning (7 String)" "Seven-String Guitar"
+                (0 :| [7, 14, 21, 28, 35, 40])),
+            ("16-TET", Tuning "Diminished Fourths Tuning (7 String)" "Seven-String Guitar"
+                (0 :| [6, 12, 18, 24, 30, 36])),
             ("17-TET", Tuning "Standard Tuning" "Six-String Guitar"
                 (0 :| [7, 14, 21, 27, 34])),
             ("17-TET", Tuning "All Fourths" "Six-String Guitar"
