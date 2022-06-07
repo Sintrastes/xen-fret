@@ -111,27 +111,41 @@ frettingDot _ vs n = circle (0.03 * 0.8) # fc black # lwL 0.007 # translateY (-n
         where n'  = fromIntegral n  :: Double
 
 -- | Create a fretboard diagram
-board :: String 
+board :: String
   -> Int
   -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Fretboard
+  -> Maybe [String]
   -> Diagram B
-board scaleName offset nFrets vs hs fretboard = frame 0.005 $
-    ((alignedText 0.7 0.5 scaleName # scale 0.075) <> strutY 0.12 <> strutX 1.0)
-        ===
-    (emptyboard
-       `atop`
-    -- The dots, translated to their proper positions on the fretboard
-    foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
-        (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)))
+board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
+        ((baselineText scaleName # scale 0.075) <> strutY 0.12 <> strutX 1.0)
+            === (
+            noteMarkers |||
+                (emptyboard
+                    `atop`
+                    -- The dots, translated to their proper positions on the fretboard
+                 foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
+                    (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)))
+        )
+
   where
     emptyboard = emptyBoard nFrets vs hs nStr
     nStr       = length $ fretboardStrings fretboard
     dots       = map (frettingDots offset vs hs) positions
     positions  = map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
+    noteMarkers = case optNoteNames of
+        Nothing -> vcat'
+            (with & sep .~ vs)
+            (replicate nFrets $ strutX 0.1)
+        Just noteNames -> vcat'
+            (with & sep .~ vs)
+            (take (nFrets + 1) $
+                noteNames <&> \note ->
+                    text note # bold # scale 0.037
+                         <> strutX 0.15)
 
 
 -- | An empty fretboard diagram.
@@ -141,7 +155,7 @@ emptyBoard :: Int    -- Number of frets to display on board.
   -> Int    -- Number of strings
   -> Diagram B
 emptyBoard nFrets vs hs nStr =
-    nut
+      nut
         `atop` fretMarkers
         -- The strings translated to their proper poisitons
         `atop` strings
