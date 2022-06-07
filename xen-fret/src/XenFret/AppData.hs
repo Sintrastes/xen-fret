@@ -30,7 +30,22 @@ $(deriveJSON defaultOptions ''AppData)
 defaultAppData = AppData {
       temperaments = 
         [
-            Temperament "11-TET" 11 (2 % 1) Nothing,
+            Temperament "11-TET" 11 (2 % 1) 
+                  (Just 
+                    [
+                      "Q/P#",
+                      "Q#/Rb",
+                      "R",
+                      "R#/Sb",
+                      "S",
+                      "S#/Tb",
+                      "T",
+                      "T#/Ub",
+                      "U",
+                      "U#/Pb",
+                      "P/Qb",
+                      "Q/P#"
+                    ]),
             Temperament "12-TET" 12 (2 % 1)
                   (Just 
                     [
@@ -47,7 +62,23 @@ defaultAppData = AppData {
                       "G",
                       "G#/Ab"
                     ]),
-            Temperament "13-TET" 13 (2 % 1) Nothing,
+            Temperament "13-TET" 13 (2 % 1) 
+                  (Just
+                    [
+                       "J",
+                       "J#/Kb",
+                       "K",
+                       "L",
+                       "L#/Mb",
+                       "M",
+                       "M#/Nb",
+                       "N",
+                       "O",
+                       "O#/Pb",
+                       "P",
+                       "Q",
+                       "Q#/Jb"
+                    ]),
             Temperament "14-TET" 14 (2 % 1) Nothing,
             Temperament "15-TET" 15 (2 % 1) Nothing,
             Temperament "16-TET" 16 (2 % 1) Nothing,
