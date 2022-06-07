@@ -48,7 +48,11 @@ defaultAppData = AppData {
                       "G#/Ab"
                     ]),
             Temperament "13-TET" 13 (2 % 1) Nothing,
+            Temperament "14-TET" 14 (2 % 1) Nothing,
+            Temperament "15-TET" 15 (2 % 1) Nothing,
             Temperament "16-TET" 16 (2 % 1) Nothing,
+            Temperament "17-TET" 17 (2 % 1) Nothing,
+            Temperament "18-TET" 18 (2 % 1) Nothing,
             Temperament "19-TET" 19 (2 % 1) Nothing,
             Temperament "22-TET" 22 (2 % 1) Nothing,
             Temperament "24-TET" 24 (2 % 1) Nothing,
@@ -56,51 +60,131 @@ defaultAppData = AppData {
         ]
     , tunings = toMap $ fromList 
         [
+            ("11-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar" 
+                (0 :| [5, 10, 15, 20, 25])),
+            ("11-TET", Tuning "Major Thirds Tuning" "Six-String Guitar" 
+                (0 :| [4, 8, 12, 16, 20])),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
                 (0 :| [5, 10, 15, 19, 24])),
+            ("12-TET", Tuning "Drop D" "Six-String Guitar" 
+                (0 :| [7, 12, 17, 21, 26])),
+            ("12-TET", Tuning "DADGAD" "Six-String Guitar" 
+                (0 :| [7, 12, 17, 19, 24])),
+            ("12-TET", Tuning "All Fourths" "Six-String Guitar" 
+                (0 :| [5, 10, 15, 20, 25])),
+            ("12-TET", Tuning "All Fifths" "Six-String Guitar" 
+                (0 :| [7, 14, 21, 28, 35])),
+            ("13-TET", Tuning "Oneirotonic Tuning" "Six-String Guitar"
+                (3 :| [8, 14, 19, 24, 29])),
+            ("14-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
+                (0 :| [5, 5, 5, 5, 5])),
+            ("15-TET", Tuning "All Fourths Tuning" "Six-String Guitar"
+                (0 :| [5, 10, 15, 20, 25])),
+            ("16-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
+                (0 :| [7, 14, 21, 28, 35])),
+            ("16-TET", Tuning "Diminished Fourths Tuning" "Six-String Guitar"
+                (0 :| [6, 12, 18, 24, 30])),
+            ("17-TET", Tuning "Standard Tuning" "Six-String Guitar"
+                (0 :| [7, 14, 21, 27, 34])),
+            ("17-TET", Tuning "All Fourths" "Six-String Guitar"
+                (0 :| [7, 14, 21, 28, 35])), 
+            ("18-TET", Tuning "Wide Fourths" "Six-String Guitar"
+                (0 :| [8, 16, 24, 32, 40])),
+            ("19-TET", Tuning "Standard Tuning" "Six-String Guitar"
+                (0 :| [8, 16, 24, 30, 38])),
             ("22-TET", Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
-                (0 :| [9, 18, 27, 35, 44]))
+                (0 :| [9, 18, 27, 35, 44])),
+            ("24-TET", Tuning "Standard Tuning" "Six-String Guitar" 
+                (0 :| [10, 20, 30, 38, 48])),
+            ("24-TET", Tuning "Drop D" "Six-String Guitar" 
+                (0 :| [14, 24, 34, 42, 52])),
+            ("Bohlen Pierce", Tuning "Bohlen's Tuning" "Six String Guitar"
+                (0 :| [3,6,9,13,16])) -- A1 C E G A C
         ]
     , scales = toMap $ fromList 
         [
             ("11-TET", Scale "Orgone[7]"
                 (1 :| [2, 1, 2, 1, 2, 2]))
+          , ("11-TET", Scale "Machine[5]"
+                (2 :| [2, 2, 2, 3]))
+          , ("11-TET", Scale "Machine[6]"
+                (2 :| [2, 2, 2, 2, 1]))
+          , ("11-TET", Scale "Joan heptatonic"
+                (1 :| [1, 1, 3, 1, 1, 3]))
+          , ("11-TET", Scale "Joan pentatonic"
+                (1 :| [4, 1, 4, 1]))
           , ("12-TET", Scale "Ionian (Major)" 
-                (2 :| [2,1,2,2,2,1]))
+                (2 :| [2, 1, 2, 2, 2, 1]))
           , ("12-TET", Scale "Mixolydian" 
-                (2 :| [2,1,2,2,1,2]))
+                (2 :| [2, 1, 2, 2, 1, 2]))
           , ("12-TET", Scale "Minor" 
-                (2 :| [1,2,2,1,2,2]))
+                (2 :| [1, 2, 2, 1, 2, 2]))
           , ("12-TET", Scale "Dorian" 
-                (2 :| [1,2,2,2,1,2]))
+                (2 :| [1, 2, 2, 2, 1, 2]))
           , ("13-TET", Scale "Archeotonic (Ryonian Mode)"
-                (2 :| [2,2,2,2,2,1]))
+                (2 :| [2, 2, 2, 2, 2, 1]))
           , ("13-TET", Scale "Oneirotonic (Dylathian Mode)"
-                (2 :| [2,1,2,2,1,2,1]))
+                (2 :| [2, 1, 2, 2, 1, 2, 1]))
+          , ("14-TET", Scale "Titanium[9]"
+                (2 :| [1, 2, 1, 2, 1, 2, 1, 2]))
+          , ("15-TET", Scale "Augmented[6]"
+                (4 :| [1, 4, 1, 4, 1]))
+          , ("15-TET", Scale "Triforce[6]"
+                (3 :| [2, 3, 2, 3, 2]))
+          , ("15-TET", Scale "Porcupine[7]"
+                (3 :| [2, 2, 2, 2, 2, 2]))
+          , ("15-TET", Scale "Orgone[7]"
+                (1 :| [3, 1, 3, 1, 3, 3]))
+          , ("15-TET", Scale "Porcupine[8]"
+                (2 :| [1, 2, 2, 2, 2, 2, 2]))
+          , ("15-TET", Scale "Augmented[9]"
+                (3 :| [1, 1, 3, 1, 1, 3, 1, 1]))
+          , ("15-TET", Scale "Triforce[9]"
+                (2 :| [1, 2, 2, 1, 2, 2, 1, 2]))
+          , ("15-TET", Scale "Blackwood[10]"
+                (2 :| [1, 2, 1, 2, 1, 2, 1, 2, 1]))
           , ("16-TET", Scale "mavila[7]"
-                (2 :| [2,2,3,2,2,3]))
+                (2 :| [2, 2, 3, 2, 2, 3]))
           , ("16-TET", Scale "Lemba"
-                (3 :| [3,2,3,3,2]))
+                (3 :| [3, 2, 3, 3, 2]))
           , ("16-TET", Scale "Magic"
-                (1 :| [4,1,4,1,4,1]))
+                (1 :| [4, 1, 4, 1, 4, 1]))
+          , ("17-TET", Scale "Major"
+                 (3 :| [3, 3, 1, 3, 3, 1]))
+          , ("17-TET", Scale "Maqamic[7]"
+                 (3 :| [2, 3, 2, 3, 2, 2]))
+          , ("17-TET", Scale "Squares[8]"
+                  (1 :| [1, 4, 1, 4, 1, 4]))
+          , ("17-TET", Scale "Hydra"
+                  (3 :| [3, 1, 1, 2, 3, 2, 1, 1]))
+          , ("17-TET", Scale "Springfieldian"
+                  (3 :| [3, 2, 2, 3, 3, 1]))
+          , ("17-TET", Scale "Northhaverbrookian"
+                  (2 :| [3, 3, 1, 3, 3, 2]))
+          , ("17-TET", Scale "Shelbyvillean"
+                  (3 :| [3, 1, 3, 3, 2, 2]))
+          , ("18-TET", Scale "Bicycle"
+                  (4 :| [4, 1, 4, 4, 1]))
+          , ("18-TET", Scale "Mish Heptatonic"
+                  (3 :| [2, 3, 2, 3, 3, 2]))
           , ("19-TET", Scale "Ionian (Major)"
-                (3 :| [3,2,3,3,3,2]))
+                (3 :| [3, 2, 3, 3, 3, 2]))
           , ("19-TET", Scale "Sensi[8]"
-                (2 :| [3,2,2,3,2,2,3]))
+                (2 :| [3, 2, 2, 3, 2, 2, 3]))
           , ("19-TET", Scale "Negri[9]"
-                (2 :| [2,2,2,3,2,2,2,2]))
+                (2 :| [2, 2, 2, 3, 2, 2, 2, 2]))
           , ("19-TET", Scale "Kleismic[7]"
-                (1 :| [4,1,4,1,4,4]))
+                (1 :| [4, 1, 4, 1, 4, 4]))
           , ("22-TET", Scale "Superpyth[7] (Major)"
-                (4 :| [4,1,4,4,4,1]))
+                (4 :| [4, 1, 4, 4, 4, 1]))
           , ("22-TET", Scale "Astrology[6]"
-                (4 :| [3,4,4,3,4]))
+                (4 :| [3, 4, 4, 3, 4]))
           , ("22-TET", Scale "Porcupine[7]"
-                (3 :| [3,3,4,3,3,3]))
+                (3 :| [3, 3, 4, 3, 3, 3]))
           , ("22-TET", Scale "Pajara[10]"
-                (2 :| [2,3,2,2,2,2,3,2,2]))
+                (2 :| [2, 3, 2, 2, 2, 2, 3, 2, 2]))
           , ("24-TET", Scale "Ionian (Major)"
-                (4 :| [4,2,4,4,4,2]))
+                (4 :| [4, 2, 4, 4, 4, 2]))
           , ("24-TET", Scale "Anchihoye: Ethiopia"
                 (2 :| [8, 3, 6, 5]))
           , ("24-TET", Scale "Enharmonic Phrygian"
@@ -108,9 +192,9 @@ defaultAppData = AppData {
           , ("24-TET", Scale "Maqam Rast"
                 (4 :| [3, 3, 4, 4, 3, 3]))
           , ("24-TET", Scale "Mohajira[7]"
-                (3 :| [4,3,4,3,4,3]))
+                (3 :| [4, 3, 4, 3, 4, 3]))
           , ("Bohlen Pierce", Scale "Lambda"
-                (2 :| [1,1,2,1,2,1,2,1]))
+                (2 :| [1, 1, 2, 1, 2, 1, 2, 1]))
         ]
     , preferences = defaultPreferences
 }

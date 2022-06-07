@@ -183,8 +183,11 @@ mainPage appDir = do
                 pure (verticalScalingDyn, horizontalScalingDyn)
             
             elClass "div" "col s12" $ 
-                checkbox "Use realistic fret spacing" False
+                checkbox "Display vertically" True
 
+            elClass "div" "col s12" $ 
+                checkbox "Use realistic fret spacing" False
+            
             saveEvent <- button "Save"
 
             pure (saveEvent, (,,,,,,,,) <$>
