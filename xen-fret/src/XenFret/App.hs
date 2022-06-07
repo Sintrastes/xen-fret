@@ -221,8 +221,9 @@ mainPage appDir = do
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
                                     let diagram = board 
                                             (maybe "" show scale) offset 
-                                            frets verticalSpacing horizontalSpacing $ 
-                                                changeScale fretboard key (fromJust scale)
+                                            frets verticalSpacing horizontalSpacing 
+                                                (changeScale fretboard key (fromJust scale))
+                                                ((T.unpack <$>) <$> (noteNames =<< temperament))
                                     case xy of
                                         X x -> do
                                             elDynHtml' "div" (constDyn $ T.pack $
