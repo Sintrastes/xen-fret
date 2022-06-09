@@ -31,6 +31,11 @@ data Monzo = Monzo [Int]
 -- Would it be useful to have n here for the rank?
 data Val = Val [Int]
 
+-- Note: To test for whether or not a meantone-based
+--  note naming scheme is appropriate, we could
+--  just use the patent val to determine whether or not 
+--  the syntonic comma's monzo is tempered out.
+
 inVal :: Monzo -> Val -> Int
 inVal (Monzo xs) (Val ys) = sum $ zipWith (*) xs ys 
 
