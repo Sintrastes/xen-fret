@@ -406,10 +406,28 @@ fetchGithubData fetchEv = getAndDecode
 -- adapted from material for mkdocs (https://squidfunk.github.io/mkdocs-material/),
 -- MIT licensed
 githubWidget :: _ => m ()
-githubWidget = blank
-    where 
-      gitIcon :: _ => m ()
-      gitIcon = 
+githubWidget = do
+    -- TODO: Need an event that fires once.
+    dataFetched <- fetchGithubData undefined
+
+    -- Build up Dyns for our data
+    starsDynText <- foldDyn 
+        (\ghData curr -> 
+            maybe curr (show . stargazersCount) ghData) 
+        "" dataFetched
+    
+    forksDynText <- foldDyn 
+        (\ghData curr -> 
+            maybe curr (show . forksCount) ghData) 
+        "" dataFetched
+    
+    -- Build the UI
+    gitIcon
+    stars starsDynText
+    forks forksDynText
+  where 
+    gitIcon :: _ => m ()
+    gitIcon = 
         elSvg "svg" ("viewBox" =: "0 0 448 512" <> "xmlns" =: "http://www.w3.org/2000/svg") $ 
             elSvg "path" ("d" =: ("M439.55 236.05 244 40.45a28.87" <>
                 "28.87 0 0 0-40.81 0l-40.66" <>
@@ -424,5 +442,5 @@ githubWidget = blank
                 "101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61" <>
                 "195.6a28.86 28.86 0 0 0 40.8" <>
                 "0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z")) blank
-      stars starsDynText = blank {- octicons/star-16.svg -}
-      forks forksDynText = blank {- octicons/repo-forked-16.svg -}
+    stars starsDynText = blank {- octicons/star-16.svg -}
+    forks forksDynText = blank {- octicons/repo-forked-16.svg -}
