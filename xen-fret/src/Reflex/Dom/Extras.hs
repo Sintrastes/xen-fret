@@ -35,8 +35,8 @@ initForm (Star f) x = getCompose $ f x
 (=.) = lmap
 
 -- | Nav bar widget.
-materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m (Event t e)
-materialNavBar tabs = mdo
+materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m () -> m (Event t e)
+materialNavBar tabs extras = mdo
 
     -- Nav bar menu
     (navPane, navPaneEvents) <- elDynAttr' "div" sidebarAttrs $ el "ul" $ do
@@ -50,9 +50,9 @@ materialNavBar tabs = mdo
         navMenu <- elAttr' "a" ("class" =: "unselectable-btn sidenav-trigger" <> "unselectable" =: "on") $
             elClass "i" "material-icons" $ text "menu"
 
-        elClass "a" "brand-logo" $ text "Xen Fret"
+        extras
         
-        elAttr "ul" ("id" =: "nav-mobile" <> "class" =: "right hide-on-med-and-down") $ do
+        elAttr "ul" ("id" =: "nav-mobile" <> "class" =: "left hide-on-med-and-down") $ do
             menuEvents <- forM tabs (\tab -> do
                 btnEvents <- navButton (T.pack $ show tab)
                 pure $ tab <$ btnEvents)
