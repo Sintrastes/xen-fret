@@ -410,8 +410,7 @@ fetchGithubData fetchEv = getAndDecode
 -- MIT licensed
 githubWidget :: _ => m ()
 githubWidget = do
-    -- TODO: Need an event that fires once.
-    dataFetched <- fetchGithubData undefined
+    dataFetched <- fetchGithubData =<< getPostBuild
 
     -- Build up Dyns for our data
     starsDynText <- foldDyn 
