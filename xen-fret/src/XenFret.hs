@@ -165,7 +165,7 @@ emptyBoard nFrets vs hs nStr =
             # translateY (-len/2)
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
   where
-    nut      = hrule width
+    nut      = hrule width # lwL 0.0125
     len      = (nFrets' + 1/2) * vs
     width    = (nStr' - 1) * hs
     fretMarkers  = case () of
