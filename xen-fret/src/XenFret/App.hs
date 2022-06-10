@@ -14,6 +14,7 @@ import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Old (elDynHtml')
+import Reflex.Dom.Xhr (getAndDecode)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
 import Data.Functor
@@ -25,11 +26,13 @@ import System.Info
 import System.Directory
 import Data.List hiding (transpose)
 import Data.Aeson
+import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
 import Language.Javascript.JSaddle (eval, liftJSM, jsg3)
 import XenFret.Data
 import XenFret.AppData
+import GHC.Generics
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -383,3 +386,18 @@ indexErrs xs = go 1 xs []
           go n ((Right _):xs)   idx = go (n+1) xs idx
 
           fmt errs = foldl1 (\x y -> x++", "++y) errs
+
+-- | Json object for a github api response.
+data GithubData = GithubData {
+    stargazersCount :: Int,
+    forksCount :: Int
+} deriving(Generic)
+
+instance ToJSON GithubData where
+   toJSON = genericToJSON $ aesonPrefix snakeCase
+instance FromJSON GithubData where
+   parseJSON = genericParseJSON $ aesonPrefix snakeCase
+
+fetchGithubData :: _ => Event t () -> m (Event t (Maybe GithubData))
+fetchGithubData fetchEv = getAndDecode 
+    (fetchEv $> "https://api.github.com/repos/sintrastes/xen-fret")

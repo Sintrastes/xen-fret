@@ -30,6 +30,7 @@ library
     , GADTs
     , ImplicitParams
     , TupleSections
+    , DeriveGeneric
   build-depends:
       base
     , diagrams
@@ -40,6 +41,7 @@ library
     , containers
     , multimap
     , aeson
+    , aeson-casing
     , reflex-dom
     , jsaddle
     , jsaddle-warp
