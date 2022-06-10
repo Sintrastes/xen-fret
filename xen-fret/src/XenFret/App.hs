@@ -113,6 +113,7 @@ app = do
         (\(e :: SomeException) -> pure $ Left e)
     
     navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Preferences]
+    githubWidget
     currentPage <- holdDyn Home navEvents
 
     dyn $ currentPage <&> \case
@@ -394,16 +395,21 @@ data GithubData = GithubData {
 } deriving(Generic)
 
 instance ToJSON GithubData where
-   toJSON = genericToJSON $ aesonPrefix snakeCase
+   toJSON = genericToJSON $ (aesonDrop 0 snakeCase)
+        { rejectUnknownFields = False }
 instance FromJSON GithubData where
-   parseJSON = genericParseJSON $ aesonPrefix snakeCase
+   parseJSON = genericParseJSON $ (aesonDrop 0 snakeCase)
+        { rejectUnknownFields = False }
 
 repoUrl :: T.Text
-repoUrl = "https://api.github.com/repos/sintrastes/xen-fret"
+repoUrl = "https://github.com/sintrastes/xen-fret"
+
+repoApiUrl :: T.Text
+repoApiUrl = "http://api.github.com/repos/sintrastes/xen-fret"
 
 fetchGithubData :: _ => Event t () -> m (Event t (Maybe GithubData))
 fetchGithubData fetchEv = getAndDecode 
-    (fetchEv $> repoUrl)
+    (fetchEv $> repoApiUrl)
 
 -- | Widget used to display source information.
 -- adapted from material for mkdocs (https://squidfunk.github.io/mkdocs-material/),
@@ -415,17 +421,17 @@ githubWidget = do
     -- Build up Dyns for our data
     starsDynText <- foldDyn 
         (\ghData curr -> 
-            maybe curr (show . stargazersCount) ghData) 
+            maybe "ERR" (T.pack . show . stargazersCount) ghData) 
         "" dataFetched
     
     forksDynText <- foldDyn 
         (\ghData curr -> 
-            maybe curr (show . forksCount) ghData) 
+            maybe "ERR" (T.pack . show . forksCount) ghData) 
         "" dataFetched
     
     -- Build the UI
     elAttr "a" ("href" =: repoUrl) $ do
-        gitIcon
+        -- gitIcon
         stars starsDynText
         forks forksDynText
   where 
@@ -445,5 +451,5 @@ githubWidget = do
                 "101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61" <>
                 "195.6a28.86 28.86 0 0 0 40.8" <>
                 "0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z")) blank
-    stars starsDynText = blank {- octicons/star-16.svg -}
-    forks forksDynText = blank {- octicons/repo-forked-16.svg -}
+    stars starsDynText = el "p" $ dynText starsDynText {- octicons/star-16.svg -}
+    forks forksDynText = el "p" $ dynText forksDynText {- octicons/repo-forked-16.svg -}
