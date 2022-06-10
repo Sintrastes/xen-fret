@@ -28,6 +28,7 @@ library
     , ScopedTypeVariables
     , DataKinds
     , GADTs
+    , ImplicitParams
   build-depends:
       base
     , diagrams

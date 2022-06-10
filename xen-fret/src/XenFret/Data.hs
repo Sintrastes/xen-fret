@@ -4,7 +4,7 @@ module XenFret.Data where
 import qualified Data.Text as T
 import Data.Default
 import Data.Aeson.TH
-import Data.List.NonEmpty
+import Data.List.NonEmpty hiding((!!), cycle)
 import Data.Ratio
 
 data Temperament = Temperament {
@@ -14,6 +14,13 @@ data Temperament = Temperament {
     noteNames :: Maybe [T.Text]
 }
     deriving(Eq)
+
+type NoteNames = Maybe [T.Text]
+
+displayNote :: (?noteNames :: NoteNames) => Int -> String
+displayNote note = 
+    let noteNames = maybe (fmap (T.pack . show) [0..]) cycle ?noteNames 
+     in T.unpack $ noteNames !! note
 
 instance Default Temperament where
     def = Temperament {
