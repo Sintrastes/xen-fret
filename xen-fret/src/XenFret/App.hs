@@ -398,9 +398,12 @@ instance ToJSON GithubData where
 instance FromJSON GithubData where
    parseJSON = genericParseJSON $ aesonPrefix snakeCase
 
+repoUrl :: T.Text
+repoUrl = "https://api.github.com/repos/sintrastes/xen-fret"
+
 fetchGithubData :: _ => Event t () -> m (Event t (Maybe GithubData))
 fetchGithubData fetchEv = getAndDecode 
-    (fetchEv $> "https://api.github.com/repos/sintrastes/xen-fret")
+    (fetchEv $> repoUrl)
 
 -- | Widget used to display source information.
 -- adapted from material for mkdocs (https://squidfunk.github.io/mkdocs-material/),
@@ -422,9 +425,10 @@ githubWidget = do
         "" dataFetched
     
     -- Build the UI
-    gitIcon
-    stars starsDynText
-    forks forksDynText
+    elAttr "a" ("href" =: repoUrl) $ do
+        gitIcon
+        stars starsDynText
+        forks forksDynText
   where 
     gitIcon :: _ => m ()
     gitIcon = 
