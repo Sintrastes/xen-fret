@@ -43,8 +43,7 @@ defaultAppData = AppData {
                       "T#/Ub",
                       "U",
                       "U#/Pb",
-                      "P/Qb",
-                      "Q/P#"
+                      "P/Qb"
                     ]),
             Temperament "12-TET" 12 (2 % 1)
                   (Just 

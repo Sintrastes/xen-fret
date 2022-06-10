@@ -15,12 +15,12 @@ data Temperament = Temperament {
 }
     deriving(Eq)
 
-type NoteNames = Maybe [T.Text]
+type NoteNames = Maybe [String]
 
 displayNote :: (?noteNames :: NoteNames) => Int -> String
 displayNote note = 
-    let noteNames = maybe (fmap (T.pack . show) [0..]) cycle ?noteNames 
-     in T.unpack $ noteNames !! note
+    let noteNames = maybe (fmap show [0..]) cycle ?noteNames 
+     in noteNames !! note
 
 instance Default Temperament where
     def = Temperament {

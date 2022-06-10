@@ -140,12 +140,14 @@ board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
         Nothing -> vcat'
             (with & sep .~ vs)
             (replicate nFrets $ strutX 0.1)
-        Just noteNames -> vcat'
-            (with & sep .~ vs)
-            (take (nFrets + 1) $
-                noteNames <&> \note ->
-                    text note # bold # scale 0.037
-                         <> strutX 0.15)
+        Just noteNames -> let ?noteNames = optNoteNames in
+            let offsetNoteNames = fmap displayNote [offset..offset + nFrets] in
+                vcat'
+                    (with & sep .~ vs)
+                    (take (nFrets + 1) $
+                        offsetNoteNames <&> \note ->
+                            text note # bold # scale 0.037
+                                 <> strutX 0.15)
 
 
 -- | An empty fretboard diagram.
