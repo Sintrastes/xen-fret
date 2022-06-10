@@ -97,18 +97,22 @@ applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
 frettingDots :: Int
   -> Double    -- Vertical spacing
   -> Double    -- Horizontal spacing
-  -> [Int]     -- List of fret locations, all Ints should be non-zero.
+  -> [(Int, Bool)]     -- List of fret locations, all Ints should be non-zero.
   -> Diagram B -- A diagram of the dots.
 frettingDots offset vs hs =
     foldr (atop . frettingDot offset vs) mempty
-  . fmap ((-offset) +)
-  . filterOutInc (< offset)
+  . fmap (\(x,y) -> (x -offset, y))
+  . filterOutInc (\(x, _) -> x < offset)
 
 -- | Create a diagram of a single dot
-frettingDot :: Int -> Double -> Int -> Diagram B
-frettingDot 0 vs 0 = circle 0.03 # lwL 0.007
-frettingDot _ vs n = circle (0.03 * 0.8) # fc black # lwL 0.007 # translateY (-n'*vs)
+frettingDot :: Int -> Double -> (Int, Bool) -> Diagram B
+frettingDot 0 vs (0, _) = circle 0.03 # lwL 0.007
+frettingDot _ vs (n, colored) = circle (0.03 * 0.8) 
+    # fc color 
+    # lwL 0.007 
+    # translateY (-n'*vs)
         where n'  = fromIntegral n  :: Double
+              color = if colored then blue else black
 
 -- | Create a fretboard diagram
 board :: String
@@ -134,7 +138,7 @@ board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
     emptyboard = emptyBoard nFrets vs hs nStr
     nStr       = length $ fretboardStrings fretboard
     dots       = map (frettingDots offset vs hs) positions
-    positions  = map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
+    positions  = fmap (,False) <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
     noteMarkers = case optNoteNames of
         Nothing -> vcat'
