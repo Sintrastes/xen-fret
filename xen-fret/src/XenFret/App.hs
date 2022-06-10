@@ -397,10 +397,8 @@ data GithubData = GithubData {
 
 instance ToJSON GithubData where
    toJSON = genericToJSON $ (aesonDrop 0 snakeCase)
-        { rejectUnknownFields = False }
 instance FromJSON GithubData where
    parseJSON = genericParseJSON $ (aesonDrop 0 snakeCase)
-        { rejectUnknownFields = False }
 
 repoUrl :: T.Text
 repoUrl = "https://github.com/sintrastes/xen-fret"
