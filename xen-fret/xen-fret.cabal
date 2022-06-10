@@ -29,6 +29,7 @@ library
     , DataKinds
     , GADTs
     , ImplicitParams
+    , TupleSections
   build-depends:
       base
     , diagrams
