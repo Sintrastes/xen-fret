@@ -175,7 +175,7 @@ mainPage appDir = do
             
             (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
                 sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
-                    labeledEntry "Size" intEntry 280
+                    labeledEntry "Size" intEntry 264
                 fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
                     labeledEntry "Number of Frets" intEntry 10
                 pure (sizeDyn, fretsDyn)
@@ -184,7 +184,7 @@ mainPage appDir = do
                 verticalScalingDyn   <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
                     labeledEntry "Vertical Spacing" intEntry 200
                 horizontalScalingDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
-                    labeledEntry "Horizontal Spacing" intEntry 200
+                    labeledEntry "Horizontal Spacing" intEntry 331
                 pure (verticalScalingDyn, horizontalScalingDyn)
             
             elClass "div" "col s12" $ 

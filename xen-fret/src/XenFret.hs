@@ -124,14 +124,15 @@ board :: String
   -> Maybe [String]
   -> Diagram B
 board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
-        ((baselineText scaleName # scale 0.075) <> strutY 0.12 <> strutX 1.0)
-            === (
-            noteMarkers |||
-                (emptyboard
-                    `atop`
-                    -- The dots, translated to their proper positions on the fretboard
-                 foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
-                    (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)))
+        ((alignL $ baselineText scaleName # scale 0.075) <> strutY 0.12)
+            ===
+            ((translateY (-0.12) $ alignT $ noteMarkers) |||
+                (alignL stringMarkers === (alignL $
+                    emptyboard
+                        `atop`
+                        -- The dots, translated to their proper positions on the fretboard
+                    foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
+                        (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))))
         )
 
   where
@@ -140,6 +141,20 @@ board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
     dots       = map (frettingDots offset vs hs) positions
     positions  = fmap (,False) <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
+
+    stringMarkers :: Diagram B
+    stringMarkers = case optNoteNames of
+        Nothing -> hcat'
+            (with & sep .~ hs)
+            (replicate (length stringPitches) $ strutY 0.1)
+        Just noteNames -> let ?noteNames = optNoteNames in
+            let stringNoteNames = fmap displayNote stringPitches in
+                hcat'
+                    (with & sep .~ hs)
+                    (stringNoteNames <&> \note ->
+                            text note # bold # scale 0.037
+                                 <> strutY 0.15)
+    noteMarkers :: Diagram B
     noteMarkers = case optNoteNames of
         Nothing -> vcat'
             (with & sep .~ vs)
@@ -152,6 +167,8 @@ board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
                         offsetNoteNames <&> \note ->
                             text note # bold # scale 0.037
                                  <> strutX 0.15)
+    
+    stringPitches = toList $ fmap pitch $ fretboardStrings fretboard
 
 
 -- | An empty fretboard diagram.
