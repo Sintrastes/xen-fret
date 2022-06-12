@@ -1,8 +1,8 @@
 {
   "owner": "ProEnergyVIP",
   "repo": "obelisk",
-  "branch": "ghc-8.10",
+  "branch": "8.10-official",
   "private": false,
-  "rev": "a6b056fd8701b04a96cc02533d97a1173164ec70",
+  "rev": "ff0f12035b431c935f46b3658bd9bcc4710eca6f",
   "sha256": "1imka0vvci0msc8xm608gajxwnz395pc10nky1shp3rz2vp3w7by"
 }
