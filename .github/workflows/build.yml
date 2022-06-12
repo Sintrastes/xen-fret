@@ -19,28 +19,28 @@ jobs:
       run: |
         nix-build --show-trace -A ghcjs.frontend -o result
         tar -cvzf xen-fret-js-frontend.tar.gz result/*
-    - name: Build native app with nix
-      run: |
-        nix-build -A ghc.frontend -o result-native
-        ls result-native
-        tar -cvzf xen-fret-x86_64-linux.tar.gz result-native/*
-    - name: Build Android app with nix
-      run: |
-        nix-build -A android.frontend -o result-android
-        ls result-android
-        cp result-android/android-app-debug.apk ./xen-fret-android-app.apk
-    - name: Archive native app
-      uses: actions/upload-artifact@v2
-      with:
-        name: x86_64-linux-frontend
-        path: xen-fret-x86_64-linux.tar.gz
+    # - name: Build native app with nix
+    #   run: |
+    #     nix-build -A ghc.frontend -o result-native
+    #     ls result-native
+    #     tar -cvzf xen-fret-x86_64-linux.tar.gz result-native/*
+    # - name: Build Android app with nix
+    #   run: |
+    #     nix-build -A android.frontend -o result-android
+    #     ls result-android
+    #     cp result-android/android-app-debug.apk ./xen-fret-android-app.apk
+    # - name: Archive native app
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: x86_64-linux-frontend
+    #     path: xen-fret-x86_64-linux.tar.gz
     - name: Archive webapp
       uses: actions/upload-artifact@v2
       with:
         name: ghcjs-frontend
         path: xen-fret-js-frontend.tar.gz
-    - name: Archive Android app
-      uses: actions/upload-artifact@v2
-      with:
-        name: android-app
-        path: xen-fret-android-app.apk
+    # - name: Archive Android app
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: android-app
+    #     path: xen-fret-android-app.apk
