@@ -94,28 +94,35 @@ applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)
-frettingDots :: Int
+frettingDots :: Bool
+  -> Int
   -> Double    -- Vertical spacing
   -> Double    -- Horizontal spacing
   -> [(Int, Bool)]     -- List of fret locations, all Ints should be non-zero.
   -> Diagram B -- A diagram of the dots.
-frettingDots offset vs hs =
-    foldr (atop . frettingDot offset vs) mempty
+frettingDots displayMarkersOnFrets offset vs hs =
+    foldr (atop . frettingDot displayMarkersOnFrets offset vs) mempty
   . fmap (\(x,y) -> (x -offset, y))
   . filterOutInc (\(x, _) -> x < offset)
 
 -- | Create a diagram of a single dot
-frettingDot :: Int -> Double -> (Int, Bool) -> Diagram B
-frettingDot 0 vs (0, _) = circle 0.03 # lwL 0.007
-frettingDot _ vs (n, colored) = circle (0.03 * 0.8) 
-    # fc color 
-    # lwL 0.007 
-    # translateY (-n'*vs)
-        where n'  = fromIntegral n  :: Double
-              color = if colored then blue else black
+frettingDot :: Bool -> Int -> Double -> (Int, Bool) -> Diagram B
+frettingDot _ 0 vs (0, _) = circle 0.03 # lwL 0.007
+frettingDot displayMarkersOnFrets _ vs (n, colored) = 
+    translateY offset $ circle (0.03 * 0.8) 
+        # fc color 
+        # lwL 0.007 
+        # translateY (-n'*vs)
+  where 
+    n'     = fromIntegral n  :: Double
+    color  = if colored then blue else black
+    offset = if displayMarkersOnFrets 
+        then 0.0
+        else 0.5 * vs  
 
 -- | Create a fretboard diagram
-board :: String
+board :: Bool
+  -> String
   -> Int
   -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
@@ -123,7 +130,7 @@ board :: String
   -> Fretboard
   -> Maybe [String]
   -> Diagram B
-board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
+board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
         ((alignL $ baselineText scaleName # scale 0.075) <> strutY 0.12)
             ===
             ((translateY (-0.12) $ alignT $ noteMarkers) |||
@@ -138,7 +145,7 @@ board scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
   where
     emptyboard = emptyBoard nFrets vs hs nStr
     nStr       = length $ fretboardStrings fretboard
-    dots       = map (frettingDots offset vs hs) positions
+    dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
     positions  = fmap (,False) <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
 

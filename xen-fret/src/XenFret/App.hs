@@ -192,10 +192,13 @@ mainPage appDir = do
 
             elClass "div" "col s12" $ 
                 checkbox "Use realistic fret spacing" False
+
+            displayMarkersOnFretsDyn <- elClass "div" "col s12" $ 
+                checkbox "Display markers on frets" False
             
             saveEvent <- button "Save"
 
-            pure (saveEvent, (,,,,,,,,) <$>
+            pure (saveEvent, (,,,,,,,,,) <$>
                 fretsDyn <*> 
                 sizeDyn <*> 
                 scaleDyn <*>
@@ -204,11 +207,12 @@ mainPage appDir = do
                 horizontalScalingDyn <*>
                 keyDyn <*>
                 offsetDyn <*>
-                tuningDyn)
+                tuningDyn <*>
+                displayMarkersOnFretsDyn)
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset, tuning) -> 
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset, tuning, displayMarkersOnFrets) -> 
                 let 
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
@@ -224,7 +228,7 @@ mainPage appDir = do
                                     el "p" $ text $ T.pack $ concatErrors err
                                     pure Nothing
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                                    let diagram = board 
+                                    let diagram = board displayMarkersOnFrets
                                             (maybe "" show scale) offset 
                                             frets verticalSpacing horizontalSpacing 
                                                 (changeScale fretboard key (fromJust scale))
