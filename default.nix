@@ -2,10 +2,14 @@
 { system ? builtins.currentSystem
 , obelisk ? import ./.obelisk/impl {
     inherit system;
+    config.android_sdk.accept_license = true;
   }
 }:
 with obelisk;
 project ./. ({ pkgs, ... }: {
+
+  android.applicationId = "io.github.sintrastes.xenfret";
+  android.displayName = "Xen Fret";
 
   packages = {
     frontend = ./frontend;
