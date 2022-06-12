@@ -19,5 +19,5 @@ project ./. ({ pkgs, ... }: {
   overrides = self: super: {
     diagrams-lib = pkgs.haskell.lib.dontCheck super.diagrams-lib;
     JuicyPixels = pkgs.haskell.lib.dontCheck super.JuicyPixels;
-  }
+  };
 })
