@@ -107,7 +107,7 @@ app = do
         then pure "/data/data/org.xenfret.app"
         else liftFrontend "/" getHomeDirectory <&> (<> "/.xenfret")
 
-    toastOnErrors $ liftFrontend (Right ()) $ catch
+    liftFrontend (Right ()) $ catch
         (do createDirectoryIfMissing True appDir
             pure $ Right ())
         (\(e :: SomeException) -> pure $ Left e)
