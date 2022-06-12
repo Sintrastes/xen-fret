@@ -1,8 +1,8 @@
 {
-    "owner": "obsidiansystems",
-    "repo": "obelisk",
-    "branch": "master",
-    "private": false,
-    "rev": "e3ec75f6988eed47189dd20f8c8514748b33ea81",
-    "sha256": "0sdlcyzdx9nyql5vmpjydhzsakixc8y050v8m2rz87l2rmhkqnw9"
-  }
+  "owner": "ProEnergyVIP",
+  "repo": "obelisk",
+  "branch": "ghc-8.10",
+  "private": false,
+  "rev": "a6b056fd8701b04a96cc02533d97a1173164ec70",
+  "sha256": "1imka0vvci0msc8xm608gajxwnz395pc10nky1shp3rz2vp3w7by"
+}
