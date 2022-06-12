@@ -49,7 +49,9 @@
       "active": false
     },
     "allowlist": {
-      "all": true
+      "http": {
+        "scope": ["https://api.github.com/repos/sintrastes/xen-fret/*"]
+      }
     },
     "macOSPrivateApi": true,
     "windows": [
