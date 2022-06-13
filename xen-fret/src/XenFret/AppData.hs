@@ -50,7 +50,10 @@ defaultAppData = AppData {
             Temperament "15-TET" 15 (2 % 1) 
                   Nothing,
             Temperament "16-TET" 16 (2 % 1) 
-                  Nothing,
+                  (Just [
+                      "A","B#","B","Bb","C#","C","D#","D",
+                      "E#","E","Eb","F#","F","G#","G","A#"
+                  ]),
             Temperament "17-TET" 17 (2 % 1) 
                   Nothing,
             Temperament "18-TET" 18 (2 % 1) 
