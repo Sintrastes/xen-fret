@@ -99,17 +99,17 @@ defaultAppData = AppData {
             ("11-TET", Tuning "Major Thirds Tuning (Bass)" "Four-String Bass Guitar" 
                 (0 :| [4, 8, 120])),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
-                (0 :| [5, 10, 15, 19, 24])),
+                (fmap (+7) $ 0 :| [5, 10, 15, 19, 24])),
             ("12-TET", Tuning "Standard Tuning (Bass)" "Four-String Bass Guitar" 
-                (0 :| [5, 10, 15])),
+                (fmap (+7) $ 0 :| [5, 10, 15])),
             ("12-TET", Tuning "Standard Tuning (7 String)" "Seven-String Guitar" 
-                (0 :| [5, 10, 15, 20, 14, 29])),
+                (fmap (+2) $ 0 :| [5, 10, 15, 20, 14, 29])),
             ("12-TET", Tuning "Drop D" "Six-String Guitar" 
-                (0 :| [7, 12, 17, 21, 26])),
+                (fmap (+5) $ 0 :| [7, 12, 17, 21, 26])),
             ("12-TET", Tuning "DADGAD" "Six-String Guitar" 
-                (0 :| [7, 12, 17, 19, 24])),
+                (fmap (+5) $ 0 :| [7, 12, 17, 19, 24])),
             ("12-TET", Tuning "All Fourths" "Six-String Guitar" 
-                (0 :| [5, 10, 15, 20, 25])),
+                (fmap (+7) $ 0 :| [5, 10, 15, 20, 25])),
             ("12-TET", Tuning "All Fifths" "Six-String Guitar" 
                 (0 :| [7, 14, 21, 28, 35])),
             ("13-TET", Tuning "Oneirotonic Tuning" "Six-String Guitar"
