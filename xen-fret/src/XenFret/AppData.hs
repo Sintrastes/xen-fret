@@ -62,7 +62,13 @@ defaultAppData = AppData {
                       "E#","F","F#","Gb","G","G#","Ab"                  
                   ]),
             Temperament "22-TET" 22 (2 % 1) 
-                  Nothing,
+                  (Just [
+                    "A","A#","Bb","B","B#",
+                    "Cb","C","C#","Db","D",
+                    "D#","Eb","E","E#","Fb",
+                    "F","F#","Gb","G","G#",
+                    "Gx","Ab"
+                  ]),
             Temperament "24-TET" 24 (2 % 1) 
                   Nothing,
             Temperament "Bohlen Pierce" 13 (3 % 1) 
