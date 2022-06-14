@@ -144,10 +144,13 @@ board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames
 
   where
     emptyboard = emptyBoard nFrets vs hs nStr
-    nStr       = length $ fretboardStrings fretboard
+    strings    = fretboardStrings fretboard
+    nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
     positions  = fmap (,False) <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
+    firstString :| _ = strings
+    lowestNote = pitch $ firstString
 
     stringMarkers :: Diagram B
     stringMarkers = case optNoteNames of
@@ -167,7 +170,8 @@ board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames
             (with & sep .~ vs)
             (replicate nFrets $ strutX 0.1)
         Just noteNames -> let ?noteNames = optNoteNames in
-            let offsetNoteNames = fmap displayNote [offset..offset + nFrets] in
+            let offsetNoteNames = fmap displayNote 
+                        [(offset + lowestNote)..(offset + lowestNote) + nFrets] in
                 vcat'
                     (with & sep .~ vs)
                     (take (nFrets + 1) $
