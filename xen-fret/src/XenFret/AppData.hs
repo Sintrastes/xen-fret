@@ -244,6 +244,26 @@ defaultAppData = AppData {
                 (3 :| [4, 3, 4, 3, 4, 3]))
           , ("Bohlen Pierce", Scale "Lambda"
                 (2 :| [1, 1, 2, 1, 2, 1, 2, 1]))
+          , ("Bohlen Pierce", Scale "Moll 1"
+                  (1 :| [2,1,2,1,2,1,2,1]))
+          , ("Bohlen Pierce", Scale "Harmonic"
+                  (1 :| [2,1,2,1,2,1,1,2]))
+          , ("Bohlen Pierce", Scale "Dur I"
+                  (1 :| [2,1,2,1,1,2,1,2]))
+          , ("Bohlen Pierce", Scale "Moll 2"
+                  (2 :| [1,2,1,1,2,1,2,1]))
+          , ("Bohlen Pierce", Scale "Dur II"
+                  (2 :| [1,1,2,1,2,1,1,2]))
+          , ("Bohlen Pierce", Scale "Gamma"
+                  (1 :| [2,1,2,1,1,2,2,1]))
+          , ("Bohlen Pierce", Scale "Walker A"
+                  (1 :| [1,2,1,2,1,2,1,2]))
+          , ("Bohlen Pierce", Scale "Walker B"
+                  (1 :| [2,1,1,2,1,2,1,2]))
+          , ("Bohlen Pierce", Scale "Walker I"
+                  (2 :| [1,2,1,2,1,2,1,1]))
+          , ("Bohlen Pierce", Scale "Walker II"
+                  (2 :| [1,2,1,2,1,1,2,1]))
         ]
     , preferences = defaultPreferences
 }
