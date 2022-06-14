@@ -126,27 +126,27 @@ defaultAppData = AppData {
             ("15-TET", Tuning "All Fourths Tuning" "Six-String Guitar"
                 (0 :| [5, 10, 15, 20, 25])),
             ("16-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
-                (0 :| [7, 14, 21, 28, 35])),
+                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35])),
             ("16-TET", Tuning "Diminished Fourths Tuning" "Six-String Guitar"
-                (0 :| [6, 12, 18, 24, 30])),
+                (fmap (+9) $ 0 :| [6, 12, 18, 24, 30])),
             ("16-TET", Tuning "Wide Fourths Tuning (7 String)" "Seven-String Guitar"
-                (0 :| [7, 14, 21, 28, 35, 40])),
+                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35, 40])),
             ("16-TET", Tuning "Diminished Fourths Tuning (7 String)" "Seven-String Guitar"
-                (0 :| [6, 12, 18, 24, 30, 36])),
+                (fmap (+2) $ 0 :| [6, 12, 18, 24, 30, 36])),
             ("17-TET", Tuning "Standard Tuning" "Six-String Guitar"
-                (0 :| [7, 14, 21, 27, 34])),
+                (fmap (+10) $ 0 :| [7, 14, 21, 27, 34])),
             ("17-TET", Tuning "All Fourths" "Six-String Guitar"
-                (0 :| [7, 14, 21, 28, 35])), 
+                (fmap (+10) $ 0 :| [7, 14, 21, 28, 35])), 
             ("18-TET", Tuning "Wide Fourths" "Six-String Guitar"
                 (0 :| [8, 16, 24, 32, 40])),
             ("19-TET", Tuning "Standard Tuning" "Six-String Guitar"
-                (0 :| [8, 16, 24, 30, 38])),
+                (fmap (+11) $ 0 :| [8, 16, 24, 30, 38])),
             ("22-TET", Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
-                (0 :| [9, 18, 27, 35, 44])),
+                (fmap (+13) $ 0 :| [9, 18, 27, 35, 44])),
             ("24-TET", Tuning "Standard Tuning" "Six-String Guitar" 
-                (0 :| [10, 20, 30, 38, 48])),
+                (fmap (+14) $ 0 :| [10, 20, 30, 38, 48])),
             ("24-TET", Tuning "Drop D" "Six-String Guitar" 
-                (0 :| [14, 24, 34, 42, 52])),
+                (fmap (+12) $ 0 :| [14, 24, 34, 42, 52])),
             ("Bohlen Pierce", Tuning "Bohlen's Tuning" "Six String Guitar"
                 (0 :| [3,6,9,13,16])) -- A1 C E G A C
         ]
@@ -192,6 +192,8 @@ defaultAppData = AppData {
                 (2 :| [1, 2, 2, 1, 2, 2, 1, 2]))
           , ("15-TET", Scale "Blackwood[10]"
                 (2 :| [1, 2, 1, 2, 1, 2, 1, 2, 1]))
+          , ("15-TET", Scale "Marvel double harmonic major"
+                  (1 :| [4,1,3,1,4,1]))
           , ("16-TET", Scale "mavila[7]"
                 (2 :| [2, 2, 3, 2, 2, 3]))
           , ("16-TET", Scale "Lemba"
