@@ -145,7 +145,7 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
         )
 
   where
-    emptyboard = emptyBoard nFrets vs hs nStr
+    emptyboard = emptyBoard nFrets vs hs nStr offset
     strings    = fretboardStrings fretboard
     nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
@@ -199,8 +199,9 @@ emptyBoard :: Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Int    -- Number of strings
+  -> Int    -- Offset
   -> Diagram B
-emptyBoard nFrets vs hs nStr =
+emptyBoard nFrets vs hs nStr offset =
       nut
         `atop` fretMarkers
         -- The strings translated to their proper poisitons
@@ -209,7 +210,11 @@ emptyBoard nFrets vs hs nStr =
             # translateY (-len/2)
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
   where
-    nut      = hrule width # lwL 0.0125
+    nut = if offset == 0
+       then hrule width # lwL 0.0125
+       else (hrule width)
+                # dashingL [0.03] 0
+                # lwL 0.007
     len      = (nFrets' + 1/2) * vs
     width    = (nStr' - 1) * hs
     fretMarkers  = case () of
