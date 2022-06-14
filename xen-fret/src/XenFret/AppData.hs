@@ -181,9 +181,9 @@ defaultAppData = AppData {
           , ("12-TET", Scale "augmented[6]"
                   (3 :| [1, 3, 1, 3, 1]))
           , ("12-TET", Scale "Blues"
-                  (3 :| 2, 1, 1, 3))
+                  (3 :| [2, 1, 1, 3]))
           , ("12-TET", Scale "Mixolydian b6"
-                  (2 :| 2, 1, 2, 1, 2))
+                  (2 :| [2, 1, 2, 1, 2]))
           , ("12-TET", Scale "Hirojoshi"
                   (2 :| [1, 4, 1, 4]))
           , ("12-TET", Scale "Ryo"

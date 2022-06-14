@@ -228,8 +228,10 @@ mainPage appDir = do
                                     el "p" $ text $ T.pack $ concatErrors err
                                     pure Nothing
                                 Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                                    let Just scalePeriod = sum . scaleIntervals <$> scale
+                                    let Just (scaleRoot NE.:| _) = scaleIntervals <$> scale
                                     let diagram = board displayMarkersOnFrets
-                                            (maybe "" show scale) offset 
+                                            (maybe "" show scale) offset scalePeriod scaleRoot
                                             frets verticalSpacing horizontalSpacing 
                                                 (changeScale fretboard key (fromJust scale))
                                                 ((T.unpack <$>) <$> (noteNames =<< temperament))
