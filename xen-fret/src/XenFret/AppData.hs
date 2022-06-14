@@ -65,9 +65,7 @@ defaultAppData = AppData {
                         "A","Bb","A#","B","C","Db","C#","D",
                         "Eb","D#","E","F","Gb","F#","G",
                         "Hb","G#","H"
-                  ]
-
-                  ),
+                  ]),
             Temperament "19-TET" 19 (2 % 1) 
                   (Just [
                       "A","A#","Bb","B","B#","C",
@@ -85,7 +83,9 @@ defaultAppData = AppData {
             Temperament "24-TET" 24 (2 % 1) 
                   Nothing,
             Temperament "Bohlen Pierce" 13 (3 % 1) 
-                  Nothing
+                  (Just [
+                    "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
+                  ])
         ]
     , tunings = toMap $ fromList 
         [
