@@ -107,6 +107,8 @@ defaultAppData = AppData {
                 (0 :| [4, 8, 120])),
             ("12-TET", Tuning "Standard Tuning" "Mandolin"
                 (fmap (+10) $ 0 :| [7, 14, 21])),
+            ("12-TET", Tuning "Standard Tuning" "Ukulele"
+                (fmap (+3) $ 7 :| [0, 4, 9])),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
                 (fmap (+7) $ 0 :| [5, 10, 15, 19, 24])),
             ("12-TET", Tuning "Standard Tuning (Bass)" "Four-String Bass Guitar" 
