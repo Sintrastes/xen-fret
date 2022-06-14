@@ -174,6 +174,24 @@ defaultAppData = AppData {
                 (2 :| [1, 2, 2, 1, 2, 2]))
           , ("12-TET", Scale "Dorian" 
                 (2 :| [1, 2, 2, 2, 1, 2]))
+          , ("12-TET", Scale "diminished[8] (Octatonic)"
+                  (2 :| [1, 2, 1, 2, 1, 2, 1]))
+          , ("12-TET", Scale "Whole tone"
+                  (2 :| [2, 2, 2, 2, 2]))
+          , ("12-TET", Scale "augmented[6]"
+                  (3 :| [1, 3, 1, 3, 1]))
+          , ("12-TET", Scale "Blues"
+                  (3 :| 2, 1, 1, 3))
+          , ("12-TET", Scale "Mixolydian b6"
+                  (2 :| 2, 1, 2, 1, 2))
+          , ("12-TET", Scale "Hirojoshi"
+                  (2 :| [1, 4, 1, 4]))
+          , ("12-TET", Scale "Ryo"
+                  (2 :| [2, 3, 2, 3]))
+          , ("12-TET", Scale "Insen"
+                  (1 :| [4, 2, 3, 2]))
+          , ("12-TET", Scale "Engimatic Scale"
+                  (1 :| [3, 2, 2, 2, 1, 1]))
           , ("13-TET", Scale "Archeotonic (Ryonian Mode)"
                 (2 :| [2, 2, 2, 2, 2, 1]))
           , ("13-TET", Scale "Oneirotonic (Dylathian Mode)"
