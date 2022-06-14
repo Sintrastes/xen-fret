@@ -27,66 +27,66 @@ data AppData = AppData {
 
 $(deriveJSON defaultOptions ''AppData)
 
+
 defaultAppData = AppData {
       temperaments = 
         [
             Temperament "11-TET" 11 (2 % 1) 
-                  (Just 
-                    [
-                      "Q/P#",
-                      "Q#/Rb",
-                      "R",
-                      "R#/Sb",
-                      "S",
-                      "S#/Tb",
-                      "T",
-                      "T#/Ub",
-                      "U",
-                      "U#/Pb",
-                      "P/Qb"
+                  (Just [
+                      "Q/P#","Q#/Rb","R","R#/Sb","S",
+                      "S#/Tb","T","T#/Ub","U","U#/Pb","P/Qb"
                     ]),
             Temperament "12-TET" 12 (2 % 1)
-                  (Just 
-                    [
-                      "A",
-                      "A#/Bb",
-                      "B",
-                      "C",
-                      "C#/Db",
-                      "D",
-                      "D#/Eb",
-                      "E",
-                      "F",
-                      "F#/Gb",
-                      "G",
-                      "G#/Ab"
+                  (Just [
+                      "A","A#/Bb","B","C","C#/Db","D",
+                      "D#/Eb","E","F","F#/Gb","G","G#/Ab"
                     ]),
             Temperament "13-TET" 13 (2 % 1) 
-                  (Just
-                    [
-                       "J",
-                       "J#/Kb",
-                       "K",
-                       "L",
-                       "L#/Mb",
-                       "M",
-                       "M#/Nb",
-                       "N",
-                       "O",
-                       "O#/Pb",
-                       "P",
-                       "Q",
-                       "Q#/Jb"
+                  (Just [
+                       "J","J#/Kb","K","L","L#/Mb","M","M#/Nb",
+                       "N","O","O#/Pb","P","Q","Q#/Jb"
                     ]),
-            Temperament "14-TET" 14 (2 % 1) Nothing,
-            Temperament "15-TET" 15 (2 % 1) Nothing,
-            Temperament "16-TET" 16 (2 % 1) Nothing,
-            Temperament "17-TET" 17 (2 % 1) Nothing,
-            Temperament "18-TET" 18 (2 % 1) Nothing,
-            Temperament "19-TET" 19 (2 % 1) Nothing,
-            Temperament "22-TET" 22 (2 % 1) Nothing,
-            Temperament "24-TET" 24 (2 % 1) Nothing,
-            Temperament "Bohlen Pierce" 13 (3 % 1) Nothing
+            Temperament "14-TET" 14 (2 % 1) 
+                  Nothing,
+            Temperament "15-TET" 15 (2 % 1) 
+                  Nothing,
+            Temperament "16-TET" 16 (2 % 1) 
+                  (Just [
+                      "A","B#","B","Bb","C#","C","D#","D",
+                      "E#","E","Eb","F#","F","G#","G","A#"
+                  ]),
+            Temperament "17-TET" 17 (2 % 1) 
+                  (Just [
+                    "A","Bb","A#","B","C","Db","C#","D",
+                    "Eb","D#","E","F","Gb","F#","G","Ab",
+                    "G#"
+                  ]),
+            Temperament "18-TET" 18 (2 % 1) 
+                  (Just [
+                        "A","Bb","A#","B","C","Db","C#","D",
+                        "Eb","D#","E","F","Gb","F#","G",
+                        "Hb","G#","H"
+                  ]),
+            Temperament "19-TET" 19 (2 % 1) 
+                  (Just [
+                      "A","A#","Bb","B","B#","C",
+                      "C#","Db","D","D#","Eb","E",
+                      "E#","F","F#","Gb","G","G#","Ab"                  
+                  ]),
+            Temperament "22-TET" 22 (2 % 1) 
+                  (Just [
+                    "A","A#","Bb","B","B#",
+                    "Cb","C","C#","Db","D",
+                    "D#","Eb","E","E#","Fb",
+                    "F","F#","Gb","G","G#",
+                    "Gx","Ab"
+                  ]),
+            Temperament "24-TET" 24 (2 % 1) 
+                  Nothing,
+            Temperament "Bohlen Pierce" 13 (3 % 1) 
+                  (Just [
+                    "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
+                  ])
         ]
     , tunings = toMap $ fromList 
         [
@@ -99,17 +99,17 @@ defaultAppData = AppData {
             ("11-TET", Tuning "Major Thirds Tuning (Bass)" "Four-String Bass Guitar" 
                 (0 :| [4, 8, 120])),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
-                (0 :| [5, 10, 15, 19, 24])),
+                (fmap (+7) $ 0 :| [5, 10, 15, 19, 24])),
             ("12-TET", Tuning "Standard Tuning (Bass)" "Four-String Bass Guitar" 
-                (0 :| [5, 10, 15])),
+                (fmap (+7) $ 0 :| [5, 10, 15])),
             ("12-TET", Tuning "Standard Tuning (7 String)" "Seven-String Guitar" 
-                (0 :| [5, 10, 15, 20, 14, 29])),
+                (fmap (+2) $ 0 :| [5, 10, 15, 20, 14, 29])),
             ("12-TET", Tuning "Drop D" "Six-String Guitar" 
-                (0 :| [7, 12, 17, 21, 26])),
+                (fmap (+5) $ 0 :| [7, 12, 17, 21, 26])),
             ("12-TET", Tuning "DADGAD" "Six-String Guitar" 
-                (0 :| [7, 12, 17, 19, 24])),
+                (fmap (+5) $ 0 :| [7, 12, 17, 19, 24])),
             ("12-TET", Tuning "All Fourths" "Six-String Guitar" 
-                (0 :| [5, 10, 15, 20, 25])),
+                (fmap (+7) $ 0 :| [5, 10, 15, 20, 25])),
             ("12-TET", Tuning "All Fifths" "Six-String Guitar" 
                 (0 :| [7, 14, 21, 28, 35])),
             ("13-TET", Tuning "Oneirotonic Tuning" "Six-String Guitar"
