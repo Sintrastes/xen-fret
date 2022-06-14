@@ -124,13 +124,15 @@ frettingDot displayMarkersOnFrets _ vs (n, colored) =
 board :: Bool
   -> String
   -> Int
+  -> Int
+  -> Int
   -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Fretboard
   -> Maybe [String]
   -> Diagram B
-board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
+board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs fretboard optNoteNames = frame 0.005 $
         ((alignL $ baselineText scaleName # scale 0.075) <> strutY 0.12)
             ===
             ((translateY (-0.12) $ alignT $ noteMarkers) |||
@@ -147,10 +149,17 @@ board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames
     strings    = fretboardStrings fretboard
     nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
-    positions  = fmap (,False) <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
+    positions  = fmap markRoot <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
     nStr'      = fromIntegral nStr :: Double -- Type cast
     firstString :| _ = strings
     lowestNote = pitch $ firstString
+
+    markRoot :: Int -> (Int, Bool)
+    markRoot x 
+        | x `mod` scalePeriod == scaleRoot 
+            = (x, True)
+        | otherwise               
+            = (x, False)
 
     stringMarkers :: Diagram B
     stringMarkers = case optNoteNames of
