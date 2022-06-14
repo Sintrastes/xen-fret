@@ -162,17 +162,20 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
             = (x, False)
 
     stringMarkers :: Diagram B
-    stringMarkers = case optNoteNames of
-        Nothing -> hcat'
-            (with & sep .~ hs)
-            (replicate (length stringPitches) $ strutY 0.1)
-        Just noteNames -> let ?noteNames = optNoteNames in
-            let stringNoteNames = fmap displayNote stringPitches in
-                hcat'
+    stringMarkers = 
+        if offset /= 0
+            then mempty
+            else case optNoteNames of
+                Nothing -> hcat'
                     (with & sep .~ hs)
-                    (stringNoteNames <&> \note ->
-                            text note # bold # scale 0.037
-                                 <> strutY 0.15)
+                    (replicate (length stringPitches) $ strutY 0.1)
+                Just noteNames -> let ?noteNames = optNoteNames in
+                    let stringNoteNames = fmap displayNote stringPitches in
+                        hcat'
+                            (with & sep .~ hs)
+                            (stringNoteNames <&> \note ->
+                                    text note # bold # scale 0.037
+                                        <> strutY 0.15)
     noteMarkers :: Diagram B
     noteMarkers = case optNoteNames of
         Nothing -> vcat'
