@@ -202,9 +202,13 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
                             text note # bold # scale 0.037
                                  <> strutX 0.15)
 
-    offsetMarkers = if displayMarkersOnFrets
-        then (strutY vs ===)
-        else (strutY (0.5 * vs) ===)
+    offsetMarkers = if offset == 0 
+        then if displayMarkersOnFrets
+            then (strutY vs ===)
+            else (strutY (0.5 * vs) ===)
+        else if displayMarkersOnFrets
+            then (strutY (0.5 * vs) ===)
+            else id
     
     stringPitches = toList $ fmap pitch $ fretboardStrings fretboard
 
