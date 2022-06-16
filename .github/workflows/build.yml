@@ -15,30 +15,30 @@ jobs:
           binary-caches = https://cache.nixos.org https://nixcache.reflex-frp.org
           binary-cache-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ryantrinkle.com-1:JJiAKaRv9mWgpVAz8dwewnZe0AzzEAzPkagE9SP5NWI=
           binary-caches-parallel-connections = 40
-    # - name: Build webapp with nix
-    #   run: |
-    #     nix-build --show-trace -A ghcjs.frontend -o result
-    #    tar -cvzf xen-fret-js-frontend.tar.gz result/*
-    # - name: Build native app with nix
-    #   run: |
-    #     nix-build -A ghc.frontend -o result-native
-    #     ls result-native
-    #     tar -cvzf xen-fret-x86_64-linux.tar.gz result-native/*
+    - name: Build webapp with nix
+      run: |
+        nix-build --show-trace -A ghcjs.frontend -o result
+        tar -cvzf xen-fret-js-frontend.tar.gz result/*
+    - name: Build native app with nix
+      run: |
+        nix-build -A ghc.frontend -o result-native
+        ls result-native
+        tar -cvzf xen-fret-x86_64-linux.tar.gz result-native/*
     - name: Build Android app with nix
       run: |
         nix-build -A android.frontend -o result-android
         ls result-android
         cp result-android/android-app-debug.apk ./xen-fret-android-app.apk
-    # - name: Archive native app
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: x86_64-linux-frontend
-    #     path: xen-fret-x86_64-linux.tar.gz
-    # - name: Archive webapp
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: ghcjs-frontend
-    #     path: xen-fret-js-frontend.tar.gz
+    - name: Archive native app
+      uses: actions/upload-artifact@v2
+      with:
+        name: x86_64-linux-frontend
+        path: xen-fret-x86_64-linux.tar.gz
+    - name: Archive webapp
+      uses: actions/upload-artifact@v2
+      with:
+        name: ghcjs-frontend
+        path: xen-fret-js-frontend.tar.gz
     - name: Archive Android app
       uses: actions/upload-artifact@v2
       with:

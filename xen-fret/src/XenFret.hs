@@ -102,8 +102,13 @@ frettingDots :: Bool
   -> Diagram B -- A diagram of the dots.
 frettingDots displayMarkersOnFrets offset vs hs =
     foldr (atop . frettingDot displayMarkersOnFrets offset vs) mempty
-  . fmap (\(x,y) -> (x -offset, y))
+  . fmap filterOverhang 
+  . fmap (\(x,y) -> (x - offset, y))
   . filterOutInc (\(x, _) -> x < offset)
+    where
+      filterOverhang xs 
+        | offset == 0 = xs
+        | otherwise   = xs 
 
 -- | Create a diagram of a single dot
 frettingDot :: Bool -> Int -> Double -> (Int, Bool) -> Diagram B
@@ -124,13 +129,15 @@ frettingDot displayMarkersOnFrets _ vs (n, colored) =
 board :: Bool
   -> String
   -> Int
+  -> Int
+  -> Int
   -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Fretboard
   -> Maybe [String]
   -> Diagram B
-board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames = frame 0.005 $
+board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs fretboard optNoteNames = frame 0.005 $
         ((alignL $ baselineText scaleName # scale 0.075) <> strutY 0.12)
             ===
             ((translateY (-0.12) $ alignT $ noteMarkers) |||
@@ -138,42 +145,70 @@ board displayMarkersOnFrets scaleName offset nFrets vs hs fretboard optNoteNames
                     emptyboard
                         `atop`
                         -- The dots, translated to their proper positions on the fretboard
-                    foldl1 atop (zipWith translateX (map (* hs) [0..nStr'])
-                        (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))))
+                       let translatedDots = (zipWith translateX (map (* hs) [0..nStr'])
+                            (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))
+                        in foldl1 atop $
+                            translatedDots
+                    )
+                )
         )
 
   where
-    emptyboard = emptyBoard nFrets vs hs nStr
-    nStr       = length $ fretboardStrings fretboard
+    emptyboard = emptyBoard nFrets vs hs nStr offset
+    strings    = fretboardStrings fretboard
+    nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
-    positions  = fmap (,False) <$> map (takeWhile (<= (nFrets + offset)) . notes) (toList $ fretboardStrings fretboard)
+    positions  = fmap markRoot <$> 
+        fmap (takeWhile (<= (nFrets + offset)) . notes) 
+            (toList strings)
     nStr'      = fromIntegral nStr :: Double -- Type cast
+    firstString :| _ = strings
+    lowestNote = pitch $ firstString
+
+    markRoot :: Int -> (Int, Bool)
+    markRoot x 
+        | x `mod` scalePeriod == scaleRoot 
+            = (x, True)
+        | otherwise               
+            = (x, False)
 
     stringMarkers :: Diagram B
-    stringMarkers = case optNoteNames of
-        Nothing -> hcat'
-            (with & sep .~ hs)
-            (replicate (length stringPitches) $ strutY 0.1)
-        Just noteNames -> let ?noteNames = optNoteNames in
-            let stringNoteNames = fmap displayNote stringPitches in
-                hcat'
+    stringMarkers = 
+        if offset /= 0
+            then mempty
+            else case optNoteNames of
+                Nothing -> hcat'
                     (with & sep .~ hs)
-                    (stringNoteNames <&> \note ->
-                            text note # bold # scale 0.037
-                                 <> strutY 0.15)
+                    (replicate (length stringPitches) $ strutY 0.1)
+                Just noteNames -> let ?noteNames = optNoteNames in
+                    let stringNoteNames = fmap displayNote stringPitches in
+                        hcat'
+                            (with & sep .~ hs)
+                            (stringNoteNames <&> \note ->
+                                    text note # bold # scale 0.037
+                                        <> strutY 0.15)
     noteMarkers :: Diagram B
-    noteMarkers = case optNoteNames of
+    noteMarkers = offsetMarkers $ case optNoteNames of
         Nothing -> vcat'
             (with & sep .~ vs)
             (replicate nFrets $ strutX 0.1)
         Just noteNames -> let ?noteNames = optNoteNames in
-            let offsetNoteNames = fmap displayNote [offset..offset + nFrets] in
+            let offsetNoteNames = fmap displayNote 
+                        [(offset + lowestNote + 1)..(offset + lowestNote) + nFrets] in
                 vcat'
                     (with & sep .~ vs)
                     (take (nFrets + 1) $
                         offsetNoteNames <&> \note ->
                             text note # bold # scale 0.037
                                  <> strutX 0.15)
+
+    offsetMarkers = if offset == 0 
+        then if displayMarkersOnFrets
+            then (strutY vs ===)
+            else (strutY (0.5 * vs) ===)
+        else if displayMarkersOnFrets
+            then (strutY (0.5 * vs) ===)
+            else id
     
     stringPitches = toList $ fmap pitch $ fretboardStrings fretboard
 
@@ -183,8 +218,9 @@ emptyBoard :: Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Int    -- Number of strings
+  -> Int    -- Offset
   -> Diagram B
-emptyBoard nFrets vs hs nStr =
+emptyBoard nFrets vs hs nStr offset =
       nut
         `atop` fretMarkers
         -- The strings translated to their proper poisitons
@@ -193,7 +229,11 @@ emptyBoard nFrets vs hs nStr =
             # translateY (-len/2)
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
   where
-    nut      = hrule width # lwL 0.0125
+    nut = if offset == 0
+       then hrule width # lwL 0.0125
+       else (hrule width)
+                # dashingL [0.03] 0
+                # lwL 0.007
     len      = (nFrets' + 1/2) * vs
     width    = (nStr' - 1) * hs
     fretMarkers  = case () of

@@ -27,6 +27,7 @@ data AppData = AppData {
 
 $(deriveJSON defaultOptions ''AppData)
 
+
 defaultAppData = AppData {
       temperaments = 
         [
@@ -46,9 +47,22 @@ defaultAppData = AppData {
                        "N","O","O#/Pb","P","Q","Q#/Jb"
                     ]),
             Temperament "14-TET" 14 (2 % 1) 
+<<<<<<< HEAD
                   Nothing,
             Temperament "15-TET" 15 (2 % 1) 
                   Nothing,
+=======
+                  (Just [
+                     "A","^A","B","^B","C","^C","D","^D","E","^E",
+                     "F","^F","G","^G"
+                  ]),
+            Temperament "15-TET" 15 (2 % 1) 
+                  (Just [
+                    "α","β\\","β","χ\\","χ","δ\\","δ",
+                    "ε\\","ε","φ\\","φ","γ\\","γ","η\\",
+                    "η"
+                  ]),
+>>>>>>> master
             Temperament "16-TET" 16 (2 % 1) 
                   (Just [
                       "A","B#","B","Bb","C#","C","D#","D",
@@ -97,6 +111,10 @@ defaultAppData = AppData {
                 (0 :| [5, 10, 15])),
             ("11-TET", Tuning "Major Thirds Tuning (Bass)" "Four-String Bass Guitar" 
                 (0 :| [4, 8, 120])),
+            ("12-TET", Tuning "Standard Tuning" "Mandolin"
+                (fmap (+10) $ 0 :| [7, 14, 21])),
+            ("12-TET", Tuning "Standard Tuning" "Ukulele"
+                (fmap (+3) $ 7 :| [0, 4, 9])),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
                 (fmap (+7) $ 0 :| [5, 10, 15, 19, 24])),
             ("12-TET", Tuning "Standard Tuning (Bass)" "Four-String Bass Guitar" 
@@ -118,27 +136,27 @@ defaultAppData = AppData {
             ("15-TET", Tuning "All Fourths Tuning" "Six-String Guitar"
                 (0 :| [5, 10, 15, 20, 25])),
             ("16-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
-                (0 :| [7, 14, 21, 28, 35])),
+                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35])),
             ("16-TET", Tuning "Diminished Fourths Tuning" "Six-String Guitar"
-                (0 :| [6, 12, 18, 24, 30])),
+                (fmap (+9) $ 0 :| [6, 12, 18, 24, 30])),
             ("16-TET", Tuning "Wide Fourths Tuning (7 String)" "Seven-String Guitar"
-                (0 :| [7, 14, 21, 28, 35, 40])),
+                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35, 40])),
             ("16-TET", Tuning "Diminished Fourths Tuning (7 String)" "Seven-String Guitar"
-                (0 :| [6, 12, 18, 24, 30, 36])),
+                (fmap (+2) $ 0 :| [6, 12, 18, 24, 30, 36])),
             ("17-TET", Tuning "Standard Tuning" "Six-String Guitar"
-                (0 :| [7, 14, 21, 27, 34])),
+                (fmap (+10) $ 0 :| [7, 14, 21, 27, 34])),
             ("17-TET", Tuning "All Fourths" "Six-String Guitar"
-                (0 :| [7, 14, 21, 28, 35])), 
+                (fmap (+10) $ 0 :| [7, 14, 21, 28, 35])), 
             ("18-TET", Tuning "Wide Fourths" "Six-String Guitar"
                 (0 :| [8, 16, 24, 32, 40])),
             ("19-TET", Tuning "Standard Tuning" "Six-String Guitar"
-                (0 :| [8, 16, 24, 30, 38])),
+                (fmap (+11) $ 0 :| [8, 16, 24, 30, 38])),
             ("22-TET", Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
-                (0 :| [9, 18, 27, 35, 44])),
+                (fmap (+13) $ 0 :| [9, 18, 27, 35, 44])),
             ("24-TET", Tuning "Standard Tuning" "Six-String Guitar" 
-                (0 :| [10, 20, 30, 38, 48])),
+                (fmap (+14) $ 0 :| [10, 20, 30, 38, 48])),
             ("24-TET", Tuning "Drop D" "Six-String Guitar" 
-                (0 :| [14, 24, 34, 42, 52])),
+                (fmap (+12) $ 0 :| [14, 24, 34, 42, 52])),
             ("Bohlen Pierce", Tuning "Bohlen's Tuning" "Six String Guitar"
                 (0 :| [3,6,9,13,16])) -- A1 C E G A C
         ]
@@ -162,6 +180,24 @@ defaultAppData = AppData {
                 (2 :| [1, 2, 2, 1, 2, 2]))
           , ("12-TET", Scale "Dorian" 
                 (2 :| [1, 2, 2, 2, 1, 2]))
+          , ("12-TET", Scale "diminished[8] (Octatonic)"
+                  (2 :| [1, 2, 1, 2, 1, 2, 1]))
+          , ("12-TET", Scale "Whole tone"
+                  (2 :| [2, 2, 2, 2, 2]))
+          , ("12-TET", Scale "augmented[6]"
+                  (3 :| [1, 3, 1, 3, 1]))
+          , ("12-TET", Scale "Blues"
+                  (3 :| [2, 1, 1, 3]))
+          , ("12-TET", Scale "Mixolydian b6"
+                  (2 :| [2, 1, 2, 1, 2]))
+          , ("12-TET", Scale "Hirojoshi"
+                  (2 :| [1, 4, 1, 4]))
+          , ("12-TET", Scale "Ryo"
+                  (2 :| [2, 3, 2, 3]))
+          , ("12-TET", Scale "Insen"
+                  (1 :| [4, 2, 3, 2]))
+          , ("12-TET", Scale "Engimatic Scale"
+                  (1 :| [3, 2, 2, 2, 1, 1]))
           , ("13-TET", Scale "Archeotonic (Ryonian Mode)"
                 (2 :| [2, 2, 2, 2, 2, 1]))
           , ("13-TET", Scale "Oneirotonic (Dylathian Mode)"
@@ -184,6 +220,8 @@ defaultAppData = AppData {
                 (2 :| [1, 2, 2, 1, 2, 2, 1, 2]))
           , ("15-TET", Scale "Blackwood[10]"
                 (2 :| [1, 2, 1, 2, 1, 2, 1, 2, 1]))
+          , ("15-TET", Scale "Marvel double harmonic major"
+                  (1 :| [4,1,3,1,4,1]))
           , ("16-TET", Scale "mavila[7]"
                 (2 :| [2, 2, 3, 2, 2, 3]))
           , ("16-TET", Scale "Lemba"
@@ -236,6 +274,26 @@ defaultAppData = AppData {
                 (3 :| [4, 3, 4, 3, 4, 3]))
           , ("Bohlen Pierce", Scale "Lambda"
                 (2 :| [1, 1, 2, 1, 2, 1, 2, 1]))
+          , ("Bohlen Pierce", Scale "Moll 1"
+                  (1 :| [2,1,2,1,2,1,2,1]))
+          , ("Bohlen Pierce", Scale "Harmonic"
+                  (1 :| [2,1,2,1,2,1,1,2]))
+          , ("Bohlen Pierce", Scale "Dur I"
+                  (1 :| [2,1,2,1,1,2,1,2]))
+          , ("Bohlen Pierce", Scale "Moll 2"
+                  (2 :| [1,2,1,1,2,1,2,1]))
+          , ("Bohlen Pierce", Scale "Dur II"
+                  (2 :| [1,1,2,1,2,1,1,2]))
+          , ("Bohlen Pierce", Scale "Gamma"
+                  (1 :| [2,1,2,1,1,2,2,1]))
+          , ("Bohlen Pierce", Scale "Walker A"
+                  (1 :| [1,2,1,2,1,2,1,2]))
+          , ("Bohlen Pierce", Scale "Walker B"
+                  (1 :| [2,1,1,2,1,2,1,2]))
+          , ("Bohlen Pierce", Scale "Walker I"
+                  (2 :| [1,2,1,2,1,2,1,1]))
+          , ("Bohlen Pierce", Scale "Walker II"
+                  (2 :| [1,2,1,2,1,1,2,1]))
         ]
     , preferences = defaultPreferences
 }
