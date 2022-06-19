@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module XenFret (
     makeFret,
@@ -23,10 +24,10 @@ repeatingNotes (Scale _ xs) =
   scanl (+)
        -- Start one period down to account for
        -- transpositions.
-       (-period)
+       (-periodSize)
        (join $ repeat $ toList xs)
   where
-    period = sum xs
+    periodSize = sum xs
 
 data Str = Str {
     -- | Non-negative integer,
@@ -38,8 +39,10 @@ data Str = Str {
 }
 
 -- | Make a string with no notes
+mkStr :: Int -> Str
 mkStr n = Str { pitch = n, notes = [] }
 
+transposeStr :: p -> Str -> Str
 transposeStr n (Str pitch notes) = Str pitch (fmap (+ 1) notes)
 
 data Fretboard = Fretboard {
@@ -102,28 +105,27 @@ frettingDots :: Bool
   -> Diagram B -- A diagram of the dots.
 frettingDots displayMarkersOnFrets offset vs hs =
     foldr (atop . frettingDot displayMarkersOnFrets offset vs) mempty
-  . fmap filterOverhang 
-  . fmap (\(x,y) -> (x - offset, y))
+  . fmap (filterOverhang . (\(x,y) -> (x - offset, y)))
   . filterOutInc (\(x, _) -> x < offset)
     where
-      filterOverhang xs 
+      filterOverhang xs
         | offset == 0 = xs
-        | otherwise   = xs 
+        | otherwise   = xs
 
 -- | Create a diagram of a single dot
 frettingDot :: Bool -> Int -> Double -> (Int, Bool) -> Diagram B
 frettingDot _ 0 vs (0, _) = circle 0.03 # lwL 0.007
-frettingDot displayMarkersOnFrets _ vs (n, colored) = 
-    translateY offset $ circle (0.03 * 0.8) 
-        # fc color 
-        # lwL 0.007 
+frettingDot displayMarkersOnFrets _ vs (n, colored) =
+    translateY offset $ circle (0.03 * 0.8)
+        # fc color
+        # lwL 0.007
         # translateY (-n'*vs)
-  where 
+  where
     n'     = fromIntegral n  :: Double
     color  = if colored then blue else black
-    offset = if displayMarkersOnFrets 
+    offset = if displayMarkersOnFrets
         then 0.0
-        else 0.5 * vs  
+        else 0.5 * vs
 
 -- | Create a fretboard diagram
 board :: Bool
@@ -138,18 +140,17 @@ board :: Bool
   -> Maybe [String]
   -> Diagram B
 board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs fretboard optNoteNames = frame 0.005 $
-        ((alignL $ baselineText scaleName # scale 0.075) <> strutY 0.12)
+        (alignL (baselineText scaleName # scale 0.075) <> strutY 0.12)
             ===
-            ((translateY (-0.12) $ alignT $ noteMarkers) |||
-                (alignL stringMarkers === (alignL $
+            (translateY (-0.12) (alignT noteMarkers) |||
+                (alignL stringMarkers === alignL (
                     emptyboard
                         `atop`
                         -- The dots, translated to their proper positions on the fretboard
-                       let translatedDots = (zipWith translateX (map (* hs) [0..nStr'])
-                            (map (translateX (-0.5 * (nStr' - 1) * hs)) dots))
-                        in foldl1 atop $
-                            translatedDots
-                    )
+                       let translatedDots = zipWith translateX (map (* hs) [0..nStr'])
+                            (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)
+                        in foldl1 atop
+                            translatedDots)
                 )
         )
 
@@ -158,29 +159,29 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
     strings    = fretboardStrings fretboard
     nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
-    positions  = fmap markRoot <$> 
-        fmap (takeWhile (<= (nFrets + offset)) . notes) 
+    positions  = fmap markRoot <$>
+        fmap (takeWhile (<= (nFrets + offset)) . notes)
             (toList strings)
     nStr'      = fromIntegral nStr :: Double -- Type cast
     firstString :| _ = strings
     lowestNote = pitch $ firstString
 
     markRoot :: Int -> (Int, Bool)
-    markRoot x 
-        | x `mod` scalePeriod == scaleRoot 
+    markRoot x
+        | x `mod` scalePeriod == scaleRoot
             = (x, True)
-        | otherwise               
+        | otherwise
             = (x, False)
 
     stringMarkers :: Diagram B
-    stringMarkers = 
+    stringMarkers =
         if offset /= 0
             then mempty
             else case optNoteNames of
                 Nothing -> hcat'
                     (with & sep .~ hs)
                     (replicate (length stringPitches) $ strutY 0.1)
-                Just noteNames -> let ?noteNames = optNoteNames in
+                Just _ -> let ?noteNames = optNoteNames in
                     let stringNoteNames = fmap displayNote stringPitches in
                         hcat'
                             (with & sep .~ hs)
@@ -192,8 +193,8 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
         Nothing -> vcat'
             (with & sep .~ vs)
             (replicate nFrets $ strutX 0.1)
-        Just noteNames -> let ?noteNames = optNoteNames in
-            let offsetNoteNames = fmap displayNote 
+        Just _ -> let ?noteNames = optNoteNames in
+            let offsetNoteNames = fmap displayNote
                         [(offset + lowestNote + 1)..(offset + lowestNote) + nFrets] in
                 vcat'
                     (with & sep .~ vs)
@@ -202,15 +203,15 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
                             text note # bold # scale 0.037
                                  <> strutX 0.15)
 
-    offsetMarkers = if offset == 0 
-        then if displayMarkersOnFrets
+    offsetMarkers
+      | offset == 0 =
+        if displayMarkersOnFrets
             then (strutY vs ===)
             else (strutY (0.5 * vs) ===)
-        else if displayMarkersOnFrets
-            then (strutY (0.5 * vs) ===)
-            else id
-    
-    stringPitches = toList $ fmap pitch $ fretboardStrings fretboard
+      | displayMarkersOnFrets = (strutY (0.5 * vs) ===)
+      | otherwise = id
+
+    stringPitches = toList $ pitch <$> fretboardStrings fretboard
 
 
 -- | An empty fretboard diagram.
@@ -231,7 +232,7 @@ emptyBoard nFrets vs hs nStr offset =
   where
     nut = if offset == 0
        then hrule width # lwL 0.0125
-       else (hrule width)
+       else hrule width
                 # dashingL [0.03] 0
                 # lwL 0.007
     len      = (nFrets' + 1/2) * vs

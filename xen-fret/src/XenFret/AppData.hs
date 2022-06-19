@@ -28,6 +28,7 @@ data AppData = AppData {
 $(deriveJSON defaultOptions ''AppData)
 
 
+defaultAppData :: AppData
 defaultAppData = AppData {
       temperaments = 
         [
@@ -292,6 +293,7 @@ defaultAppData = AppData {
     , preferences = defaultPreferences
 }
 
+defaultPreferences :: PreferenceData
 defaultPreferences = PreferenceData {
     useDarkMode = False
 }

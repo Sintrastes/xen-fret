@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module XenFret.Data where
 
@@ -19,7 +20,7 @@ type NoteNames = Maybe [String]
 
 displayNote :: (?noteNames :: NoteNames) => Int -> String
 displayNote note = 
-    let noteNames = maybe (fmap show [0..]) cycle ?noteNames 
+    let noteNames = maybe (fmap show [(0 :: Int)..]) cycle ?noteNames 
      in noteNames !! note
 
 instance Default Temperament where
