@@ -7,17 +7,11 @@ import Data.Functor
 import Control.Monad
 import Control.Applicative (liftA2)
 import Control.Monad.Fix
-import Data.List.NonEmpty hiding (fromList)
-import Data.MultiMap (fromList, toMap)
-import Data.Map (Map, empty)
-import Data.Aeson.TH
-import Data.Aeson
+import Data.Map (empty)
 import Control.Monad.IO.Class
 import Data.Ratio
-import Data.Default
 import Data.Profunctor
 import Data.Functor.Compose
-import XenFret.AppData
 import Language.Javascript.JSaddle (eval, liftJSM)
 
 type Form t m a b

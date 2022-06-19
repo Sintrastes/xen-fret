@@ -3,9 +3,7 @@ module XenFret.App where
 
 import Data.Maybe (isJust, isNothing, fromJust)
 import Control.Monad
-import Data.Either
-import Diagrams.Prelude ( renderDia, mkWidth, Diagram, (===) )
-import qualified Diagrams.Prelude as D
+import Diagrams.Prelude ( renderDia, mkWidth, Diagram )
 import Diagrams.Backend.SVG
 import qualified Data.ByteString.Lazy.Char8 as B
 import XenFret.Util
@@ -13,12 +11,9 @@ import XenFret
 import Graphics.Svg
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
-import Reflex.Dom.Old (elDynHtml')
-import Reflex.Dom.Xhr (getAndDecode)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
 import Data.Functor
-import Control.Applicative
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
 import Control.Exception
@@ -29,7 +24,7 @@ import Data.Aeson
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (eval, liftJSM, jsg3)
+import Language.Javascript.JSaddle (liftJSM, jsg3)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
