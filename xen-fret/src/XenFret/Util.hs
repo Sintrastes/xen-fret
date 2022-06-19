@@ -2,10 +2,12 @@ module XenFret.Util where
 
 import Diagrams.Prelude ((#))
 
+xor :: Bool -> Bool -> Bool
 xor True False = True
 xor False True = True
 xor _ _        = False
 
+increasing :: Ord a => [a] -> Bool
 increasing []  = True
 increasing [_] = True
 increasing (x:y:xs) | y >= x = False
@@ -16,7 +18,7 @@ increasing (x:y:xs) | y >= x = False
 -- where m,n are indices of a list x, and p is a 
 -- predicate) 
 filterOutInc :: (a -> Bool) -> [a] -> [a]
-filterOutInc p [] = []
+filterOutInc _ [] = []
 filterOutInc p (x: xs) | p x = filterOutInc p xs
                        | otherwise = x:xs
 
@@ -38,8 +40,8 @@ collectErrors xs = Left ( filter fst xs #
 -- error messages.
 collectErrList :: [(Bool,String)] -> [String]
 collectErrList [] = []
-collectErrList ((True,err):xs)  = err : collectErrList xs
-collectErrList ((False,err):xs) = collectErrList xs
+collectErrList ((True ,err):xs)  = err : collectErrList xs
+collectErrList ((False, _):xs) = collectErrList xs
 
 -- | Format a list of error strings
 concatErrors :: [String] -> String

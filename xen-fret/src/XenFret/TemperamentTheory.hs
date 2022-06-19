@@ -3,8 +3,6 @@ module XenFret.TemperamentTheory where
 
 import Data.Proxy
 import GHC.TypeLits
-import Data.Ratio
-import Data.Semigroup
 import Data.List
 import Data.Group
 
