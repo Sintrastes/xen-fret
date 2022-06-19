@@ -127,7 +127,7 @@ defaultAppData = AppData {
             ("13-TET", Tuning "Oneirotonic Tuning" "Six-String Guitar"
                 (3 :| [8, 14, 19, 24, 29])),
             ("14-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
-                (0 :| [5, 5, 5, 5, 5])),
+                (0 :| [5, 10, 15, 20, 25])),
             ("15-TET", Tuning "All Fourths Tuning" "Six-String Guitar"
                 (0 :| [5, 10, 15, 20, 25])),
             ("16-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
@@ -184,7 +184,7 @@ defaultAppData = AppData {
           , ("12-TET", Scale "Blues"
                   (3 :| [2, 1, 1, 3, 2]))
           , ("12-TET", Scale "Mixolydian b6"
-                  (2 :| [2, 1, 2, 1, 2]))
+                  (2 :| [2, 1, 2, 1, 2, 2]))
           , ("12-TET", Scale "Hirojoshi"
                   (2 :| [1, 4, 1, 4]))
           , ("12-TET", Scale "Ryo"
