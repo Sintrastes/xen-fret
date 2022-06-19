@@ -19,10 +19,10 @@ type Form t m a b
 
 type SForm t m a = Form t m a a
 
-form :: DomBuilder t m => (a -> m (Dynamic t b)) -> Form t m a b
+form :: (a -> m (Dynamic t b)) -> Form t m a b
 form f = Star (Compose . f)
 
-initForm :: DomBuilder t m => Form t m a b -> a -> m (Dynamic t b)
+initForm :: Form t m a b -> a -> m (Dynamic t b)
 initForm (Star f) x = getCompose $ f x
 
 (=.) :: Profunctor f => (x -> y) -> f y a -> f x a
@@ -45,7 +45,7 @@ materialNavBar tabs extras = mdo
             elClass "i" "material-icons" $ text "menu"
 
         extras
-        
+
         elAttr "ul" ("id" =: "nav-mobile" <> "class" =: "left hide-on-med-and-down") $ do
             menuEvents <- forM tabs (\tab -> do
                 btnEvents <- navButton (T.pack $ show tab)
@@ -66,20 +66,22 @@ materialNavBar tabs extras = mdo
             if isOpened
                 then "style" =: "display: block; z-index: 999;"
                 else "style" =: "display: none;"
-    
+
     let overlayAttrs = sidebarOpened <&> \isOpened ->
           "class" =: "sidenav-overlay" <>
-            if isOpened 
+            if isOpened
                 then "style" =: "display: block; opacity: 1;"
                 else "style" =: "display: none;"
 
     pure $ leftmost [navBarEvents, navPaneEvents]
 
+sidebarButton :: DomBuilder t m => T.Text -> m (Event t ())
 sidebarButton x = el "li" $
     domEvent Click . fst <$>
         elClass' "a" "unselectable w3-bar-item w3-button"
             (text x)
 
+navButton :: DomBuilder t m => T.Text -> m (Event t ())
 navButton x = el "li" $
     domEvent Click . fst <$>
         el' "a" (text x)
@@ -104,12 +106,12 @@ labeledEntry label widget initialValue = elClass "div" "input-field" $ do
 
 intEntry :: _ => Int -> m (Dynamic t Int)
 intEntry initialValue =
-    fmap (read @Int . T.unpack) <$> _inputElement_value <$> inputElement (
+    fmap (read @Int . T.unpack) . _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
             .~ attrs
             & inputElementConfig_initialValue
-            .~ (T.pack $ show initialValue))
+            .~ T.pack (show initialValue))
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "number" <>
@@ -117,12 +119,12 @@ intEntry initialValue =
 
 positiveIntEntry :: _ => Int -> m (Dynamic t Int)
 positiveIntEntry initialValue =
-    fmap (read @Int . T.unpack) <$> _inputElement_value <$> inputElement (
+    fmap (read @Int . T.unpack) . _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
             .~ attrs
             & inputElementConfig_initialValue
-            .~ (T.pack $ show initialValue))
+            .~ T.pack (show initialValue))
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "number" <>
@@ -131,38 +133,38 @@ positiveIntEntry initialValue =
 
 rationalEntry :: _ => Rational -> m (Dynamic t Rational)
 rationalEntry initialValue = el "div" $ do
-    num <- elAttr "div" ("style" =: "display: inline-block;width:60px;margin-right: 7.5px;") $ 
+    num <- elAttr "div" ("style" =: "display: inline-block;width:60px;margin-right: 7.5px;") $
         positiveIntEntry $ fromIntegral $ numerator initialValue
     el "span" $ text "/"
-    denom <- elAttr "div" ("style" =: "display: inline-block;width:60px;margin-left: 5px;") $ 
+    denom <- elAttr "div" ("style" =: "display: inline-block;width:60px;margin-left: 5px;") $
         positiveIntEntry $ fromIntegral $ denominator initialValue
     pure $ liftA2 (%) (toInteger <$> num) (toInteger <$> denom)
 
+button :: DomBuilder t f => T.Text -> f (Event t ())
 button label = do
     let attributes = "class" =: "waves-effect waves-light btn"
     domEvent Click . fst <$> elAttr' "a" attributes
       (text label)
 
-selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) => 
-     T.Text 
+selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) =>
+     T.Text
   -> T.Text
-  -> (Dynamic t [a]) 
+  -> Dynamic t [a]
   -> a -> m (Dynamic t (Maybe a))
 selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-field" $ mdo
     initialItems <- sample $ current itemsDyn
 
-    let initialValueActual = if (initialValue `elem` initialItems) 
+    let initialValueActual = if initialValue `elem` initialItems
         then Just initialValue
         else headMay initialItems
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
-            & inputElementConfig_initialValue .~ (maybe missingText (T.pack . show) initialValueActual)
-            & inputElementConfig_setValue .~ (
+            & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
+            & inputElementConfig_setValue .~
                 leftmost [
-                    (T.pack . show) <$> changeSelection, 
+                    T.pack . show <$> changeSelection,
                     maybe missingText (T.pack . show) <$> itemsUpdated]
-                )
 
         changeSelection <- elDynAttr "ul" selectAttrs $ do
             itemEvents <- dyn $ itemsDyn <&> \items -> leftmost <$> forM items (\item -> do
@@ -210,17 +212,20 @@ selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-fi
 
     pure dynResult
 
+headMay :: [a] -> Maybe a
 headMay [] = Nothing
-headMay (x:xs) = Just x
+headMay (x:_) = Just x
 
 elSvg tag a1 a2 = do
   elDynAttrNS' (Just "http://www.w3.org/2000/svg") tag (constDyn a1) a2
   return ()
 
+liftFrontend :: (MonadSample t m, Prerender t m) => b -> IO b -> m b
 liftFrontend d x = do
     res <- current <$> prerender (pure d) (liftIO x)
     sample res
 
+liftFrontend' :: (MonadSample t m, Prerender t m) => b -> Client m b -> m b
 liftFrontend' d x = do
     res <- current <$> prerender (pure d) x
     sample res
@@ -279,7 +284,7 @@ modal onClick contents = mdo
             Open   -> "class" =: "modal open" <> "style" =: ("overflow: visible;" <> "z-index: 1003;" <>
                     "display: block;" <> "background-color: transparent;" <>
                     "top: 10%;" <> "transform: scaleX(1) scaleY(1);")
-    
+
     let overlayAttrs = modalVisibility <&> \case
             Open -> "class" =: "modal-overlay" <>
                 "style" =: "z-index: 1002; display: block; opacity: 0.5;"
@@ -299,6 +304,7 @@ toast message = do
     liftJSM $ eval ("console.log(\"toast\"); M.toast({html: '" <> message <> "'})" :: T.Text)
     pure ()
 
+toastOnErrors :: (Show a, MonadSample t m, Prerender t m) => m (Either a b) -> m ()
 toastOnErrors x = do
     res <- x
     case res of

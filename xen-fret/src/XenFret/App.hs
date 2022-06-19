@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module XenFret.App where
 
@@ -84,14 +85,17 @@ data Pages =
   | EditTemperament
     deriving(Show)
 
+loadAppData :: (MonadSample t m, Prerender t m) => FilePath -> m AppData
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
         catch (fromJust <$> decodeFileStrict dataFile)
-            (\(e :: SomeException) -> return defaultAppData)
+            (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
 
-persistAppData dynAppData dataFile = 
-    prerender (pure never) $ performEvent $ updated dynAppData <&> 
+persistAppData :: (ToJSON a, Applicative m, Prerender t m) =>
+  Dynamic t a -> FilePath -> m (Dynamic t (Event t ()))
+persistAppData dynAppData dataFile =
+    prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
             liftIO $ encodeFile dataFile newData
 
@@ -102,17 +106,17 @@ app = do
         then pure "/data/data/org.xenfret.app"
         else liftFrontend "/" getHomeDirectory <&> (<> "/.xenfret")
 
-    liftFrontend (Right ()) $ catch
+    _ <- liftFrontend (Right ()) $ catch
         (do createDirectoryIfMissing True appDir
             pure $ Right ())
         (\(e :: SomeException) -> pure $ Left e)
-    
+
     navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Preferences] $
         githubWidget
-    
+
     currentPage <- holdDyn Home navEvents
 
-    dyn $ currentPage <&> \case
+    _ <- dyn $ currentPage <&> \case
         Home -> mainPage appDir
         Temperaments -> temperamentPage appDir
         Tunings -> tuningPage appDir
@@ -130,8 +134,8 @@ mainPage appDir = do
             elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
 
             temperamentDyn <- elClass "div" "row" $
-                selectMaterial "Temperament" 
-                    "No Temperaments Defined" 
+                selectMaterial "Temperament"
+                    "No Temperaments Defined"
                     (pure loadedTemperaments)
                     (head loadedTemperaments)
 
@@ -142,8 +146,8 @@ mainPage appDir = do
                     Map.lookup (temperamentName temperament) $ tunings appData)
 
             tuningDyn <- elClass "div" "row" $
-                selectMaterial "Instrument/Tuning" 
-                    "No Tunings Defined" 
+                selectMaterial "Instrument/Tuning"
+                    "No Tunings Defined"
                     loadedTunings
                     (head initialTunings)
 
@@ -155,47 +159,47 @@ mainPage appDir = do
 
             scaleDyn <- elClass "div" "row" $
                 selectMaterial "Scale"
-                    "No Scales Defined" 
-                    loadedScales 
+                    "No Scales Defined"
+                    loadedScales
                     (head initialScales)
 
             (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
-                keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
                     labeledEntry "Key" positiveIntEntry 0
-                offsetDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                offsetDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
                     labeledEntry "Fret Offset" positiveIntEntry 0
                 pure (keyDyn, offsetDyn)
 
             elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Display Options:"
-            
+
             (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
-                sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
                     labeledEntry "Size" intEntry 264
-                fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
                     labeledEntry "Number of Frets" intEntry 10
                 pure (sizeDyn, fretsDyn)
 
             (verticalScalingDyn, horizontalScalingDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
-                verticalScalingDyn   <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $ 
+                verticalScalingDyn   <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
                     labeledEntry "Vertical Spacing" intEntry 200
-                horizontalScalingDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $ 
+                horizontalScalingDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
                     labeledEntry "Horizontal Spacing" intEntry 331
                 pure (verticalScalingDyn, horizontalScalingDyn)
-            
-            elClass "div" "col s12" $ 
+
+            elClass "div" "col s12" $
                 checkbox "Display vertically" True
 
-            elClass "div" "col s12" $ 
+            elClass "div" "col s12" $
                 checkbox "Use realistic fret spacing" False
 
-            displayMarkersOnFretsDyn <- elClass "div" "col s12" $ 
+            displayMarkersOnFretsDyn <- elClass "div" "col s12" $
                 checkbox "Display markers on frets" False
-            
+
             saveEvent <- button "Save"
 
             pure (saveEvent, (,,,,,,,,,) <$>
-                fretsDyn <*> 
-                sizeDyn <*> 
+                fretsDyn <*>
+                sizeDyn <*>
                 scaleDyn <*>
                 temperamentDyn <*>
                 verticalScalingDyn <*>
@@ -207,8 +211,8 @@ mainPage appDir = do
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset, tuning, displayMarkersOnFrets) -> 
-                let 
+            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset, tuning, displayMarkersOnFrets) ->
+                let
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
                 in
@@ -222,12 +226,12 @@ mainPage appDir = do
                                 Left err -> do
                                     el "p" $ text $ T.pack $ concatErrors err
                                     pure Nothing
-                                Right (fretboard, scales) -> elAttr "div" ("style" =: "text-align: center;") $ do
+                                Right (fretboard, _) -> elAttr "div" ("style" =: "text-align: center;") $ do
                                     let Just scalePeriod = sum . scaleIntervals <$> scale
                                     let Just (scaleRoot NE.:| _) = scaleIntervals <$> scale
                                     let diagram = board displayMarkersOnFrets
                                             (maybe "" show scale) offset scalePeriod scaleRoot
-                                            frets verticalSpacing horizontalSpacing 
+                                            frets verticalSpacing horizontalSpacing
                                                 (changeScale fretboard key (fromJust scale))
                                                 ((T.unpack <$>) <$> (noteNames =<< temperament))
                                     case xy of
@@ -248,13 +252,13 @@ mainPage appDir = do
             case maybeSvgText of
                 Just svgText -> do
                     liftJSM $ jsg3 ("download" :: T.Text) svgText
-                        ("diagram.svg" :: T.Text) 
+                        ("diagram.svg" :: T.Text)
                         ("image/svg" :: T.Text)
                     pure ()
-                Nothing -> 
+                Nothing ->
                     toast "Invalid diagram. Cannot save."
 
-        blank    
+        blank
 
 temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = do
@@ -263,16 +267,16 @@ temperamentPage appDir = do
 
     newTemperamentEvent <- button "New Temperament"
 
-    newTemperamentSubmitted <- modal newTemperamentEvent $ 
+    newTemperamentSubmitted <- modal newTemperamentEvent $
         temperamentForm def
 
-    updatedTemperaments <- switch . current <$> (prerender (pure never) $ performEvent $ newTemperamentSubmitted <&> \case
+    updatedTemperaments <- switch . current <$> prerender (pure never) (performEvent $ newTemperamentSubmitted <&> \case
         Nothing -> pure initialTemperaments
         Just temperament -> do
-            toast "Added new temperament" 
+            toast "Added new temperament"
             pure (initialTemperaments ++ [temperament]))
 
-    dynTemperaments <- holdDyn initialTemperaments 
+    dynTemperaments <- holdDyn initialTemperaments
         updatedTemperaments
 
     let dynAppData = dynTemperaments <&> \t ->
@@ -298,8 +302,8 @@ temperamentForm initialValue = do
             form (divisions =. labeledEntry "Divisions" intEntry) <*>
             form (period =. labeledEntry "Period" rationalEntry) <*>
             pure Nothing
-    
-    initForm formContents $ initialValue
+
+    initForm formContents initialValue
 
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do
@@ -307,7 +311,7 @@ tuningPage appDir = do
     let currentTunings = join $ Map.elems $ tunings appData
 
     newTuningEvent <- button "New Tuning"
-    newTuningSubmitted <- modal newTuningEvent $ 
+    newTuningSubmitted <- modal newTuningEvent $
         tuningForm def
 
     elClass "ul" "collection" $ do
@@ -323,7 +327,7 @@ tuningForm initialValue = do
     labeledEntry "Instrument" textEntry ""
     labeledEntry "Name" textEntry ""
     labeledEntry "Intervals" textEntry ""
-    
+
     pure $ pure initialValue
 
 scalePage :: _ => FilePath -> m ()
@@ -349,9 +353,9 @@ format (X x) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromI
 format (Y y) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral y)) Nothing "" [] False) d
 
 -- | Handle the error messages from parsing the arguments.
-handleParseErrs :: Maybe Int 
+handleParseErrs :: Maybe Int
     -> Maybe Int
-    -> Maybe [Int] 
+    -> Maybe [Int]
     -> Maybe Int
     -> Maybe Int
     -> Either String (Int, Int, NonEmpty Int, XorY)
@@ -408,7 +412,7 @@ repoApiUrl :: T.Text
 repoApiUrl = "http://api.github.com/repos/sintrastes/xen-fret"
 
 fetchGithubData :: _ => Event t () -> m (Event t (Maybe GithubData))
-fetchGithubData fetchEv = getAndDecode 
+fetchGithubData fetchEv = getAndDecode
     (fetchEv $> repoApiUrl)
 
 -- | Widget used to display source information.
@@ -419,16 +423,16 @@ githubWidget = do
     dataFetched <- fetchGithubData =<< getPostBuild
 
     -- Build up Dyns for our data
-    starsDynText <- foldDyn 
-        (\ghData curr -> 
-            maybe "ERR" (T.pack . show . stargazersCount) ghData) 
+    starsDynText <- foldDyn
+        (\ghData curr ->
+            maybe "ERR" (T.pack . show . stargazersCount) ghData)
         "" dataFetched
-    
-    forksDynText <- foldDyn 
-        (\ghData curr -> 
-            maybe "ERR" (T.pack . show . forksCount) ghData) 
+
+    forksDynText <- foldDyn
+        (\ghData curr ->
+            maybe "ERR" (T.pack . show . forksCount) ghData)
         "" dataFetched
-    
+
     -- Build the UI
     elAttr "a" ("style" =: "margin-top: -5.5px;" <> "class" =: "right" <> "href" =: repoUrl) $ elAttr "div" ("style" =: "display: block; margin-right: 25px;") $ do
         elAttr "div" ("style" =: "height: 2.4rem;width: 2rem;display: inline-block;vertical-align: middle;") $ gitIcon
@@ -439,19 +443,19 @@ githubWidget = do
                 stars starsDynText
                 forksIcon
                 forks forksDynText
-  where 
+  where
     gitIcon :: _ => m ()
-    gitIcon = elSvg "svg" ("viewBox" =: "0 0 448 512" <> "xmlns" =: "http://www.w3.org/2000/svg") $ 
-        elSvg "path" ("d" =: ("M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z")) blank
-    
+    gitIcon = elSvg "svg" ("viewBox" =: "0 0 448 512" <> "xmlns" =: "http://www.w3.org/2000/svg") $
+        elSvg "path" ("d" =: "M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z") blank
+
     stars starsDynText = dynText starsDynText {- octicons/star-16.svg -}
     forks forksDynText = dynText forksDynText {- octicons/repo-forked-16.svg -}
 
     forksIcon :: _ => m ()
-    forksIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $ 
-        elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: ("M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h1.5v2.128a2.251 2.251 0 1 0 1.5 0V8.5h1.5a2.25 2.25 0 0 0 2.25-2.25v-.878a2.25 2.25 0 1 0-1.5 0v.878a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 6.25v-.878zm3.75 7.378a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm3-8.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5z")) blank
+    forksIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
+        elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h1.5v2.128a2.251 2.251 0 1 0 1.5 0V8.5h1.5a2.25 2.25 0 0 0 2.25-2.25v-.878a2.25 2.25 0 1 0-1.5 0v.878a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 6.25v-.878zm3.75 7.378a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm3-8.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5z") blank
 
 
     starsIcon :: _ => m ()
-    starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $ 
-        elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: ("M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z")) blank
+    starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
+        elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z") blank

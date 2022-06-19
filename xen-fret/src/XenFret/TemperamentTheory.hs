@@ -48,11 +48,11 @@ instance Show SVal where
 
 -- | Calculate the patent val for the given EDO
 patentVal :: Int -> Val
-patentVal edo = undefined
+patentVal _edo = undefined
 
 -- | Calculate the parent val for a given subgroup and 
 patentSVal :: [Int] -> Int -> SVal
-patentSVal subgroup edo = undefined
+patentSVal _subgroup _edo = undefined
 
 newtype Frequency = Frequency Double
 
