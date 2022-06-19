@@ -230,7 +230,7 @@ mainPage appDir = do
                                     let Just scalePeriod = sum . scaleIntervals <$> scale
                                     let Just (scaleRoot NE.:| _) = scaleIntervals <$> scale
                                     let diagram = board displayMarkersOnFrets
-                                            (maybe "" show scale) offset scalePeriod scaleRoot
+                                            (maybe "" show scale) offset scalePeriod key
                                             frets verticalSpacing horizontalSpacing
                                                 (changeScale fretboard key (fromJust scale))
                                                 ((T.unpack <$>) <$> (noteNames =<< temperament))
