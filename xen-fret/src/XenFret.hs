@@ -80,7 +80,7 @@ changeScale f@(Fretboard strs period) key s@(Scale _ intervals) =
     go :: NonEmpty Str -> Int -> Int -> NonEmpty Str
     go fb key n
         | n < length fb
-            = go (notes str1 # map (\x -> x - pitch (toList fb !! n))
+            = go (notes str1 # map (\x -> x + pitch (head (toList fb)) - pitch (toList fb !! n))
                     # filterOutInc (< 0)
                     # (\x -> fb & set (element n) Str { notes = x, pitch = pitch (toList fb !! n)}))
                  key
@@ -92,7 +92,12 @@ changeScale f@(Fretboard strs period) key s@(Scale _ intervals) =
 applyFirst :: Fretboard -> Int -> Scale -> Fretboard
 applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
     | period == sum intervals
-        = Fretboard (Str { notes = filterOutInc (< 0) $ (+ (key `mod` period)) <$> repeatingNotes (Scale name intervals), pitch = pitch s } :| ss) period
+        = Fretboard (
+          Str {
+            notes = filterOutInc (< 0) $ (+ ((key - pitch s) `mod` period)) <$> repeatingNotes (Scale name intervals),
+            pitch = pitch s
+          } :| ss)
+          period
     | otherwise = error "Periods do not match"
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
@@ -105,12 +110,8 @@ frettingDots :: Bool
   -> Diagram B -- A diagram of the dots.
 frettingDots displayMarkersOnFrets offset vs hs =
     foldr (atop . frettingDot displayMarkersOnFrets offset vs) mempty
-  . fmap (filterOverhang . (\(x,y) -> (x - offset, y)))
+  . fmap (\(x,y) -> (x - offset, y))
   . filterOutInc (\(x, _) -> x < offset)
-    where
-      filterOverhang xs
-        | offset == 0 = xs
-        | otherwise   = xs
 
 -- | Create a diagram of a single dot
 frettingDot :: Bool -> Int -> Double -> (Int, Bool) -> Diagram B
@@ -160,7 +161,7 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
     nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
     positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions (toList $ fmap pitch strings)
-    unmarkedPositions  = fmap (takeWhile (<= (nFrets + offset)) . notes)
+    unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)) . notes)
             (toList strings)
     nStr'      = fromIntegral nStr :: Double -- Type cast
     firstString :| _ = strings
