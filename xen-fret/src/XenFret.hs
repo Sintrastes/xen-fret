@@ -159,16 +159,16 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
     strings    = fretboardStrings fretboard
     nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
-    positions  = fmap markRoot <$>
-        fmap (takeWhile (<= (nFrets + offset)) . notes)
+    positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions (toList $ fmap pitch strings)
+    unmarkedPositions  = fmap (takeWhile (<= (nFrets + offset)) . notes)
             (toList strings)
     nStr'      = fromIntegral nStr :: Double -- Type cast
     firstString :| _ = strings
-    lowestNote = pitch $ firstString
+    lowestNote = pitch firstString
 
-    markRoot :: Int -> (Int, Bool)
-    markRoot x
-        | x `mod` scalePeriod == scaleRoot
+    markRoot :: Int -> Int -> (Int, Bool)
+    markRoot stringPitch x
+        | (stringPitch + x) `mod` scalePeriod == scaleRoot `mod` scalePeriod
             = (x, True)
         | otherwise
             = (x, False)
