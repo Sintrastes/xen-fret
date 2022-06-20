@@ -141,7 +141,7 @@ board :: Bool
   -> Maybe [String]
   -> Diagram B
 board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs fretboard optNoteNames = frame 0.005 $
-        (alignL (baselineText scaleName # scale 0.075) <> strutY 0.12)
+        (alignL (baselineText scaleLabelFormatted # scale 0.075) <> strutY 0.12)
             ===
             (translateY (-0.12) (alignT noteMarkers) |||
                 (alignL stringMarkers === alignL (
@@ -157,6 +157,10 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
 
   where
     emptyboard = emptyBoard nFrets vs hs nStr offset
+    scaleLabelFormatted =  case optNoteNames of
+        Nothing        -> scaleName
+        Just _ -> let ?noteNames = optNoteNames in
+            displayNote scaleRoot ++ " " ++ scaleName
     strings    = fretboardStrings fretboard
     nStr       = length strings
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
