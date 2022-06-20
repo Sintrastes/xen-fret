@@ -235,7 +235,7 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
         let optgroupItemsDyn = itemsDyn <&> (\x ->
                 toOptgroupValues x)
 
-        changeSelection <- elDynAttr "ul" selectAttrs $ do
+        changeSelection <- fmapMaybe id <$> (elDynAttr "ul" selectAttrs $ do
             itemEvents <- dyn $ optgroupItemsDyn <&> \items -> leftmost <$> forM items (\item -> 
                 case item of
                     Heading headingText -> do
@@ -246,7 +246,7 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
                         elClass "li" "optgroup-option" $
                             ((Just x) <$) . domEvent Click . fst <$> el' "span" (
                                 text $ T.pack $ show x))
-            switchHold never itemEvents
+            switchHold never itemEvents)
 
         elSvg "svg" ("class" =: "caret" <>
             "height" =: "24" <>
@@ -283,7 +283,7 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
                     else empty
 
     dynResult <- foldDyn const initialValueActual
-        (leftmost [changeSelection, itemsUpdated])
+        (leftmost [Just <$> changeSelection, itemsUpdated])
 
     pure dynResult
 
