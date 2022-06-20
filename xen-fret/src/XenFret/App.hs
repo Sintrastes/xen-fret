@@ -145,10 +145,14 @@ mainPage appDir = do
                     temperament <- temperamentMay
                     Map.lookup (temperamentName temperament) $ tunings appData)
 
+            let groupedTunings = loadedTunings <&> (\tunings ->
+                    let groupings = groupBy (\x y -> instrument x == instrument y) tunings
+                    in (\grouping -> (instrument $ head grouping, grouping)) <$> groupings)
+
             tuningDyn <- elClass "div" "row" $
-                selectMaterial "Instrument/Tuning"
+                selectOptgroups "Instrument/Tuning"
                     "No Tunings Defined"
-                    loadedTunings
+                    groupedTunings
                     (head initialTunings)
 
             let Just initialScales = Map.lookup "12-TET" $ scales appData
