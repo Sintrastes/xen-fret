@@ -212,6 +212,91 @@ selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-fi
 
     pure dynResult
 
+selectOptgroups :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) =>
+     T.Text
+  -> T.Text
+  -> Dynamic t [(T.Text, [a])]
+  -> a -> m (Dynamic t (Maybe a))
+selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-field" $ mdo
+    initialItems <- sample $ current itemsDyn
+
+    let initialValueActual = if initialValue `elem` (snd =<< initialItems)
+        then Just initialValue
+        else headMay . snd =<< headMay initialItems
+
+    (form, changeSelection) <- elClass "div" "select-wrapper" $ do
+        (form, _) <- el' "div" $ inputElement $ def
+            & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
+            & inputElementConfig_setValue .~
+                leftmost [
+                    T.pack . show <$> changeSelection,
+                    maybe missingText (T.pack . show) <$> itemsUpdated]
+
+        let optgroupItemsDyn = itemsDyn <&> (\x ->
+                toOptgroupValues x)
+
+        changeSelection <- elDynAttr "ul" selectAttrs $ do
+            itemEvents <- dyn $ optgroupItemsDyn <&> \items -> leftmost <$> forM items (\item -> 
+                case item of
+                    Heading headingText -> do
+                        elClass "li" "optgroup" $
+                            (Nothing <$) . domEvent Click . fst <$> el' "span"
+                                (text headingText)
+                    OptgroupValue x -> do
+                        elClass "li" "optgroup-option" $
+                            ((Just x) <$) . domEvent Click . fst <$> el' "span" (
+                                text $ T.pack $ show x))
+            switchHold never itemEvents
+
+        elSvg "svg" ("class" =: "caret" <>
+            "height" =: "24" <>
+            "viewBox" =: "0 0 24 24" <>
+            "width" =: "24" <>
+            "xmlns" =: "http://www.w3.org/2000/svg") $ do
+                elSvg "path" ("d" =: "M7 10l5 5 5-5z") $ pure ()
+                elSvg "path" ("d" =: "M0 0h24v24H0z" <> "fill" =: "none") $ pure ()
+
+        pure (form, changeSelection)
+
+    elAttr "label" ("style" =: "left: 0rem;") $ text label
+
+    let itemsUpdated = updated $ (\x -> headMay . snd =<< headMay x) <$> itemsDyn
+
+    let selectedStyle = "display: block;" <>
+          "width: 100%;" <> "left: 0px;" <>
+          "top: 0px;" <> "height: auto;" <> "transform-origin: 0px 0px;" <>
+          "opacity: 1;" <> "transform: scaleX(1) scaleY(1);"
+
+    let inputClicks = form &
+            domEvent Click
+
+    dropdownOpenDyn <- foldDyn const False $
+        leftmost [
+            True <$ inputClicks,
+            False <$ changeSelection
+        ]
+
+    let selectAttrs = dropdownOpenDyn <&> \dropdownOpen ->
+            "class" =: "dropdown-content select-dropdown" <>
+                if dropdownOpen
+                    then "style" =: selectedStyle
+                    else empty
+
+    dynResult <- foldDyn const initialValueActual
+        (leftmost [changeSelection, itemsUpdated])
+
+    pure dynResult
+
+data OptgroupValue a =
+      Heading T.Text
+    | OptgroupValue a
+
+toOptgroupValues :: [(T.Text, [a])] -> [OptgroupValue a]
+toOptgroupValues [] = []
+toOptgroupValues ((label, values) : xs) = 
+    Heading label : fmap OptgroupValue values 
+        ++ toOptgroupValues xs
+
 headMay :: [a] -> Maybe a
 headMay [] = Nothing
 headMay (x:_) = Just x
