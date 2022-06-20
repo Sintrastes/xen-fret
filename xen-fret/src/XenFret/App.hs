@@ -191,13 +191,16 @@ mainPage appDir = do
                 pure (verticalScalingDyn, horizontalScalingDyn)
 
             elClass "div" "col s12" $
-                checkbox "Display vertically" True
+                blank
+                -- checkbox "Display vertically" True
 
             elClass "div" "col s12" $
-                checkbox "Use realistic fret spacing" False
+                blank
+                -- checkbox "Use realistic fret spacing" False
 
             displayMarkersOnFretsDyn <- elClass "div" "col s12" $
-                checkbox "Display markers on frets" False
+                pure $ pure True
+                -- checkbox "Display markers on frets" False
 
             saveEvent <- button "Save"
 
