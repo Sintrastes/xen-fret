@@ -86,11 +86,18 @@ data Pages =
     deriving(Show)
 
 loadAppData :: (MonadSample t m, Prerender t m) => FilePath -> m AppData
+#ifdef ghcjs_HOST_OS
+loadAppData _ = liftFrontend defaultAppData $ do
+    cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
+        ("appData" :: T.Text)
+    pure $ decodeStrict cookieData
+#else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
+#endif
 
 persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
   Dynamic t a -> FilePath -> m ()
