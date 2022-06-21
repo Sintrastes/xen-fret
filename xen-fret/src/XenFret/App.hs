@@ -14,7 +14,7 @@ import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
-import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Functor
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
@@ -109,7 +109,7 @@ persistAppData dynAppData dataFile = do
         \newData ->
             liftJSM $ jsg3 ("setCookie" :: T.Text)
                 ("appData"  :: T.Text)
-                (encode newData)
+                (decodeUtf8 $ encode newData)
                 (3650 :: Int)
     pure ()
 #else
