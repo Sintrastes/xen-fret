@@ -95,7 +95,13 @@ loadAppData dataFile = do
 persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
   Dynamic t a -> FilePath -> m ()
 #ifdef ghcjs_HOST_OS
-persistAppData dynAppData dataFile = undefined
+persistAppData dynAppData dataFile = 
+    prerender (pure never) $ performEvent $ updated dynAppData <&>
+        \newData ->
+            liftJSM' $ js3 "setCookie"
+                "appData" 
+                (encode newData)
+                3650
 #else
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
