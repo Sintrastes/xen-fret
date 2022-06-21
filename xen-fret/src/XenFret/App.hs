@@ -30,6 +30,7 @@ import Language.Javascript.JSaddle (liftJSM, jsg3, jsg1, fromJSVal)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
+import Data.ByteString.Lazy (toStrict)
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -109,7 +110,7 @@ persistAppData dynAppData dataFile = do
         \newData ->
             liftJSM $ jsg3 ("setCookie" :: T.Text)
                 ("appData"  :: T.Text)
-                (decodeUtf8 $ encodeStrict newData)
+                (decodeUtf8 $ toStrict $ encode newData)
                 (3650 :: Int)
     pure ()
 #else
