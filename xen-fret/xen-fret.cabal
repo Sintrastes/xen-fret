@@ -31,6 +31,7 @@ library
     , ImplicitParams
     , TupleSections
     , DeriveGeneric
+    , CPP
   build-depends:
       base
     , diagrams
