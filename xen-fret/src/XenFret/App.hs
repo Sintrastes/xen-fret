@@ -26,7 +26,7 @@ import Data.Aeson
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg3)
+import Language.Javascript.JSaddle (liftJSM, jsg3, fromJSVal)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
@@ -92,7 +92,7 @@ loadAppData _ = liftFrontend defaultAppData $ do
     cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
         ("appData" :: T.Text)
     let Just (cookieText :: T.Text) = fromJSVal cookieData
-    pure $ decodeStrict (encodeUtf8 cookieData)
+    pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieData)
 #else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
