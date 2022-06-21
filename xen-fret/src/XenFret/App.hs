@@ -92,12 +92,17 @@ loadAppData dataFile = do
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
 
-persistAppData :: (ToJSON a, Applicative m, Prerender t m) =>
-  Dynamic t a -> FilePath -> m (Dynamic t (Event t ()))
-persistAppData dynAppData dataFile =
+persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
+  Dynamic t a -> FilePath -> m ()
+#ifdef ghcjs_HOST_OS
+persistAppData dynAppData dataFile = undefined
+#else
+persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
             liftIO $ encodeFile dataFile newData
+    pure ()
+#endif
 
 app :: _ => m ()
 app = do
