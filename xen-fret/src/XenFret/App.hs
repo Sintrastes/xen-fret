@@ -14,6 +14,7 @@ import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
+import Data.Text.Encoding (encodeUtf8)
 import Data.Functor
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
@@ -90,7 +91,8 @@ loadAppData :: (MonadSample t m, Prerender t m) => FilePath -> m AppData
 loadAppData _ = liftFrontend defaultAppData $ do
     cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
         ("appData" :: T.Text)
-    pure $ decodeStrict cookieData
+    let Just (cookieText :: T.Text) = fromJSVal cookieData
+    pure $ decodeStrict (encodeUtf8 cookieData)
 #else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
