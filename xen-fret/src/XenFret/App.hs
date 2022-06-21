@@ -91,7 +91,7 @@ loadAppData :: (MonadSample t m, Prerender t m) => FilePath -> m AppData
 loadAppData _ = liftFrontend defaultAppData $ do
     cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
         ("appData" :: T.Text)
-    let Just (cookieText :: T.Text) = fromJSVal cookieData
+    Just (cookieText :: T.Text) <- fromJSVal cookieData
     pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieData)
 #else
 loadAppData dataFile = do
