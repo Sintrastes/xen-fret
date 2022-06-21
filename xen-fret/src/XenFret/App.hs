@@ -25,7 +25,7 @@ import Data.Aeson
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg3, js3)
+import Language.Javascript.JSaddle (liftJSM, jsg3)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
@@ -98,10 +98,10 @@ persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
 persistAppData dynAppData dataFile = 
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
-            liftJSM' $ js3 "setCookie"
-                "appData" 
+            liftJSM' $ jsg3 ("setCookie" :: T.Text)
+                ("appData"  :: T.Text)
                 (encode newData)
-                3650
+                (3650 :: Int)
 #else
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
