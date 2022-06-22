@@ -93,7 +93,7 @@ loadAppData _ = liftFrontend defaultAppData $ do
     cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
         ("appData" :: T.Text)
     Just (cookieText :: T.Text) <- fromJSVal cookieData
-    pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieData)
+    pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieText)
 #else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
