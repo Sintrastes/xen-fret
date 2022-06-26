@@ -31,6 +31,7 @@ import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
 import Data.ByteString.Lazy (toStrict)
+import Debug.Trace (traceIO)
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -90,13 +91,14 @@ data Pages =
 loadAppData :: (MonadSample t m, Prerender t m) => FilePath -> m AppData
 #ifdef ghcjs_HOST_OS
 loadAppData _ = liftFrontend defaultAppData $ do
+    traceIO "getCookie"
     cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
         ("appData" :: T.Text)
     Just (cookieText :: T.Text) <- fromJSVal cookieData
     pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieText)
 #else
 loadAppData dataFile = do
-    loadedData :: AppData <- liftFrontend defaultAppData $
+    loadedData :: AppData <- liftFrontend defaultAppData $ 
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
@@ -107,7 +109,8 @@ persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
 #ifdef ghcjs_HOST_OS
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
-        \newData ->
+        \newData -> do
+            traceIO "setCookie"
             liftJSM $ jsg3 ("setCookie" :: T.Text)
                 ("appData"  :: T.Text)
                 (decodeUtf8 $ toStrict $ encode newData)
