@@ -110,7 +110,7 @@ persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData -> do
-            traceIO "setCookie"
+            liftIO $ traceIO "setCookie"
             liftJSM $ jsg3 ("setCookie" :: T.Text)
                 ("appData"  :: T.Text)
                 (decodeUtf8 $ toStrict $ encode newData)
