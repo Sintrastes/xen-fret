@@ -88,10 +88,9 @@ data Pages =
   | EditTemperament
     deriving(Show)
 
-loadAppData :: (MonadSample t m, Prerender t m) => FilePath -> m AppData
+loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
 #ifdef ghcjs_HOST_OS
-loadAppData _ = catch (do
-    traceIO "getCookie"
+loadAppData _ = liftIO $ catch (do
     cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
         ("appData" :: T.Text)
     Just (cookieText :: T.Text) <- fromJSVal cookieData
