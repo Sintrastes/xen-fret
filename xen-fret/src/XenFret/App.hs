@@ -441,7 +441,7 @@ repoUrl :: T.Text
 repoUrl = "https://github.com/sintrastes/xen-fret"
 
 repoApiUrl :: T.Text
-repoApiUrl = "http://api.github.com/repos/sintrastes/xen-fret"
+repoApiUrl = "https://api.github.com/repos/sintrastes/xen-fret"
 
 fetchGithubData :: _ => Event t () -> m (Event t (Maybe GithubData))
 fetchGithubData fetchEv = getAndDecode
