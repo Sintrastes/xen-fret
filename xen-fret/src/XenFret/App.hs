@@ -26,7 +26,7 @@ import Data.Aeson
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg3, jsg1, fromJSVal)
+import Language.Javascript.JSaddle (liftJSM, jsg, jsg3, jsg1, fromJSVal)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
@@ -91,8 +91,7 @@ data Pages =
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
 #ifdef ghcjs_HOST_OS
 loadAppData _ = liftIO $ catch (do
-    cookieData <- liftJSM $ jsg1 ("getCookie" :: T.Text)
-        ("appData" :: T.Text)
+    cookieData <- liftJSM $ jsg ("getAppData" :: T.Text)
     Just (cookieText :: T.Text) <- fromJSVal cookieData
     pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieText))
     (\(_ :: SomeException) -> return defaultAppData)
@@ -109,12 +108,9 @@ persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
 #ifdef ghcjs_HOST_OS
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
-        \newData -> do
-            liftIO $ traceIO "setCookie"
-            liftJSM $ jsg3 ("setCookie" :: T.Text)
-                ("appData"  :: T.Text)
+        \newData -> 
+            liftJSM $ jsg1 ("storeAppData" :: T.Text)
                 (decodeUtf8 $ toStrict $ encode newData)
-                (3650 :: Int)
     pure ()
 #else
 persistAppData dynAppData dataFile = do

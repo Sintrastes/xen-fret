@@ -15,7 +15,7 @@ function storeAppData(contents) {
     }
 }
 
-function getAppData(contents) {
+function getAppData() {
     if (typeof(Storage) !== "undefined") {
         return window.localStorage.getItem('appData');
     } else {
