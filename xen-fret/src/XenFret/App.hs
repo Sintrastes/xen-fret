@@ -92,8 +92,11 @@ loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppD
 #ifdef ghcjs_HOST_OS
 loadAppData _ = liftIO $ catch (do
     cookieData <- liftJSM $ jsg ("getAppData" :: T.Text)
-    Just (cookieText :: T.Text) <- fromJSVal cookieData
-    pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 cookieText))
+    (rawText :: Maybe T.Text) <- fromJSVal cookieData
+    case rawText of 
+        Nothing -> pure $ defaultAppData
+        Just rawText' ->
+            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
     (\(_ :: SomeException) -> return defaultAppData)
 #else
 loadAppData dataFile = do
@@ -108,7 +111,7 @@ persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
 #ifdef ghcjs_HOST_OS
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
-        \newData -> 
+        \newData -> do
             liftJSM $ jsg1 ("storeAppData" :: T.Text)
                 (decodeUtf8 $ toStrict $ encode newData)
     pure ()
