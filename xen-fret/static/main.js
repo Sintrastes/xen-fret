@@ -9,6 +9,20 @@ function download(text, name, type) {
     }, 0);
 }
 
+function storeAppData(contents) {
+    if (typeof(Storage) !== "undefined") {
+        window.localStorage.setItem("appData", contents);
+    }
+}
+
+function getAppData(contents) {
+    if (typeof(Storage) !== "undefined") {
+        return window.localStorage.getItem('appData');
+    } else {
+        return "";
+    }
+}
+
 function setCookie(cname, cvalue, exdays) {
     const d = new Date();
     d.setTime(d.getTime() + (exdays*24*60*60*1000));
