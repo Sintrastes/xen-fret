@@ -90,15 +90,14 @@ data Pages =
 
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
 #ifdef ghcjs_HOST_OS
-loadAppData _ = liftIO $ catch (liftIO $ do
+loadAppData _ = liftIO $ do
     cookieData <- liftJSM $ jsg ("getAppData" :: T.Text)
     (rawText :: Maybe T.Text) <- fromJSVal cookieData
     case rawText of 
         Nothing -> pure $ defaultAppData
         Just rawText' -> do
             traceIO $ "Got cookie: " ++ (T.unpack rawText')
-            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
-    (\(_ :: SomeException) -> return defaultAppData)
+            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText')
 #else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $ 
