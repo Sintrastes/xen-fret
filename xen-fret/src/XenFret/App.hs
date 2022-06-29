@@ -95,7 +95,8 @@ loadAppData _ = liftIO $ catch (do
     (rawText :: Maybe T.Text) <- fromJSVal cookieData
     case rawText of 
         Nothing -> pure $ defaultAppData
-        Just rawText' ->
+        Just rawText' -> do
+            traceIO $ "Got cookie: " ++ (T.unpack rawText)
             pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
     (\(_ :: SomeException) -> return defaultAppData)
 #else
