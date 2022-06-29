@@ -96,7 +96,7 @@ loadAppData _ = catch (liftIO $ do
     case rawText of 
         Nothing -> pure $ defaultAppData
         Just rawText' -> do
-            traceIO $ "Got cookie: " ++ (T.unpack rawText)
+            traceIO $ "Got cookie: " ++ (T.unpack rawText')
             pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
     (\(_ :: SomeException) -> return defaultAppData)
 #else
