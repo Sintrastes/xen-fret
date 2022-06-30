@@ -26,7 +26,7 @@ import Data.Aeson
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg, jsg3, jsg1, fromJSVal)
+import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
@@ -92,12 +92,11 @@ data Pages =
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
 #ifdef ghcjs_HOST_OS
 loadAppData _ = liftIO $ JS.catch (do
-    cookieData <- liftJSM $ jsg ("getAppData" :: T.Text)
+    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
     (rawText :: Maybe T.Text) <- fromJSVal cookieData
     case rawText of 
         Nothing -> pure $ defaultAppData
         Just rawText' -> do
-            traceIO $ "Got cookie: " ++ (T.unpack rawText')
             pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
     (\(_ :: SomeException) -> pure defaultAppData)
 #else
