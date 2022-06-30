@@ -97,7 +97,7 @@ loadAppData _ = liftIO $ JS.catch (do
     case rawText of 
         Nothing -> pure $ defaultAppData
         Just rawText' -> do
-            liftIO traceIO $ T.unpack rawText'
+            liftIO $ traceIO $ T.unpack rawText'
             pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
     (\(_ :: SomeException) -> pure defaultAppData)
 #else
