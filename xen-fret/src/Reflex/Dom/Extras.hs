@@ -11,6 +11,8 @@ import Data.Map (empty)
 import Control.Monad.IO.Class
 import Data.Ratio
 import Language.Javascript.JSaddle (eval, liftJSM)
+import Data.Validation
+import Data.List.NonEmpty (NonEmpty)
 
 -- | Nav bar widget.
 materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m () -> m (Event t e)
@@ -77,6 +79,20 @@ textEntry initialValue =
             . elementConfig_initialAttributes
             .~ attrs
             & inputElementConfig_initialValue .~ initialValue)
+  where
+    attrs = "class" =: "p-form-text p-form-no-validate" <>
+        "type" =: "text"
+
+validatedTextEntry :: _ => 
+       (T.Text -> Validation (NonEmpty String) a) 
+    -> a 
+    -> m (Dynamic t (Validation (NonEmpty String) a))
+validatedTextEntry validation initialValue =
+    (validation <$>) . _inputElement_value <$> inputElement (
+        def & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes
+            .~ attrs
+            & inputElementConfig_initialValue .~ T.pack (show initialValue))
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "text"
