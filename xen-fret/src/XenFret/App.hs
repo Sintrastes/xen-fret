@@ -36,6 +36,7 @@ import Debug.Trace (traceIO)
 import Reflex.Dom.Extras
 import Reflex.Dom.Forms
 import Data.Validation
+import XenFret.App.Util
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -365,9 +366,11 @@ tuningForm :: _ => Tuning -> m (Dynamic t Tuning)
 tuningForm initialValue = do
     modalHeader "Add New Tuning"
 
-    _ <- labeledEntry "Instrument" textEntry ""
-    _ <- labeledEntry "Name" textEntry ""
-    _ <- labeledEntry "Intervals" textEntry ""
+    _ <- (labeledEntryA "Instrument" $ nonEmptyTextEntry 
+        "Instrument name must not be empty") ""
+    _ <- (labeledEntryA "Name" $ nonEmptyTextEntry 
+        "Name must not be empty") ""
+    _ <- labeledEntryA "Intervals" intervalListEntry (0 :| [])
 
     pure $ pure initialValue
 
