@@ -94,43 +94,43 @@ data Pages =
     deriving(Show)
 
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
-#ifdef ghcjs_HOST_OS
-loadAppData _ = liftIO $ JS.catch (do
-    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
-    (rawText :: Maybe T.Text) <- fromJSVal cookieData
-    case rawText of 
-        Nothing -> pure $ defaultAppData
-        Just rawText' -> do
-            liftIO $ traceIO $ T.unpack rawText'
-            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
-    (\(_ :: SomeException) -> pure defaultAppData)
-#else
+
+
+
+
+
+
+
+
+
+
+
 loadAppData dataFile = do
-    loadedData :: AppData <- liftFrontend defaultAppData $ 
+    loadedData :: AppData <- liftFrontend defaultAppData $
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
-#endif
+
 
 persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
   Dynamic t a -> FilePath -> m ()
-#ifdef ghcjs_HOST_OS
-persistAppData dynAppData dataFile = do
-    prerender (pure never) $ performEvent $ updated dynAppData <&>
-        \newData -> do
-            liftJSM $ jsg1 ("storeAppData" :: T.Text)
-                (decodeUtf8 $ toStrict $ encode newData)
-    pure ()
-#else
+
+
+
+
+
+
+
+
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
             liftIO $ encodeFile dataFile newData
     pure ()
-#endif
+
 
 validateNonEmpty :: T.Text -> Validation (NonEmpty T.Text) T.Text
-validateNonEmpty x 
+validateNonEmpty x
     | x == ""   = Failure ("String must not be empty" :| [])
     | otherwise = Success x
 
@@ -326,7 +326,7 @@ temperamentPage appDir = do
 
     persistAppData dynAppData
         (appDir <> "/app_data.json")
-    
+
     _ <- dyn $ dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
             forM_ currentTemperaments (\temperament -> do
@@ -353,7 +353,7 @@ tuningPage appDir = do
     let currentTunings = join $ Map.elems $ tunings appData
 
     newTuningEvent <- button "New Tuning"
-    newTuningSubmitted <- modal newTuningEvent $
+    newTuningSubmitted <- validatedModal newTuningEvent $
         tuningForm def
 
     elClass "ul" "collection" $ do
@@ -362,22 +362,20 @@ tuningPage appDir = do
                 el "span" $ text $
                     T.pack $ show tuning)
 
-tuningForm :: _ => Tuning -> m (Dynamic t Tuning)
+tuningForm :: _ => Tuning -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Tuning))
 tuningForm initialValue = do
     modalHeader "Add New Tuning"
 
-    _ <- (labeledEntryA "Instrument" $ 
-        nonEmptyTextEntry 
-            "Instrument name must not be empty") 
-            ""
-    _ <- (labeledEntryA "Name" $ 
-        nonEmptyTextEntry 
-            "Name must not be empty") 
-            ""
-    _ <- labeledEntryA "Intervals" 
-        intervalListEntry (0 :| [])
+    let formContents = Tuning <$>
+          formA (instrument =. labeledEntryA "Instrument" (
+          nonEmptyTextEntry
+              "Instrument name must not be empty")) <*>
+          formA (tuningName =. labeledEntryA "Name" (
+              nonEmptyTextEntry "Name must not be empty"))  <*>
+          formA (stringTunings =. labeledEntryA "Intervals"
+              intervalListEntry)
 
-    pure $ pure initialValue
+    initFormA formContents initialValue
 
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
@@ -508,3 +506,4 @@ githubWidget = do
     starsIcon :: _ => m ()
     starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
         elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z") blank
+
