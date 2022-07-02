@@ -308,7 +308,7 @@ temperamentPage appDir = do
 
     newTemperamentEvent <- button "New Temperament"
 
-    newTemperamentSubmitted <- modal newTemperamentEvent $
+    newTemperamentSubmitted <- validatedModal newTemperamentEvent $
         temperamentForm def
 
     updatedTemperaments <- switch . current <$> prerender (pure never) (performEvent $ newTemperamentSubmitted <&> \case
@@ -325,7 +325,6 @@ temperamentPage appDir = do
 
     persistAppData dynAppData
         (appDir <> "/app_data.json")
-
     
     _ <- dyn $ dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
@@ -335,17 +334,17 @@ temperamentPage appDir = do
                         T.pack $ show temperament)
     blank
 
-temperamentForm :: _ => Temperament -> m (Dynamic t Temperament)
+temperamentForm :: _ => Temperament -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Temperament))
 temperamentForm initialValue = do
     modalHeader "Add New Temperament"
 
     let formContents = Temperament <$>
-            form (temperamentName =. labeledEntry "Name" textEntry) <*>
-            form (divisions =. labeledEntry "Divisions" intEntry) <*>
-            form (period =. labeledEntry "Period" rationalEntry) <*>
+            formA (temperamentName =. labeledEntryA "Name" (nonEmptyTextEntry "Name cannot be blank")) <*>
+            liftFormA (form (divisions =. labeledEntry "Divisions" nonNegativeIntEntry)) <*>
+            liftFormA (form (period =. labeledEntry "Period" rationalEntry)) <*>
             pure Nothing
 
-    initForm formContents initialValue
+    initFormA formContents initialValue
 
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do

@@ -55,9 +55,16 @@ type AForm t m f a b
 
 type SAForm t m f a = AForm t m f a a
 
-aForm :: Functor m => (a -> m (Dynamic t (f b))) -> AForm t m f a b
-aForm f = Star $
+formA :: Functor m => (a -> m (Dynamic t (f b))) -> AForm t m f a b
+formA f = Star $
     \x -> Compose $ Compose <$> f x
 
-initAForm :: Functor m => AForm t m f a b -> a -> m (Dynamic t (f b))
-initAForm (Star f) x = getCompose <$> getCompose (f x)
+initFormA :: Functor m => AForm t m f a b -> a -> m (Dynamic t (f b))
+initFormA (Star f) x = getCompose <$> getCompose (f x)
+
+-- | Convert a regular form into an applicative form.
+liftFormA :: (Reflex t, Applicative f, Functor m) => Form t m a b -> AForm t m f a b
+liftFormA (Star f) = Star (\a -> let 
+    Compose x = f a 
+    y = Compose . (pure <$>) <$> x
+ in Compose y)
