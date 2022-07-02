@@ -33,6 +33,8 @@ import GHC.Generics
 import qualified Language.Javascript.JSaddle as JS
 import Data.ByteString.Lazy (toStrict)
 import Debug.Trace (traceIO)
+import Reflex.Dom.Extras
+import Reflex.Dom.Forms
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -280,11 +282,11 @@ mainPage appDir = do
         diagramDyn <- holdDyn Nothing
             diagramUpdated
 
-        prerender (pure never) $ performEvent $ saveEvent <&> \_ -> do
+        _ <- prerender (pure never) $ performEvent $ saveEvent <&> \_ -> do
             maybeSvgText <- sample $ current diagramDyn
             case maybeSvgText of
                 Just svgText -> do
-                    liftJSM $ jsg3 ("download" :: T.Text) svgText
+                    _ <- liftJSM $ jsg3 ("download" :: T.Text) svgText
                         ("diagram.svg" :: T.Text)
                         ("image/svg" :: T.Text)
                     pure ()
@@ -318,7 +320,8 @@ temperamentPage appDir = do
     persistAppData dynAppData
         (appDir <> "/app_data.json")
 
-    dyn $ dynTemperaments <&> \currentTemperaments ->
+    
+    _ <- dyn $ dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
             forM_ currentTemperaments (\temperament -> do
                 elClass "li" "collection-item" $ do
@@ -357,9 +360,9 @@ tuningForm :: _ => Tuning -> m (Dynamic t Tuning)
 tuningForm initialValue = do
     modalHeader "Add New Tuning"
 
-    labeledEntry "Instrument" textEntry ""
-    labeledEntry "Name" textEntry ""
-    labeledEntry "Intervals" textEntry ""
+    _ <- labeledEntry "Instrument" textEntry ""
+    _ <- labeledEntry "Name" textEntry ""
+    _ <- labeledEntry "Intervals" textEntry ""
 
     pure $ pure initialValue
 
