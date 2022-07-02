@@ -11,6 +11,7 @@ library
   exposed-modules:   
       XenFret,    
       XenFret.App,
+      XenFret.App.Util,
       XenFret.Data,
       XenFret.AppData,
       XenFret.Util, 
