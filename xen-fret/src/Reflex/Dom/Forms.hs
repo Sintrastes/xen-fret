@@ -47,5 +47,17 @@ buildForm f = form $ \initialValue -> let
     let modifiers = formModifiers finalContext
     let modifier = foldr (liftA2 (.)) (pure id) modifiers
 
-    return $ 
+    return $
         modifier <*> pure initialValue
+
+type AForm t m f a b
+    = Star (Compose m (Compose (Dynamic t) f)) a b
+
+type SAForm t m f a = AForm t m f a a
+
+aForm :: Functor m => (a -> m (Dynamic t (f b))) -> AForm t m f a b
+aForm f = Star $
+    \x -> Compose $ Compose <$> f x
+
+initAForm :: Functor m => AForm t m f a b -> a -> m (Dynamic t (f b))
+initAForm (Star f) x = getCompose <$> getCompose (f x)
