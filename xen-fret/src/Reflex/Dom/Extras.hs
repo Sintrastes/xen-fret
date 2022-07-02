@@ -7,7 +7,7 @@ import Data.Functor
 import Control.Monad
 import Control.Applicative (liftA2)
 import Control.Monad.Fix
-import Data.Map (empty)
+import Data.Map (empty, Map)
 import Control.Monad.IO.Class
 import Data.Ratio
 import Language.Javascript.JSaddle (eval, liftJSM)
@@ -86,26 +86,40 @@ textEntry initialValue =
 
 validatedTextEntry :: _ => 
        (T.Text -> Validation (NonEmpty T.Text) a) 
+    -> (a -> T.Text)
     -> a 
     -> m (Dynamic t (Validation (NonEmpty T.Text) a))
-validatedTextEntry validation initialValue = el "div" $ do
+validatedTextEntry validation display initialValue = el "div" $ mdo
+    let initialValidated = validation (display initialValue)
+
     res <- (validation <$>) . _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
-            .~ attrs
-            & inputElementConfig_initialValue .~ T.pack (show initialValue))
+            .~ attrs initialValidated
+            & inputElementConfig_elementConfig
+            . elementConfig_modifyAttributes 
+            .~ attributeUpdates
+            & inputElementConfig_initialValue .~ display initialValue)
+
+    let attributeUpdates = updated $ res <&> \case
+            Failure _ -> "class" =: Just "p-form-text invalid"
+            Success _ -> "class" =: Just "p-form-text valid"
 
     let validationText = res <&> (\case
            Failure ne -> T.intercalate "\n" (NE.toList ne)
            Success _ -> "")
 
-    el "span" $ dynText 
+    elAttr "span" ("style" =: "color: var(--red-accent-color);") $ dynText 
         validationText
 
     return res
   where
-    attrs = "class" =: "p-form-text p-form-no-validate" <>
-        "type" =: "text"
+    attrs :: Validation e a -> Map AttributeName T.Text
+    attrs = \case
+        Success _ -> "class" =: "p-form-text valid" <>
+            "type" =: "text"
+        Failure _ -> "class" =: "p-form-text invalid" <>
+            "type" =: "text"
 
 labeledEntry :: _ => T.Text -> (a -> m (Dynamic t a)) -> a -> m (Dynamic t a)
 labeledEntry label widget initialValue = elClass "div" "input-field" $ do
