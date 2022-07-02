@@ -10,7 +10,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import XenFret.Util
 import XenFret
 import Graphics.Svg
-import Data.List.NonEmpty (NonEmpty, nonEmpty)
+import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
@@ -22,7 +22,7 @@ import Control.Exception
 import System.Info
 import System.Directory
 import Data.List hiding (transpose)
-import Data.Aeson
+import Data.Aeson hiding (Success)
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
@@ -35,6 +35,7 @@ import Data.ByteString.Lazy (toStrict)
 import Debug.Trace (traceIO)
 import Reflex.Dom.Extras
 import Reflex.Dom.Forms
+import Data.Validation
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -126,6 +127,11 @@ persistAppData dynAppData dataFile = do
             liftIO $ encodeFile dataFile newData
     pure ()
 #endif
+
+validateNonEmpty :: T.Text -> Validation (NonEmpty T.Text) T.Text
+validateNonEmpty x 
+    | x == ""   = Failure ("String must not be empty" :| [])
+    | otherwise = Success x
 
 app :: _ => m ()
 app = do
