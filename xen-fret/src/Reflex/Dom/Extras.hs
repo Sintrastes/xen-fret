@@ -13,6 +13,7 @@ import Data.Ratio
 import Language.Javascript.JSaddle (eval, liftJSM)
 import Data.Validation
 import Data.List.NonEmpty (NonEmpty)
+import qualified Data.List.NonEmpty as NE
 
 -- | Nav bar widget.
 materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m () -> m (Event t e)
@@ -84,15 +85,24 @@ textEntry initialValue =
         "type" =: "text"
 
 validatedTextEntry :: _ => 
-       (T.Text -> Validation (NonEmpty String) a) 
+       (T.Text -> Validation (NonEmpty T.Text) a) 
     -> a 
-    -> m (Dynamic t (Validation (NonEmpty String) a))
-validatedTextEntry validation initialValue =
-    (validation <$>) . _inputElement_value <$> inputElement (
+    -> m (Dynamic t (Validation (NonEmpty T.Text) a))
+validatedTextEntry validation initialValue = el "div" $ do
+    res <- (validation <$>) . _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
             .~ attrs
             & inputElementConfig_initialValue .~ T.pack (show initialValue))
+
+    let validationText = res <&> (\case
+           Failure ne -> T.intercalate "\n" (NE.toList ne)
+           Success _ -> "")
+
+    el "span" $ dynText 
+        validationText
+
+    return res
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "text"
