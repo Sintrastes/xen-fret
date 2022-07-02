@@ -115,7 +115,7 @@ loadAppData dataFile = do
 
 loadAppData' :: (MonadSample t m, MonadIO m) => FilePath -> m AppData
 #ifdef ghcjs_HOST_OS
-loadAppData _ = liftIO $ JS.catch (do
+loadAppData' _ = liftIO $ JS.catch (do
     cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
     (rawText :: Maybe T.Text) <- fromJSVal cookieData
     case rawText of 
