@@ -12,8 +12,10 @@ import Control.Monad.IO.Class
 import Data.Ratio
 import Language.Javascript.JSaddle (eval, liftJSM)
 import Data.Validation
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
+
+type ErrorMessage = T.Text
 
 -- | Nav bar widget.
 materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m () -> m (Event t e)
@@ -83,6 +85,13 @@ textEntry initialValue =
   where
     attrs = "class" =: "p-form-text p-form-no-validate" <>
         "type" =: "text"
+
+nonEmptyTextEntry :: _ => ErrorMessage -> T.Text -> m (Dynamic t (Validation (NonEmpty ErrorMessage) T.Text))
+nonEmptyTextEntry errorMsg = validatedTextEntry 
+    (\case
+        "" -> Failure $ errorMsg :| []
+        x -> Success x)
+    id
 
 validatedTextEntry :: _ => 
        (T.Text -> Validation (NonEmpty T.Text) a) 
