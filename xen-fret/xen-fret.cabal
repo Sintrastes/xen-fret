@@ -29,6 +29,7 @@ library
     , ScopedTypeVariables
     , DataKinds
     , GADTs
+    , RankNTypes
     , ImplicitParams
     , TupleSections
     , DeriveGeneric
@@ -42,6 +43,8 @@ library
     , bytestring
     , containers
     , multimap
+    , lens
+    , mtl
     , aeson
     , aeson-casing
     , reflex-dom
