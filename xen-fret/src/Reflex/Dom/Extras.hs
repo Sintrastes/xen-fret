@@ -130,6 +130,46 @@ validatedTextEntry validation display initialValue = el "div" $ mdo
         Failure _ -> "class" =: "p-form-text invalid" <>
             "type" =: "text"
 
+validatedTextEntryDyn :: _ => 
+       Dynamic t (T.Text -> Validation (NonEmpty T.Text) a) 
+    -> (a -> T.Text)
+    -> a 
+    -> m (Dynamic t (Validation (NonEmpty T.Text) a))
+validatedTextEntryDyn validationDyn display initialValue = el "div" $ mdo
+    initialValidation <- sample $ current validationDyn
+    let initialValidated = initialValidation (display initialValue)
+
+    res' <- _inputElement_value <$> inputElement (
+        def & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes
+            .~ attrs initialValidated
+            & inputElementConfig_elementConfig
+            . elementConfig_modifyAttributes 
+            .~ attributeUpdates
+            & inputElementConfig_initialValue .~ display initialValue)
+
+    let res = validationDyn <*> res'
+
+    let attributeUpdates = updated $ res <&> \case
+            Failure _ -> "class" =: Just "p-form-text invalid"
+            Success _ -> "class" =: Just "p-form-text valid"
+
+    let validationText = res <&> (\case
+           Failure ne -> T.intercalate "\n" (NE.toList ne)
+           Success _ -> "")
+
+    elAttr "span" ("style" =: "color: var(--red-accent-color);") $ dynText 
+        validationText
+
+    return res
+  where
+    attrs :: Validation e a -> Map AttributeName T.Text
+    attrs = \case
+        Success _ -> "class" =: "p-form-text valid" <>
+            "type" =: "text"
+        Failure _ -> "class" =: "p-form-text invalid" <>
+            "type" =: "text"
+
 -- |  Transforms a form into a "labeled" form, using a materialize style.
 -- 
 --  See labeledEntryA for a variant for applicative forms.
