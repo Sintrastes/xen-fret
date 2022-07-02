@@ -6,6 +6,7 @@ import Data.Functor.Compose
 import Reflex.Dom
 import Control.Lens
 import Control.Monad.State
+import Control.Applicative
 
 type Form t m a b
     = Star (Compose m (Dynamic t)) a b
@@ -38,5 +39,13 @@ bind ctx field subForm = do
     put (state { formModifiers = result : formModifiers state})
 
 
-buildForm :: FormBuilder t m a () -> SForm t m a
-buildForm f = undefined
+buildForm :: Reflex t => Monad m => FormBuilder t m a () -> SForm t m a
+buildForm f = form $ \initialValue -> let
+    initialContext = FormContext [] initialValue
+  in do
+    (_, finalContext) <- runStateT f initialContext
+    let modifiers = formModifiers finalContext
+    let modifier = foldr (liftA2 (.)) (pure id) modifiers
+
+    return $ 
+        modifier <*> pure initialValue
