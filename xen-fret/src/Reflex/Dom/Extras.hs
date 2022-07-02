@@ -10,23 +10,7 @@ import Control.Monad.Fix
 import Data.Map (empty)
 import Control.Monad.IO.Class
 import Data.Ratio
-import Data.Profunctor
-import Data.Functor.Compose
 import Language.Javascript.JSaddle (eval, liftJSM)
-
-type Form t m a b
-    = Star (Compose m (Dynamic t)) a b
-
-type SForm t m a = Form t m a a
-
-form :: (a -> m (Dynamic t b)) -> Form t m a b
-form f = Star (Compose . f)
-
-initForm :: Form t m a b -> a -> m (Dynamic t b)
-initForm (Star f) x = getCompose $ f x
-
-(=.) :: Profunctor f => (x -> y) -> f y a -> f x a
-(=.) = lmap
 
 -- | Nav bar widget.
 materialNavBar :: (DomBuilder t m, MonadHold t m, MonadFix m, Show e, PostBuild t m) => [e] -> m () -> m (Event t e)

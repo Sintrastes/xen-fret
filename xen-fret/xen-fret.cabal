@@ -15,7 +15,8 @@ library
       XenFret.AppData,
       XenFret.Util, 
       XenFret.TemperamentTheory,
-      Reflex.Dom.Extras
+      Reflex.Dom.Extras,
+      Reflex.Dom.Forms
   default-extensions:
       OverloadedStrings
     , PartialTypeSignatures
