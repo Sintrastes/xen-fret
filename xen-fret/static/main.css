@@ -36,3 +36,14 @@
 .row {
     margin-bottom: 0px;
 }
+
+/** Don't display arrows on numeric entry forms (we'll add our own) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance:textfield; /* Firefox */
+}
