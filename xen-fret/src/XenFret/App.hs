@@ -366,11 +366,16 @@ tuningForm :: _ => Tuning -> m (Dynamic t Tuning)
 tuningForm initialValue = do
     modalHeader "Add New Tuning"
 
-    _ <- (labeledEntryA "Instrument" $ nonEmptyTextEntry 
-        "Instrument name must not be empty") ""
-    _ <- (labeledEntryA "Name" $ nonEmptyTextEntry 
-        "Name must not be empty") ""
-    _ <- labeledEntryA "Intervals" intervalListEntry (0 :| [])
+    _ <- (labeledEntryA "Instrument" $ 
+        nonEmptyTextEntry 
+            "Instrument name must not be empty") 
+            ""
+    _ <- (labeledEntryA "Name" $ 
+        nonEmptyTextEntry 
+            "Name must not be empty") 
+            ""
+    _ <- labeledEntryA "Intervals" 
+        intervalListEntry (0 :| [])
 
     pure $ pure initialValue
 
