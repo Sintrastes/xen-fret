@@ -23,7 +23,19 @@ initForm (Star f) x = getCompose $ f x
 
 data SomeLens a = forall b. SomeLens (Lens' a b)
 
-type FormBuilder t m a = StateT [SomeLens a] m a
+type FormBuilder t m a = StateT (FormContext t a) m a
+
+data FormContext t a = FormContext {
+    formModifiers :: [Dynamic t (a -> a)],
+    initialValue  :: a
+}
+
+bind :: Reflex t => Monad m => FormContext t a -> Lens' a b -> SForm t m b -> FormBuilder t m ()
+bind ctx field subForm = do
+    formValue <- lift $ initForm subForm (view field $ initialValue ctx)
+    let result = set field <$> formValue
+    pure ()
+
 
 buildForm :: FormBuilder t m a -> SForm t m a
 buildForm f = undefined
