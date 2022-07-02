@@ -374,6 +374,7 @@ temperamentForm initialValue = do
 
     initFormA formContents initialValue
 
+getTunings :: (MonadSample t m, MonadIO m) => FilePath -> m (Map.Map T.Text [Tuning])
 getTunings appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
     return $ tunings appData
