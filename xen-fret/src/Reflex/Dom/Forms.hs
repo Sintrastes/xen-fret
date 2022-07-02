@@ -7,6 +7,10 @@ import Reflex.Dom
 import Control.Lens
 import Control.Monad.State
 import Control.Applicative
+import Data.Validation (Validation (..), toEither, fromEither)
+import Reflex.Dom.Extras (ErrorMessage)
+import qualified Data.Text as T
+import Data.List.NonEmpty (NonEmpty ((:|)))
 
 type Form t m a b
     = Star (Compose m (Dynamic t)) a b
@@ -64,7 +68,29 @@ initFormA (Star f) x = getCompose <$> getCompose (f x)
 
 -- | Convert a regular form into an applicative form.
 liftFormA :: (Reflex t, Applicative f, Functor m) => Form t m a b -> AForm t m f a b
-liftFormA (Star f) = Star (\a -> let 
-    Compose x = f a 
+liftFormA (Star f) = Star (\a -> let
+    Compose x = f a
     y = Compose . (pure <$>) <$> x
  in Compose y)
+
+nonEmptyText :: ErrorMessage -> T.Text -> Validation (NonEmpty ErrorMessage) T.Text
+nonEmptyText msg x =
+    if x == ""
+        then Failure $ msg :| []
+        else Success x
+
+combineDynValidations :: forall e a t. _ => [Dynamic t (a -> Validation e a)] -> Dynamic t (a -> Validation e a)
+combineDynValidations = from . foldr combine (pure return) . fmap to
+  where
+    to :: Dynamic t (a -> Validation e a) -> Dynamic t (a -> Either e a)
+    to   = fmap (fmap toEither)
+
+    from :: Dynamic t (a -> Either e a) -> Dynamic t (a -> Validation e a)
+    from = fmap (fmap fromEither)
+
+    combine :: Dynamic t (a -> Either e a) -> Dynamic t (a -> Either e a) -> Dynamic t (a -> Either e a)
+    combine x y = do
+        x' <- x
+        y' <- y
+        pure $ x' >=> y'
+
