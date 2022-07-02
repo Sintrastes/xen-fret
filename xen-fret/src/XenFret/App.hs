@@ -26,7 +26,7 @@ import Data.Aeson
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal, valToText)
+import Language.Javascript.JSaddle hiding (catch)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
