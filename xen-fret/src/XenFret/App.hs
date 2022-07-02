@@ -329,7 +329,7 @@ getTemperaments appDir = do
     return $ temperaments appData
 
 temperamentPage :: _ => FilePath -> m ()
-temperamentPage appDir = do
+temperamentPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
     let initialTemperaments = temperaments appData
 
