@@ -37,6 +37,7 @@ import Reflex.Dom.Extras
 import Reflex.Dom.Forms
 import Data.Validation
 import XenFret.App.Util
+import Control.Monad.Fix
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
@@ -175,20 +176,25 @@ app = do
         Preferences -> preferencePage appDir
     blank
 
+selectTemperament :: _ => AppData -> m (Dynamic t (Maybe Temperament))
+selectTemperament appData = do
+    let loadedTemperaments = temperaments appData
+
+    selectMaterial "Temperament"
+        "No Temperaments Defined"
+        (pure loadedTemperaments)
+        (head loadedTemperaments)
+
 mainPage :: _ => FilePath -> m ()
 mainPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
-    let loadedTemperaments = temperaments appData
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
         (saveEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
             elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
 
             temperamentDyn <- elClass "div" "row" $
-                selectMaterial "Temperament"
-                    "No Temperaments Defined"
-                    (pure loadedTemperaments)
-                    (head loadedTemperaments)
+                selectTemperament appData
 
             let Just initialTunings = Map.lookup "12-TET" $ tunings appData
 
@@ -368,22 +374,30 @@ temperamentForm initialValue = do
 
     initFormA formContents initialValue
 
+getTunings appDir = do
+    appData <- loadAppData' (appDir <> "/app_data.json")
+    return $ tunings appData
+
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
-    let currentTunings = join $ Map.elems $ tunings appData
+    let initialTunings = tunings appData
 
     newTuningEvent <- button "New Tuning"
-    newTuningSubmitted <- validatedModal newTuningEvent $
-        tuningForm def
+    newTuningSubmitted <- validatedModal newTuningEvent $ do
+        (res, _ ) <- tuningForm appData def
+        return res
 
     updatedTunings <- switch . current <$> prerender (pure never) (performEvent $ newTuningSubmitted <&> \case
-        Nothing -> pure currentTunings
+        Nothing -> getTunings appDir
         Just temperament -> do
-            toast "Added new temperament"
-            pure (currentTunings ++ [temperament]))
+            toast "Added new tuning"
+            currentTunings <- getTunings appDir
+            -- TODO: Actually update here
+            -- Need the temperament we are adding this to.
+            pure currentTunings) -- ++ [temperament]))
 
-    dynTunings <- holdDyn currentTunings
+    dynTunings <- holdDyn initialTunings
         updatedTunings
 
     -- let dynAppData = dynTunings <&> \t ->
@@ -392,15 +406,25 @@ tuningPage appDir = do
     -- persistAppData dynAppData
     --    (appDir <> "/app_data.json")
 
-    elClass "ul" "collection" $ do
-        forM_ currentTunings (\tuning -> do
-            elClass "li" "collection-item" $ do
-                el "span" $ text $
-                    T.pack $ show tuning)
+    _ <- dyn $ dynTunings <&> \currentTunings ->
+        elClass "ul" "collection" $ do
+            forM_ (join $ Map.elems $ currentTunings) (\tuning -> do
+                elClass "li" "collection-item" $ do
+                    el "span" $ text $
+                        T.pack $ show tuning)
+    blank
 
-tuningForm :: _ => Tuning -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Tuning))
-tuningForm initialValue = do
+tuningForm :: MonadWidget t m => AppData 
+    -> Tuning 
+    -> m (
+        Dynamic t (Validation (NonEmpty ErrorMessage) Tuning)
+      , Dynamic t (Maybe Temperament)
+    )
+tuningForm appData initialValue = do
     modalHeader "Add New Tuning"
+
+    selectedTemperament <- selectTemperament
+       appData
 
     let formContents = Tuning <$>
           formA (instrument =. labeledEntryA "Instrument" (
@@ -411,7 +435,9 @@ tuningForm initialValue = do
           formA (stringTunings =. labeledEntryA "Intervals"
               intervalListEntry)
 
-    initFormA formContents initialValue
+    formResult <- initFormA formContents initialValue
+
+    return (formResult, selectedTemperament)
 
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
