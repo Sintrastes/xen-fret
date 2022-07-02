@@ -94,40 +94,56 @@ data Pages =
     deriving(Show)
 
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
-
-
-
-
-
-
-
-
-
-
-
+#ifdef ghcjs_HOST_OS
+loadAppData _ = liftIO $ JS.catch (do
+    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
+    (rawText :: Maybe T.Text) <- fromJSVal cookieData
+    case rawText of 
+        Nothing -> pure $ defaultAppData
+        Just rawText' -> do
+            liftIO $ traceIO $ T.unpack rawText'
+            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
+    (\(_ :: SomeException) -> pure defaultAppData)
+#else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
+#endif
 
+loadAppData' :: (MonadSample t m, MonadIO m) => FilePath -> m AppData
+#ifdef ghcjs_HOST_OS
+loadAppData _ = liftIO $ JS.catch (do
+    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
+    (rawText :: Maybe T.Text) <- fromJSVal cookieData
+    case rawText of 
+        Nothing -> pure $ defaultAppData
+        Just rawText' -> do
+            liftIO $ traceIO $ T.unpack rawText'
+            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
+    (\(_ :: SomeException) -> pure defaultAppData)
+#else
+loadAppData' dataFile = liftIO $ catch (fromJust <$> decodeFileStrict dataFile)
+    (\(_ :: SomeException) -> return defaultAppData)
+#endif
 
 persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
   Dynamic t a -> FilePath -> m ()
-
-
-
-
-
-
-
-
+#ifdef ghcjs_HOST_OS
+persistAppData dynAppData dataFile = do
+    prerender (pure never) $ performEvent $ updated dynAppData <&>
+        \newData -> do
+            liftJSM $ jsg1 ("storeAppData" :: T.Text)
+                (decodeUtf8 $ toStrict $ encode newData)
+    pure ()
+#else
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
             liftIO $ encodeFile dataFile newData
     pure ()
-
+#endif
 
 validateNonEmpty :: T.Text -> Validation (NonEmpty T.Text) T.Text
 validateNonEmpty x
@@ -302,6 +318,10 @@ mainPage appDir = do
 
         blank
 
+getTemperaments appDir = do
+    appData <- loadAppData' (appDir <> "/app_data.json")
+    return $ temperaments appData
+
 temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
@@ -316,7 +336,8 @@ temperamentPage appDir = do
         Nothing -> pure initialTemperaments
         Just temperament -> do
             toast "Added new temperament"
-            pure (initialTemperaments ++ [temperament]))
+            currentTemperament <- getTemperaments appDir
+            pure (currentTemperament ++ [temperament]))
 
     dynTemperaments <- holdDyn initialTemperaments
         updatedTemperaments
@@ -355,6 +376,21 @@ tuningPage appDir = do
     newTuningEvent <- button "New Tuning"
     newTuningSubmitted <- validatedModal newTuningEvent $
         tuningForm def
+
+    updatedTunings <- switch . current <$> prerender (pure never) (performEvent $ newTuningSubmitted <&> \case
+        Nothing -> pure currentTunings
+        Just temperament -> do
+            toast "Added new temperament"
+            pure (currentTunings ++ [temperament]))
+
+    dynTunings <- holdDyn currentTunings
+        updatedTunings
+
+    -- let dynAppData = dynTunings <&> \t ->
+    --        appData { tunings = t }
+
+    -- persistAppData dynAppData
+    --    (appDir <> "/app_data.json")
 
     elClass "ul" "collection" $ do
         forM_ currentTunings (\tuning -> do
