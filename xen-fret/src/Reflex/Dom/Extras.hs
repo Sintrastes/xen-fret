@@ -87,16 +87,16 @@ textEntry initialValue =
         "type" =: "text"
 
 nonEmptyTextEntry :: _ => ErrorMessage -> T.Text -> m (Dynamic t (Validation (NonEmpty ErrorMessage) T.Text))
-nonEmptyTextEntry errorMsg = validatedTextEntry 
+nonEmptyTextEntry errorMsg = validatedTextEntry
     (\case
         "" -> Failure $ errorMsg :| []
         x -> Success x)
     id
 
-validatedTextEntry :: _ => 
-       (T.Text -> Validation (NonEmpty T.Text) a) 
+validatedTextEntry :: _ =>
+       (T.Text -> Validation (NonEmpty T.Text) a)
     -> (a -> T.Text)
-    -> a 
+    -> a
     -> m (Dynamic t (Validation (NonEmpty T.Text) a))
 validatedTextEntry validation display initialValue = el "div" $ mdo
     let initialValidated = validation (display initialValue)
@@ -106,7 +106,7 @@ validatedTextEntry validation display initialValue = el "div" $ mdo
             . elementConfig_initialAttributes
             .~ attrs initialValidated
             & inputElementConfig_elementConfig
-            . elementConfig_modifyAttributes 
+            . elementConfig_modifyAttributes
             .~ attributeUpdates
             & inputElementConfig_initialValue .~ display initialValue)
 
@@ -118,7 +118,7 @@ validatedTextEntry validation display initialValue = el "div" $ mdo
            Failure ne -> T.intercalate "\n" (NE.toList ne)
            Success _ -> "")
 
-    elAttr "span" ("style" =: "color: var(--red-accent-color);") $ dynText 
+    elAttr "span" ("style" =: "color: var(--red-accent-color);") $ dynText
         validationText
 
     return res
@@ -130,10 +130,10 @@ validatedTextEntry validation display initialValue = el "div" $ mdo
         Failure _ -> "class" =: "p-form-text invalid" <>
             "type" =: "text"
 
-validatedTextEntryDyn :: _ => 
-       Dynamic t (T.Text -> Validation (NonEmpty T.Text) a) 
+validatedTextEntryDyn :: _ =>
+       Dynamic t (T.Text -> Validation (NonEmpty T.Text) a)
     -> (a -> T.Text)
-    -> a 
+    -> a
     -> m (Dynamic t (Validation (NonEmpty T.Text) a))
 validatedTextEntryDyn validationDyn display initialValue = el "div" $ mdo
     initialValidation <- sample $ current validationDyn
@@ -142,13 +142,13 @@ validatedTextEntryDyn validationDyn display initialValue = el "div" $ mdo
     let attributeUpdates = updated $ res <&> \case
             Failure _ -> "class" =: Just "p-form-text invalid"
             Success _ -> "class" =: Just "p-form-text valid"
-    
+
     res' <- _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
             .~ initialAttr
             & inputElementConfig_elementConfig
-            . elementConfig_modifyAttributes 
+            . elementConfig_modifyAttributes
             .~ attributeUpdates
             & inputElementConfig_initialValue .~ display initialValue)
 
@@ -158,7 +158,7 @@ validatedTextEntryDyn validationDyn display initialValue = el "div" $ mdo
            Failure ne -> T.intercalate "\n" (NE.toList ne)
            Success _ -> "")
 
-    elAttr "span" ("style" =: "color: var(--red-accent-color);") $ dynText 
+    elAttr "span" ("style" =: "color: var(--red-accent-color);") $ dynText
         validationText
 
     return res
@@ -333,7 +333,7 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
                 toOptgroupValues x)
 
         changeSelection <- fmapMaybe id <$> (elDynAttr "ul" selectAttrs $ do
-            itemEvents <- dyn $ optgroupItemsDyn <&> \items -> leftmost <$> forM items (\item -> 
+            itemEvents <- dyn $ optgroupItemsDyn <&> \items -> leftmost <$> forM items (\item ->
                 case item of
                     Heading headingText -> do
                         elClass "li" "optgroup" $
@@ -390,8 +390,8 @@ data OptgroupValue a =
 
 toOptgroupValues :: [(T.Text, [a])] -> [OptgroupValue a]
 toOptgroupValues [] = []
-toOptgroupValues ((label, values) : xs) = 
-    Heading label : fmap OptgroupValue values 
+toOptgroupValues ((label, values) : xs) =
+    Heading label : fmap OptgroupValue values
         ++ toOptgroupValues xs
 
 headMay :: [a] -> Maybe a
@@ -429,8 +429,8 @@ modal :: (MonadFix m, PostBuild t m, MonadHold t m, DomBuilder t m)
       => Event t () -> m (Dynamic t a) -> m (Event t (Maybe a))
 modal onClick contents = mdo
     (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
-        res <- elClass "div" "modal-content"
-            contents
+        res <- elClass "div" "modal-content" $
+            join <$> widgetHold contents (onClick $> contents)
 
         let okAttrs = "class" =: "modal-close waves-effect waves-green btn-flat" <>
                 "data-role" =: "button"
@@ -485,8 +485,8 @@ validatedModal :: (Reflex t, MonadFix m, PostBuild t m, MonadHold t m, MonadWidg
       => Event t () -> m (Dynamic t (Validation (NonEmpty ErrorMessage) a)) -> m (Event t (Maybe a))
 validatedModal onClick contents = mdo
     (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
-        res <- elClass "div" "modal-content"
-            contents
+        res <- elClass "div" "modal-content" $
+            join <$> widgetHold contents (onClick $> contents)
 
         let okAttrs = "class" =: "modal-close waves-effect waves-green btn-flat" <>
                 "data-role" =: "button"
@@ -511,9 +511,9 @@ validatedModal onClick contents = mdo
                 Success _ -> True
                 Failure _ -> False
 
-    let onSuccessfulSubmit = gate 
-            isSuccessfulResult 
-            onSubmit 
+    let onSuccessfulSubmit = gate
+            isSuccessfulResult
+            onSubmit
 
     let events = leftmost
             [
@@ -537,9 +537,9 @@ validatedModal onClick contents = mdo
                 "style" =: "z-index: 1002; display: block; opacity: 0.5;"
             _ -> empty
 
-    lastSuccessfulRes <- current <$> foldDyn 
+    lastSuccessfulRes <- current <$> foldDyn
         (\x y ->
-            case x of  
+            case x of
                 Success r -> Just r
                 Failure _ -> y
         )
