@@ -458,6 +458,8 @@ scalePage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentScales = join $ Map.elems $ scales appData
 
+    button "New Scale"
+
     elClass "ul" "collection" $ do
         forM_ currentScales (\scale -> do
             elClass "li" "collection-item" $ do
