@@ -22,8 +22,11 @@ scaleListEntry period = validatedTextEntryDyn
     ((fromEither <$>) <$> (validateSumToPeriod period `composeValidations` pure parseIntervalList))
     showIntervalList
 
-composeValidations :: Dynamic t (b -> Either e c) ->  Dynamic t (a -> Either e b) -> Dynamic t (a -> Either e c)
-composeValidations = undefined
+composeValidations :: Reflex t => Dynamic t (b -> Either e c) ->  Dynamic t (a -> Either e b) -> Dynamic t (a -> Either e c)
+composeValidations f g = do
+    f' <- f
+    g' <- g
+    return $ f' <=< g'
 
 parseIntervalList :: T.Text -> Either (NonEmpty T.Text) (NonEmpty Int)
 parseIntervalList text = do
