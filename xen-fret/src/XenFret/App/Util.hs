@@ -50,4 +50,3 @@ validateSumToPeriod period' = period' <&> (\period intervals ->
 
 showIntervalList :: NonEmpty Int -> T.Text
 showIntervalList xs = T.intercalate " " $ map (T.pack . show) $ NE.toList xs 
-
