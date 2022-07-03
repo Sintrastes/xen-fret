@@ -453,9 +453,17 @@ tuningForm appData initialValue = do
 
     return (formResult, selectedTemperament)
 
-scaleForm :: _ => Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Scale))
+scaleForm :: MonadWidget t m => Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Scale))
 scaleForm initialValue = do
-    pure $ pure $ pure initialValue
+    modalHeader "Add New Scale"
+
+    let formContents = Scale <$>
+          formA (scaleName =. labeledEntryA "Name"
+            (nonEmptyTextEntry "Scale name must not be entry")) <*>
+          formA (scaleIntervals =. labeledEntryA "Intervals" 
+            intervalListEntry)
+
+    initFormA formContents initialValue
 
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
