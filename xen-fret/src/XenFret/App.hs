@@ -416,6 +416,13 @@ tuningPage appDir = do
     dynTunings <- holdDyn initialTunings
         updatedTunings
 
+    let isNewName = dynTunings <&> \tunings temperament instrument name ->
+          let names = fmap tuningName (fromMaybe [] $ Map.lookup (temperamentName temperament) tunings) in
+            if name `elem` names
+                then Failure $ ("There is already a " <> instrument <> 
+                        " tuning with this name for " <> temperamentName temperament <> ".") :| []
+                else Success name
+
     let dynAppData = dynTunings <&> \t ->
            appData { tunings = t }
 
