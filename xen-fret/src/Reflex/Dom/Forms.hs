@@ -79,6 +79,11 @@ nonEmptyText msg x =
         then Failure $ msg :| []
         else Success x
 
+validateNonNull :: ErrorMessage -> Maybe a -> Validation (NonEmpty ErrorMessage) a
+validateNonNull msg = \case
+  Nothing -> Failure $ msg :| []
+  Just x  -> Success x
+
 combineDynValidations :: forall e a t. _ => [Dynamic t (a -> Validation e a)] -> Dynamic t (a -> Validation e a)
 combineDynValidations = from . foldr combine (pure return) . fmap to
   where
