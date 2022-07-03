@@ -96,56 +96,56 @@ data Pages =
     deriving(Show)
 
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
-
-
-
-
-
-
-
-
-
-
-
+#ifdef ghcjs_HOST_OS
+loadAppData _ = liftIO $ JS.catch (do
+    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
+    (rawText :: Maybe T.Text) <- fromJSVal cookieData
+    case rawText of 
+        Nothing -> pure $ defaultAppData
+        Just rawText' -> do
+            liftIO $ traceIO $ T.unpack rawText'
+            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
+    (\(_ :: SomeException) -> pure defaultAppData)
+#else
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
-
+#endif
 
 loadAppData' :: (MonadSample t m, MonadIO m) => FilePath -> m AppData
-
-
-
-
-
-
-
-
-
-
-
+#ifdef ghcjs_HOST_OS
+loadAppData' _ = liftIO $ JS.catch (do
+    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
+    (rawText :: Maybe T.Text) <- fromJSVal cookieData
+    case rawText of 
+        Nothing -> pure $ defaultAppData
+        Just rawText' -> do
+            liftIO $ traceIO $ T.unpack rawText'
+            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
+    (\(_ :: SomeException) -> pure defaultAppData)
+#else
 loadAppData' dataFile = liftIO $ catch (fromJust <$> decodeFileStrict dataFile)
     (\(_ :: SomeException) -> return defaultAppData)
-
+#endif
 
 persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
   Dynamic t a -> FilePath -> m ()
-
-
-
-
-
-
-
-
+#ifdef ghcjs_HOST_OS
+persistAppData dynAppData dataFile = do
+    prerender (pure never) $ performEvent $ updated dynAppData <&>
+        \newData -> do
+            liftJSM $ jsg1 ("storeAppData" :: T.Text)
+                (decodeUtf8 $ toStrict $ encode newData)
+    pure ()
+#else
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
             liftIO $ encodeFile dataFile newData
     pure ()
-
+#endif
 
 validateNonEmpty :: T.Text -> Validation (NonEmpty T.Text) T.Text
 validateNonEmpty x
