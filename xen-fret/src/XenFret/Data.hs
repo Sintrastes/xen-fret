@@ -64,4 +64,7 @@ data Scale = Scale {
 instance Show Scale where
     show = T.unpack . scaleName
 
+instance Default Scale where
+    def = Scale "" (0 :| [])
+
 $(deriveJSON defaultOptions ''Scale)

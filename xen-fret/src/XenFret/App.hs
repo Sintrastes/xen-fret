@@ -453,12 +453,19 @@ tuningForm appData initialValue = do
 
     return (formResult, selectedTemperament)
 
+scaleForm :: _ => Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Scale))
+scaleForm initialValue = do
+    pure $ pure $ pure initialValue
+
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentScales = join $ Map.elems $ scales appData
 
-    button "New Scale"
+    newScaleClick <- button "New Scale"
+
+    validatedModal newScaleClick $
+        scaleForm def
 
     elClass "ul" "collection" $ do
         forM_ currentScales (\scale -> do
