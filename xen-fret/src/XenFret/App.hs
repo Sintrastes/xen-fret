@@ -398,13 +398,13 @@ getTunings appDir = do
     return $ tunings appData
 
 tuningPage :: _ => FilePath -> m ()
-tuningPage appDir = do
+tuningPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
     let initialTunings = tunings appData
 
     newTuningEvent <- button "New Tuning"
     newTuningSubmitted <- validatedModal newTuningEvent $ do
-        tuningForm appData def
+        tuningForm appData isNewName def
 
     updatedTunings <- switch . current <$> prerender (pure never) (performEvent $ newTuningSubmitted <&> \case
         Nothing -> getTunings appDir
@@ -444,11 +444,12 @@ addTuning Temperament{..} tuning map = case Data.Map.lookup temperamentName map 
   Just tuns -> Data.Map.insert temperamentName (tuns ++ [tuning]) map
 
 tuningForm :: MonadWidget t m => AppData
+    -> Dynamic t (Temperament -> T.Text -> T.Text -> Validation (NonEmpty ErrorMessage) T.Text)
     -> Tuning
     -> m (
         Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Tuning))
     )
-tuningForm appData initialValue = do
+tuningForm appData isNewName initialValue = do
     modalHeader "Add New Tuning"
 
     let temperamentForm
