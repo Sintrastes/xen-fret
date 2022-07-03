@@ -465,21 +465,50 @@ scaleForm initialValue = do
 
     initFormA formContents initialValue
 
+getScales :: (MonadSample t m, MonadIO m) => FilePath -> m (Map.Map T.Text [Scale])
+getScales appDir = do
+    appData <- loadAppData' (appDir <> "/app_data.json")
+    return $ scales appData
+
 scalePage :: _ => FilePath -> m ()
-scalePage appDir = do
+scalePage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
     let currentScales = join $ Map.elems $ scales appData
 
     newScaleClick <- button "New Scale"
 
-    validatedModal newScaleClick $
+    updatedScales <- switch . current <$> prerender (pure never) (performEvent $ newScaleSubmitted <&> \case
+        Nothing -> pure currentScales
+        Just scale -> do
+            toast "Added new temperament"
+            currentScales <- join . Map.elems <$> getScales appDir
+            pure (currentScales ++ [scale]))
+
+    dynScales <- holdDyn currentScales
+        updatedScales
+
+    let isNewName = dynScales <&> \scales name -> 
+            let names = fmap scaleName scales in
+                if name `elem` names
+                    then Failure $ "There is already a scale with this name." :| []
+                    else Success name
+
+    newScaleSubmitted <- validatedModal newScaleClick $
         scaleForm def
 
-    elClass "ul" "collection" $ do
-        forM_ currentScales (\scale -> do
-            elClass "li" "collection-item" $ do
-                el "span" $ text $
-                    T.pack $ show scale)
+    -- let dynAppData = dynScales <&> \s ->
+    --         appData { scales = s }
+
+    -- persistAppData dynAppData
+    --     (appDir <> "/app_data.json")
+
+    _ <- dyn $ dynScales <&> \currentScales ->
+        elClass "ul" "collection" $ do
+            forM_ currentScales (\scale -> do
+                elClass "li" "collection-item" $ do
+                    el "span" $ text $
+                        T.pack $ show scale)
+    blank
 
 preferencePage :: _ => FilePath -> m ()
 preferencePage appDir = do
