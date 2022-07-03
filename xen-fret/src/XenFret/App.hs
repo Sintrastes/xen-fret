@@ -487,11 +487,13 @@ scaleForm appData isValidName initialValue = mdo
     let temperamentUpdated = fmapMaybe validationToMaybe 
             (updated temperamentForm)
 
+    let periodDyn = currentTemperament <&> divisions
+
     scaleForm <- initFormA (Scale <$>
           formA (scaleName =. labeledEntryA "Name"
             (validatedTextEntryDyn scaleValidation id)) <*>
           formA (scaleIntervals =. labeledEntryA "Intervals"
-            intervalListEntry)) initialValue
+            (scaleListEntry periodDyn))) initialValue
 
     pure $ pairForms temperamentForm scaleForm
 
