@@ -137,22 +137,22 @@ validatedTextEntryDyn :: _ =>
     -> m (Dynamic t (Validation (NonEmpty T.Text) a))
 validatedTextEntryDyn validationDyn display initialValue = el "div" $ mdo
     initialValidation <- sample $ current validationDyn
-    let initialValidated = initialValidation (display initialValue)
+    let initialAttr = attrs $ initialValidation (display initialValue)
 
+    let attributeUpdates = updated $ res <&> \case
+            Failure _ -> "class" =: Just "p-form-text invalid"
+            Success _ -> "class" =: Just "p-form-text valid"
+    
     res' <- _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
-            .~ attrs initialValidated
+            .~ initialAttr
             & inputElementConfig_elementConfig
             . elementConfig_modifyAttributes 
             .~ attributeUpdates
             & inputElementConfig_initialValue .~ display initialValue)
 
     let res = validationDyn <*> res'
-
-    let attributeUpdates = updated $ res <&> \case
-            Failure _ -> "class" =: Just "p-form-text invalid"
-            Success _ -> "class" =: Just "p-form-text valid"
 
     let validationText = res <&> (\case
            Failure ne -> T.intercalate "\n" (NE.toList ne)

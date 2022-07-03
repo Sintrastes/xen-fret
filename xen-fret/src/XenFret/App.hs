@@ -2,7 +2,7 @@
 
 module XenFret.App where
 
-import Data.Maybe (isJust, isNothing, fromJust)
+import Data.Maybe (isJust, isNothing, fromJust, fromMaybe)
 import Control.Monad
 import Diagrams.Prelude ( renderDia, mkWidth, Diagram )
 import Diagrams.Backend.SVG
@@ -32,7 +32,7 @@ import XenFret.AppData
 import GHC.Generics
 import qualified Language.Javascript.JSaddle as JS
 import Data.ByteString.Lazy (toStrict)
-import Debug.Trace (traceIO)
+import Debug.Trace (traceIO, trace)
 import Reflex.Dom.Extras
 import Reflex.Dom.Forms
 import Data.Validation
@@ -464,17 +464,32 @@ tuningForm appData initialValue = do
     initFormA formContents
         (head $ temperaments appData, initialValue)
 
-scaleForm :: MonadWidget t m => AppData -> Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Scale)))
-scaleForm appData initialValue = do
+scaleForm :: MonadWidget t m =>
+     AppData
+  -> Dynamic t (Temperament -> T.Text -> Validation (NonEmpty ErrorMessage) T.Text)
+  -> Scale
+  -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Scale)))
+scaleForm appData isValidName initialValue = mdo
     modalHeader "Add New Scale"
 
-    let temperamentForm
-            = \x -> fmap (validateNonNull "Temperament must be selected") <$>
-                selectTemperament appData x
+    let initialTemperament = head $ temperaments appData
+
+    currentTemperament <- holdDyn initialTemperament =<<
+        delay 0.1 temperamentUpdated
+
+    let scaleValidation = combineDynValidations
+          [ pure $ nonEmptyText "Scale name must not be entry"
+          , isValidName <*> currentTemperament]
+
+    let temperamentForm = fmap (validateNonNull "Temperament must be selected" <$>)
+          . selectTemperament appData
+
+    let temperamentUpdated = fst <$>
+          fmapMaybe validationToMaybe (updated res)
 
     let scaleForm = Scale <$>
           formA (scaleName =. labeledEntryA "Name"
-            (nonEmptyTextEntry "Scale name must not be entry")) <*>
+            (validatedTextEntryDyn scaleValidation id)) <*>
           formA (scaleIntervals =. labeledEntryA "Intervals"
             intervalListEntry)
 
@@ -482,8 +497,14 @@ scaleForm appData initialValue = do
           formA (fst =. temperamentForm) <*>
           (snd =. scaleForm)
 
-    initFormA formContents 
-        (head $ temperaments appData, initialValue)
+    res <- initFormA formContents
+        (initialTemperament, initialValue)
+
+    pure res
+
+validationToMaybe = \case
+    Success x -> Just x
+    Failure _ -> Nothing
 
 -- | Helper function to add a scale to the given temperament.
 addScale :: Temperament -> Scale -> Map T.Text [Scale] -> Map T.Text [Scale]
@@ -513,14 +534,14 @@ scalePage appDir = mdo
     dynScales <- holdDyn currentScales
         updatedScales
 
-    let isNewName = dynScales <&> \scales name ->
-            let names = fmap scaleName (join $ Map.elems scales) in
-                if name `elem` names
-                    then Failure $ "There is already a scale with this name." :| []
+    let isNewName = dynScales <&> \scales temperament name -> trace ("isNewName " ++ show temperament ++ " " ++ show name) $
+          let names = fmap scaleName (fromMaybe [] $ Map.lookup (temperamentName temperament) scales) in
+            if name `elem` names
+                then Failure $ "There is already a scale with this name." :| []
                     else Success name
 
     newScaleSubmitted <- validatedModal newScaleClick $
-        scaleForm appData def
+        scaleForm appData isNewName def
 
     let dynAppData = dynScales <&> \s ->
             appData { scales = s }
@@ -654,6 +675,11 @@ githubWidget = do
     starsIcon :: _ => m ()
     starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
         elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z") blank
+
+
+
+
+
 
 
 
