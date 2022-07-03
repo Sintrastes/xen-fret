@@ -35,6 +35,7 @@ library
     , ImplicitParams
     , TupleSections
     , DeriveGeneric
+    , RecordWildCards
     , CPP
   build-depends:
       base
