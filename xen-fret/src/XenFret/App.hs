@@ -449,11 +449,11 @@ tuningForm appData initialValue = do
                 selectTemperament appData x
 
     let tuningForm = Tuning <$>
+          formA (tuningName =. labeledEntryA "Name" (
+              nonEmptyTextEntry "Name must not be empty"))  <*>
           formA (instrument =. labeledEntryA "Instrument" (
           nonEmptyTextEntry
               "Instrument name must not be empty")) <*>
-          formA (tuningName =. labeledEntryA "Name" (
-              nonEmptyTextEntry "Name must not be empty"))  <*>
           formA (stringTunings =. labeledEntryA "Intervals"
               intervalListEntry)
 
