@@ -176,14 +176,14 @@ app = do
         Preferences -> preferencePage appDir
     blank
 
-selectTemperament :: _ => AppData -> m (Dynamic t (Maybe Temperament))
-selectTemperament appData = do
+selectTemperament :: _ => AppData -> Temperament -> m (Dynamic t (Maybe Temperament))
+selectTemperament appData temperament = do
     let loadedTemperaments = temperaments appData
 
     selectMaterial "Temperament"
         "No Temperaments Defined"
         (pure loadedTemperaments)
-        (head loadedTemperaments)
+        temperament
 
 mainPage :: _ => FilePath -> m ()
 mainPage appDir = do
@@ -195,6 +195,7 @@ mainPage appDir = do
 
             temperamentDyn <- elClass "div" "row" $
                 selectTemperament appData
+                    (head $ temperaments appData)
 
             let Just initialTunings = Map.lookup "12-TET" $ tunings appData
 
@@ -345,7 +346,7 @@ temperamentPage appDir = mdo
     dynTemperaments <- holdDyn initialTemperaments
         updatedTemperaments
 
-    let isNewName = dynTemperaments <&> \ temperaments name -> 
+    let isNewName = dynTemperaments <&> \ temperaments name ->
             let names = fmap temperamentName temperaments in
                 if name `elem` names
                     then Failure $ "There is already a temperament with this name." :| []
@@ -368,7 +369,10 @@ temperamentPage appDir = mdo
                         T.pack $ show temperament)
     blank
 
-temperamentForm :: _ => Dynamic t (T.Text -> Validation (NonEmpty ErrorMessage) T.Text) -> Temperament -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Temperament))
+temperamentForm :: _ =>
+     Dynamic t (T.Text -> Validation (NonEmpty ErrorMessage) T.Text)
+  -> Temperament
+  -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Temperament))
 temperamentForm isNewName initialValue = do
     modalHeader "Add New Temperament"
 
@@ -377,7 +381,7 @@ temperamentForm isNewName initialValue = do
               , isNewName
           ]
 
-    let nameForm = validatedTextEntryDyn nameValidation id 
+    let nameForm = validatedTextEntryDyn nameValidation id
 
     let formContents = Temperament <$>
             formA (temperamentName =. labeledEntryA "Name" nameForm) <*>
@@ -399,8 +403,7 @@ tuningPage appDir = do
 
     newTuningEvent <- button "New Tuning"
     newTuningSubmitted <- validatedModal newTuningEvent $ do
-        (res, _ ) <- tuningForm appData def
-        return res
+        tuningForm appData def
 
     updatedTunings <- switch . current <$> prerender (pure never) (performEvent $ newTuningSubmitted <&> \case
         Nothing -> getTunings appDir
@@ -431,16 +434,16 @@ tuningPage appDir = do
 tuningForm :: MonadWidget t m => AppData
     -> Tuning
     -> m (
-        Dynamic t (Validation (NonEmpty ErrorMessage) Tuning)
-      , Dynamic t (Maybe Temperament)
+        Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Tuning))
     )
 tuningForm appData initialValue = do
     modalHeader "Add New Tuning"
 
-    selectedTemperament <- selectTemperament
-       appData
+    let temperamentForm
+            = \x -> fmap (validateNonNull "Temperament must be selected") <$>
+                selectTemperament appData x
 
-    let formContents = Tuning <$>
+    let tuningForm = Tuning <$>
           formA (instrument =. labeledEntryA "Instrument" (
           nonEmptyTextEntry
               "Instrument name must not be empty")) <*>
@@ -449,9 +452,12 @@ tuningForm appData initialValue = do
           formA (stringTunings =. labeledEntryA "Intervals"
               intervalListEntry)
 
-    formResult <- initFormA formContents initialValue
+    let formContents = (,) <$>
+          formA (fst =. temperamentForm) <*>
+          (snd =. tuningForm)
 
-    return (formResult, selectedTemperament)
+    initFormA formContents
+        (head $ temperaments appData, initialValue)
 
 scaleForm :: MonadWidget t m => Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Scale))
 scaleForm initialValue = do
@@ -460,7 +466,7 @@ scaleForm initialValue = do
     let formContents = Scale <$>
           formA (scaleName =. labeledEntryA "Name"
             (nonEmptyTextEntry "Scale name must not be entry")) <*>
-          formA (scaleIntervals =. labeledEntryA "Intervals" 
+          formA (scaleIntervals =. labeledEntryA "Intervals"
             intervalListEntry)
 
     initFormA formContents initialValue
@@ -487,7 +493,7 @@ scalePage appDir = mdo
     dynScales <- holdDyn currentScales
         updatedScales
 
-    let isNewName = dynScales <&> \scales name -> 
+    let isNewName = dynScales <&> \scales name ->
             let names = fmap scaleName scales in
                 if name `elem` names
                     then Failure $ "There is already a scale with this name." :| []
@@ -628,5 +634,7 @@ githubWidget = do
     starsIcon :: _ => m ()
     starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
         elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z") blank
+
+
 
 
