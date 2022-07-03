@@ -464,17 +464,32 @@ tuningForm appData initialValue = do
     initFormA formContents
         (head $ temperaments appData, initialValue)
 
-scaleForm :: MonadWidget t m => Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Scale))
-scaleForm initialValue = do
+scaleForm :: MonadWidget t m => AppData -> Scale -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Scale)))
+scaleForm appData initialValue = do
     modalHeader "Add New Scale"
 
-    let formContents = Scale <$>
+    let temperamentForm
+            = \x -> fmap (validateNonNull "Temperament must be selected") <$>
+                selectTemperament appData x
+
+    let scaleForm = Scale <$>
           formA (scaleName =. labeledEntryA "Name"
             (nonEmptyTextEntry "Scale name must not be entry")) <*>
           formA (scaleIntervals =. labeledEntryA "Intervals"
             intervalListEntry)
 
-    initFormA formContents initialValue
+    let formContents = (,) <$>
+          formA (fst =. temperamentForm) <*>
+          (snd =. scaleForm)
+
+    initFormA formContents 
+        (head $ temperaments appData, initialValue)
+
+-- | Helper function to add a scale to the given temperament.
+addScale :: Temperament -> Scale -> Map T.Text [Scale] -> Map T.Text [Scale]
+addScale Temperament{..} scale map = case Data.Map.lookup temperamentName map of
+  Nothing -> Data.Map.insert temperamentName [scale] map
+  Just scls -> Data.Map.insert temperamentName (scls ++ [scale]) map
 
 getScales :: (MonadSample t m, MonadIO m) => FilePath -> m (Map.Map T.Text [Scale])
 getScales appDir = do
@@ -484,34 +499,34 @@ getScales appDir = do
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    let currentScales = join $ Map.elems $ scales appData
+    let currentScales = scales appData
 
     newScaleClick <- button "New Scale"
 
     updatedScales <- switch . current <$> prerender (pure never) (performEvent $ newScaleSubmitted <&> \case
         Nothing -> pure currentScales
-        Just scale -> do
+        Just (temperament, scale) -> do
             toast "Added new temperament"
-            currentScales <- join . Map.elems <$> getScales appDir
-            pure (currentScales ++ [scale]))
+            currentScales <- getScales appDir
+            pure (addScale temperament scale currentScales))
 
     dynScales <- holdDyn currentScales
         updatedScales
 
     let isNewName = dynScales <&> \scales name ->
-            let names = fmap scaleName scales in
+            let names = fmap scaleName (join $ Map.elems scales) in
                 if name `elem` names
                     then Failure $ "There is already a scale with this name." :| []
                     else Success name
 
     newScaleSubmitted <- validatedModal newScaleClick $
-        scaleForm def
+        scaleForm appData def
 
-    -- let dynAppData = dynScales <&> \s ->
-    --         appData { scales = s }
+    let dynAppData = dynScales <&> \s ->
+            appData { scales = s }
 
-    -- persistAppData dynAppData
-    --     (appDir <> "/app_data.json")
+    persistAppData dynAppData
+        (appDir <> "/app_data.json")
 
     _ <- dyn $ dynScales <&> \currentScales ->
         elClass "ul" "collection" $ do
