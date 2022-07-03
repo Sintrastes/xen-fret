@@ -403,8 +403,6 @@ tuningPage appDir = mdo
     let initialTunings = tunings appData
 
     newTuningEvent <- button "New Tuning"
-    newTuningSubmitted <- validatedModal newTuningEvent $ do
-        tuningForm appData isNewName def
 
     updatedTunings <- switch . current <$> prerender (pure never) (performEvent $ newTuningSubmitted <&> \case
         Nothing -> getTunings appDir
@@ -422,6 +420,9 @@ tuningPage appDir = mdo
                 then Failure $ ("There is already a " <> instrument <>
                         " tuning with this name for " <> temperamentName temperament <> ".") :| []
                 else Success name
+
+    newTuningSubmitted <- validatedModal newTuningEvent $ do
+        tuningForm appData isNewName def
 
     let dynAppData = dynTunings <&> \t ->
            appData { tunings = t }
@@ -463,16 +464,44 @@ tuningForm appData isNewName initialValue = do
     currentTemperament <- holdDyn initialTemperament =<<
         delay 0.1 temperamentUpdated
 
-    tuningForm <- initFormA (Tuning <$>
-          formA (tuningName =. labeledEntryA "Name" (
-              nonEmptyTextEntry "Name must not be empty"))  <*>
-          formA (instrument =. labeledEntryA "Instrument" (
-          nonEmptyTextEntry
-              "Instrument name must not be empty")) <*>
-          formA (stringTunings =. labeledEntryA "Intervals"
-              intervalListEntry)) initialValue
+    let currentInstrument = pure ""
 
-    pure $ pairForms temperamentForm tuningForm
+    let tuningValidation = combineDynValidations
+          [ pure $ nonEmptyText "Tuning name must not be empty"
+          , isNewName <*> currentTemperament <*> currentInstrument]
+
+    nameDyn <- (labeledEntryA "Name" (validatedTextEntryDyn tuningValidation id))
+        (tuningName initialValue)
+
+    instrumentDyn <- (labeledEntryA "Instrument" (
+          nonEmptyTextEntry
+              "Instrument name must not be empty"))
+          (instrument initialValue)
+
+    intervalsDyn <- labeledEntryA "Intervals"
+        intervalListEntry
+        (stringTunings initialValue)    
+
+    let tuningFrom = mkTuningForm
+            nameDyn instrumentDyn
+            intervalsDyn
+
+    pure $ pairForms temperamentForm tuningFrom
+
+mkTuningForm :: (Semigroup e, Reflex t) =>
+     Dynamic t (Validation e T.Text)
+  -> Dynamic t (Validation e T.Text)
+  -> Dynamic t (Validation e (NonEmpty Int))
+  -> Dynamic t (Validation e Tuning)
+mkTuningForm name instrument strings = do
+    name' <- name
+    instrument' <- instrument
+    strings' <- strings
+
+    return $ Tuning <$>
+        name' <*>
+        instrument' <*>
+        strings'
 
 scaleForm :: MonadWidget t m =>
      AppData
