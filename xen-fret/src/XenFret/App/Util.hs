@@ -13,12 +13,12 @@ import Data.Function
 
 intervalListEntry :: _ => NonEmpty Int -> m (Dynamic t (Validation (NonEmpty T.Text) (NonEmpty Int)))
 intervalListEntry = validatedTextEntry
-    parseIntervalList
+    (fromEither <$> parseIntervalList)
     showIntervalList
 
-parseIntervalList :: T.Text -> Validation (NonEmpty T.Text) (NonEmpty Int)
-parseIntervalList text = fromEither $ do
-    let intervals = T.splitOn " " text
+parseIntervalList :: T.Text -> Either (NonEmpty T.Text) (NonEmpty Int)
+parseIntervalList text = do
+    let intervals = filter (not . T.null) $ T.splitOn " " text
 
     parsed <- intervals 
         <&> T.unpack
