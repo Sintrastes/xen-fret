@@ -13,6 +13,13 @@
     padding: 25px;
 }
 
+@media (min-width: 800px) {
+    .hide-when-pane-open {
+        width: 0%;
+        display: none;
+    }
+}
+
 @media (max-width: 800px) {
     .main-pane-left {
         float: left;
@@ -22,6 +29,11 @@
     }
     
     .main-pane-right {
+        width: 0%;
+        display: none;
+    }
+
+    .show-when-pane-open {
         width: 0%;
         display: none;
     }
