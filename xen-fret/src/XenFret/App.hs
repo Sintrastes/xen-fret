@@ -281,7 +281,11 @@ mainPage appDir = do
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             -- Handle errors parsing the arguments
-            dyn $ dynArgs <&> \(frets, xSize, scale, temperament, verticalScaling, horizontalScaling, key, offset, tuning, displayMarkersOnFrets) ->
+            dyn $ dynArgs <&> 
+              \(frets, xSize, scale, 
+                temperament, verticalScaling, 
+                horizontalScaling, key, offset, 
+                tuning, displayMarkersOnFrets) ->
                 let
                     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
                     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
