@@ -431,7 +431,12 @@ modalHeader txt = do
 -- | Helper function to open a simple Ok/Cancel modal dialog.
 modal :: (MonadFix m, PostBuild t m, MonadHold t m, DomBuilder t m)
       => Event t () -> m (Dynamic t a) -> m (Event t (Maybe a))
-modal onClick contents = mdo
+modal onClick contents = modal' "top: 10%;" onClick contents
+
+-- | Helper function to open a simple Ok/Cancel modal dialog.
+modal' :: (MonadFix m, PostBuild t m, MonadHold t m, DomBuilder t m)
+      => T.Text -> Event t () -> m (Dynamic t a) -> m (Event t (Maybe a))
+modal' styleExtras onClick contents = mdo
     (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
         res <- elClass "div" "modal-content" $
             join <$> widgetHold contents (onClick $> contents)
@@ -468,8 +473,8 @@ modal onClick contents = mdo
     let modalAttrs = modalVisibility <&> \case
             Closed -> "style" =: "display: none;"
             Open   -> "class" =: "modal open" <> "style" =: ("overflow: visible;" <> "z-index: 1003;" <>
-                    "display: block;" <> "background-color: transparent;" <>
-                    "top: 10%;" <> "transform: scaleX(1) scaleY(1);")
+                    "display: block;" <> "background-color: transparent;" <> "transform: scaleX(1) scaleY(1);" <>
+                    styleExtras)
 
     let overlayAttrs = modalVisibility <&> \case
             Open -> "class" =: "modal-overlay" <>
