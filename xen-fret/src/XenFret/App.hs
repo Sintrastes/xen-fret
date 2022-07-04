@@ -261,7 +261,11 @@ mainPage appDir = do
                 pure $ pure True
                 -- checkbox "Display markers on frets" False
 
-            saveEvent <- button "Save"
+            saveEvent <- elClass "div" "show-when-pane-open" $ 
+                button "Save"
+
+            viewDiagramEvent <- elClass "div" "hide-when-pane-open" $ 
+                button "View Diagram"
 
             pure (saveEvent, (,,,,,,,,,) <$>
                 fretsDyn <*>
