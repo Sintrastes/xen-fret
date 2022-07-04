@@ -192,7 +192,7 @@ mainPage appDir = do
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
         (saveEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
-            elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
+            elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
 
             temperamentDyn <- elClass "div" "row" $
                 selectTemperament appData
@@ -233,7 +233,7 @@ mainPage appDir = do
                     labeledEntry "Fret Offset" positiveIntEntry 0
                 pure (keyDyn, offsetDyn)
 
-            elAttr "h5" ("style" =: "padding-bottom: 10px;") $ text "Display Options:"
+            elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Display Options:"
 
             (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
                 sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
