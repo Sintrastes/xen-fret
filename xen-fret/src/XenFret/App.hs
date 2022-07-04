@@ -191,7 +191,7 @@ mainPage appDir = do
     appData <- loadAppData (appDir <> "/app_data.json")
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
-        (saveEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
+        (saveEvent, viewDiagramEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
             elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
 
             temperamentDyn <- elClass "div" "row" $
@@ -267,7 +267,7 @@ mainPage appDir = do
             viewDiagramEvent <- elClass "div" "hide-when-pane-open" $ 
                 button "View Diagram"
 
-            pure (saveEvent, (,,,,,,,,,) <$>
+            pure (saveEvent, viewDiagramEvent, (,,,,,,,,,) <$>
                 fretsDyn <*>
                 sizeDyn <*>
                 scaleDyn <*>
@@ -281,6 +281,10 @@ mainPage appDir = do
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             fretboardDisplay dynArgs
+
+        modal' "top: 2.5%;" viewDiagramEvent $ do
+            fretboardDisplay dynArgs
+            pure $ pure ()
 
         diagramDyn <- holdDyn Nothing
             diagramUpdated
