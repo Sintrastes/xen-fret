@@ -257,6 +257,8 @@ selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-fi
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
+            & inputElementConfig_elementConfig 
+            . elementConfig_initialAttributes .~ ("class" =: "select-dropdown dropdown-trigger" <> "readonly" =: "true")
             & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
             & inputElementConfig_setValue .~
                 leftmost [
@@ -323,6 +325,8 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
+            & inputElementConfig_elementConfig 
+            . elementConfig_initialAttributes .~ ("class" =: "select-dropdown dropdown-trigger" <> "readonly" =: "true")
             & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
             & inputElementConfig_setValue .~
                 leftmost [
