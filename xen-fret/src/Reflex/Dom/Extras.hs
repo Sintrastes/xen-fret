@@ -487,6 +487,56 @@ modal' styleExtras onClick contents = mdo
       , Nothing <$ onCancel
       ]
 
+-- | Helper function to open a simple Ok/Cancel modal dialog.
+modalWidget' :: (MonadFix m, PostBuild t m, MonadHold t m, DomBuilder t m)
+      => T.Text -> Event t () -> m a -> m (Dynamic t a)
+modalWidget' styleExtras onClick contents = mdo
+    (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
+        res <- elClass "div" "modal-content" $
+            join <$> widgetHold (pure <$> contents) (onClick $> (pure <$> contents))
+
+        let okAttrs = "class" =: "modal-close waves-effect waves-green btn-flat" <>
+                "data-role" =: "button"
+
+        let cancelAttrs = "class" =: "negative modal-close waves-effect waves-green btn-flat" <>
+                "data-role" =: "button"
+
+        (onCancel, onSubmit) <- elClass "div" "modal-footer p-modal-button-container" $ do
+            onCancel <- domEvent Click . fst <$>
+                elAttr' "a" cancelAttrs
+                    (text "Cancel")
+            onSubmit <- domEvent Click . fst <$>
+                elAttr' "a" okAttrs
+                    (text "Ok")
+
+            pure (onCancel, onSubmit)
+
+        pure (res, onCancel, onSubmit)
+
+    let events = leftmost
+            [
+                Open   <$ onClick,
+                Closed <$ onCancel,
+                Closed <$ onSubmit
+            ]
+
+    modalVisibility <- foldDyn const Closed events
+
+    elDynAttr "div" overlayAttrs $ pure ()
+
+    let modalAttrs = modalVisibility <&> \case
+            Closed -> "style" =: "display: none;"
+            Open   -> "class" =: "modal open" <> "style" =: ("overflow: visible;" <> "z-index: 1003;" <>
+                    "display: block;" <> "background-color: transparent;" <> "transform: scaleX(1) scaleY(1);" <>
+                    styleExtras)
+
+    let overlayAttrs = modalVisibility <&> \case
+            Open -> "class" =: "modal-overlay" <>
+                "style" =: "z-index: 1002; display: block; opacity: 0.5;"
+            _ -> empty
+
+    pure res
+
 
 -- | Helper function to open a simple Ok/Cancel modal dialog that takes a validated result.
 -- "Ok" can only be pressed if the passed dynamic returns a successful result.
