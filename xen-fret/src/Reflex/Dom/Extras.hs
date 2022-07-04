@@ -176,14 +176,14 @@ validatedTextEntryDyn validationDyn display initialValue = el "div" $ mdo
 labeledEntry :: _ => T.Text -> (a -> m (Dynamic t a)) -> a -> m (Dynamic t a)
 labeledEntry label widget initialValue = elClass "div" "input-field" $ do
     res <- widget initialValue
-    elAttr "label" ("class" =: "active" <> "style" =: "left: 0rem;") $
+    elAttr "label" ("class" =: "unselectable active" <> "style" =: "left: 0rem;") $
         text label
     pure res
 
 labeledEntryA :: _ => T.Text -> (a -> m (Dynamic t (f a))) -> a -> m (Dynamic t (f a))
 labeledEntryA label widget initialValue = elClass "div" "input-field" $ do
     res <- widget initialValue
-    elAttr "label" ("class" =: "active" <> "style" =: "left: 0rem;") $
+    elAttr "label" ("class" =: "unselectable active" <> "style" =: "left: 0rem;") $
         text label
     pure res
 
@@ -282,7 +282,7 @@ selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-fi
 
         pure (form, changeSelection)
 
-    elAttr "label" ("style" =: "left: 0rem;") $ text label
+    elAttr "label" ("class" =: "unselectable" <> "style" =: "left: 0rem;") $ text label
 
     let itemsUpdated = updated $ headMay <$> itemsDyn
 
@@ -359,7 +359,7 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
 
         pure (form, changeSelection)
 
-    elAttr "label" ("style" =: "left: 0rem;") $ text label
+    elAttr "label" ("class" =: "unselectable" <> "style" =: "left: 0rem;") $ text label
 
     let itemsUpdated = updated $ (\x -> headMay . snd =<< headMay x) <$> itemsDyn
 
@@ -425,7 +425,7 @@ checkbox label initialValue = do
 
 modalHeader :: _ => T.Text -> m ()
 modalHeader txt = do
-    elAttr "h4" ("style" =: "margin-top: 0em; padding-bottom:30px;") $ text txt
+    elAttr "h4" ("class" =: "unselectable" <> "style" =: "margin-top: 0em; padding-bottom:30px;") $ text txt
     pure ()
 
 -- | Helper function to open a simple Ok/Cancel modal dialog.
