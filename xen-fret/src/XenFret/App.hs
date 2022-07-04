@@ -282,14 +282,17 @@ mainPage appDir = do
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             fretboardDisplay dynArgs
 
-        modal' "top: 2.5%;" viewDiagramEvent $ do
+        mobileSaveEvent <- modalWidget' "top: 2.5%;" viewDiagramEvent $ do
+            res <- button "Save"
             fretboardDisplay dynArgs
-            pure $ pure ()
+            pure res
 
         diagramDyn <- holdDyn Nothing
             diagramUpdated
 
-        _ <- prerender (pure never) $ performEvent $ saveEvent <&> \_ -> do
+        let saveEvents = leftmost [saveEvent, switch $ current mobileSaveEvent]
+
+        _ <- prerender (pure never) $ performEvent $ saveEvents <&> \_ -> do
             maybeSvgText <- sample $ current diagramDyn
             case maybeSvgText of
                 Just svgText -> do
