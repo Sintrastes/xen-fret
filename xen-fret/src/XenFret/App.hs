@@ -454,6 +454,10 @@ tuningPage appDir = mdo
         elClass "ul" "collection" $ do
             forM_ (join $ Map.elems $ currentTunings) (\tuning -> do
                 elClass "li" "collection-item" $ do
+                    elClass "i" "material-icons" $ 
+                        text "clear"
+                    elClass "i" "material-icons" $ 
+                        text "edit"
                     el "span" $ text $
                         T.pack $ show tuning)
     blank
@@ -616,6 +620,10 @@ scalePage appDir = mdo
         elClass "ul" "collection" $ do
             forM_ currentScales (\scale -> do
                 elClass "li" "collection-item" $ do
+                    elClass "i" "material-icons" $ 
+                        text "clear"
+                    elClass "i" "material-icons" $ 
+                        text "edit"
                     el "span" $ text $
                         T.pack $ show scale)
     blank
