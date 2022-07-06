@@ -382,6 +382,10 @@ temperamentPage appDir = mdo
         elClass "ul" "collection" $ do
             forM_ currentTemperaments (\temperament -> do
                 elClass "li" "collection-item" $ do
+                    elClass "i" "material-icons" $ 
+                        text "clear"
+                    elClass "i" "material-icons" $ 
+                        text "edit"
                     el "span" $ text $
                         T.pack $ show temperament)
     blank
