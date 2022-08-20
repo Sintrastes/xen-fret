@@ -8,6 +8,7 @@ import Data.Map hiding(fromList)
 import Data.MultiMap
 import Data.List.NonEmpty  hiding(fromList)
 import Data.Ratio
+import XenFret.Sagittal
 
 data PreferenceData = PreferenceData {
     useDarkMode :: Bool
@@ -82,12 +83,36 @@ defaultAppData = AppData {
                       "E#","F","F#","Gb","G","G#","Ab"                  
                   ]),
             Temperament "22-TET" 22 (2 % 1) 
-                  (Just [
+                  {- (Just [
                     "A","A#","Bb","B","B#",
                     "Cb","C","C#","Db","D",
                     "D#","Eb","E","E#","Fb",
                     "F","F#","Gb","G","G#",
                     "Gx","Ab"
+                  ]) -}
+                  (Just [
+                    "A",
+                    "A" <> sagittal5CommaUp,
+                    "A" <> sagittalSharp5CDown,
+                    "A" <> sagittalSharp,
+                    "B",
+                    "C",
+                    "C" <> sagittal5CommaUp,
+                    "C" <> sagittalSharp5CDown,
+                    "C" <> sagittalSharp,
+                    "D",
+                    "D" <> sagittal5CommaUp,
+                    "D" <> sagittalSharp5CDown,
+                    "D" <> sagittalSharp,
+                    "E",
+                    "F",
+                    "F" <> sagittal5CommaUp,
+                    "F" <> sagittalSharp5CDown,
+                    "F" <> sagittalSharp,
+                    "G",
+                    "G" <> sagittal5CommaUp,
+                    "G" <> sagittalSharp5CDown,
+                    "G" <> sagittalSharp
                   ]),
             Temperament "24-TET" 24 (2 % 1) 
                   Nothing,

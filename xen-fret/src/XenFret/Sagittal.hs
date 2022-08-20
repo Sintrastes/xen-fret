@@ -1,5 +1,7 @@
 
 module XenFret.Sagittal where
+import qualified Data.Text as T
+import Data.Char (chr)
 
 -- Quarter tone accidentials
 quarterToneFlat        = T.pack [chr 0xE280]
