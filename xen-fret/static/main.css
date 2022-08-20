@@ -9,6 +9,11 @@
     vertical-align: text-top;
 }
 
+g > text {
+    font-family: "BravuraText";
+    vertical-align: text-top;
+}
+
 .main-pane-left {
     float: left;
     width: 50%;
