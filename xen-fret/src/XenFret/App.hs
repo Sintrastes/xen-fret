@@ -14,7 +14,7 @@ import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
-import Data.Text.Encoding (encodeUtf8, decodeUtf8)
+import Data.Text.Encoding (decodeUtf8)
 import Data.Functor
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
@@ -26,18 +26,14 @@ import Data.Aeson hiding (Success)
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal)
+import Language.Javascript.JSaddle (liftJSM, jsg3)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
-import qualified Language.Javascript.JSaddle as JS
-import Data.ByteString.Lazy (toStrict)
-import Debug.Trace (traceIO, trace)
-import Reflex.Dom.Extras
+import Debug.Trace (trace)
 import Reflex.Dom.Forms
 import Data.Validation
 import XenFret.App.Util
-import Control.Monad.Fix
 import Data.Map (Map, lookup, insert)
 
 baseVerticalSpacing :: Double
@@ -636,8 +632,10 @@ preferencePage appDir = do
 
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String
-format (X x) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral x)) Nothing "" [] False) d
-format (Y y) d = B.unpack $ renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral y)) Nothing "" [] False) d
+format (X x) d = T.unpack $ decodeUtf8 $ B.toStrict $ 
+    renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral x)) Nothing "" [] False) d
+format (Y y) d = T.unpack $ decodeUtf8 $ B.toStrict $ 
+    renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral y)) Nothing "" [] False) d
 
 -- | Handle the error messages from parsing the arguments.
 handleParseErrs :: Maybe Int
