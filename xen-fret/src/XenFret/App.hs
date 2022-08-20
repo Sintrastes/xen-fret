@@ -14,7 +14,7 @@ import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8)
+import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Data.Functor
 import qualified Data.Map as Map
 import qualified Data.List.NonEmpty as NE
@@ -26,16 +26,19 @@ import Data.Aeson hiding (Success)
 import Data.Aeson.Casing
 import Control.Monad.IO.Class
 import GHC.Float
-import Language.Javascript.JSaddle (liftJSM, jsg3)
+import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal)
 import XenFret.Data
 import XenFret.AppData
 import GHC.Generics
-import Debug.Trace (trace)
+import qualified Language.Javascript.JSaddle as JS
+import Data.ByteString.Lazy (toStrict)
+import Debug.Trace (traceIO, trace)
+import Reflex.Dom.Extras
 import Reflex.Dom.Forms
 import Data.Validation
 import XenFret.App.Util
+import Control.Monad.Fix
 import Data.Map (Map, lookup, insert)
-import Data.Char
 
 baseVerticalSpacing :: Double
 baseVerticalSpacing = 0.2
