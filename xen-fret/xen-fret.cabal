@@ -14,7 +14,8 @@ library
       XenFret.App.Util,
       XenFret.Data,
       XenFret.AppData,
-      XenFret.Util, 
+      XenFret.Util,
+      XenFret.Sagittal,
       XenFret.TemperamentTheory,
       Reflex.Dom.Extras,
       Reflex.Dom.Forms
