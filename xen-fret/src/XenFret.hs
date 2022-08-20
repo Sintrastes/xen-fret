@@ -205,7 +205,7 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
                     (with & sep .~ vs)
                     (take (nFrets + 1) $
                         offsetNoteNames <&> \note ->
-                            text note # bold # scale 0.037
+                            text note # bold # scale 0.06
                                  <> strutX 0.15)
 
     offsetMarkers
