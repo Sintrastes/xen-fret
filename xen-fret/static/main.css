@@ -1,4 +1,14 @@
 
+@font-face {
+    font-family: "BravuraText";
+    src: url(BravuraText.woff);
+}
+
+.bravura {
+    font-family: "BravuraText";
+    vertical-align: text-top;
+}
+
 .main-pane-left {
     float: left;
     width: 50%;
