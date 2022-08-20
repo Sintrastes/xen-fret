@@ -55,6 +55,7 @@ library
     , jsaddle
     , jsaddle-warp
     , text
+    , utf8-string
     , directory
     , data-default
     , profunctors
