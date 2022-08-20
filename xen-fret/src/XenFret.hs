@@ -191,7 +191,7 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
                         hcat'
                             (with & sep .~ hs)
                             (stringNoteNames <&> \note ->
-                                    text note # bold # scale 0.037
+                                    text note # bold # scale 0.06
                                         <> strutY 0.15)
     noteMarkers :: Diagram B
     noteMarkers = offsetMarkers $ case optNoteNames of
