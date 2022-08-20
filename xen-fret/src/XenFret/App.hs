@@ -151,9 +151,6 @@ validateNonEmpty x
 
 app :: _ => m ()
 app = do
-    -- Testing out the bravura font.
-    elClass "p" "bravura" $ text $ T.pack [chr 58112]
-
     -- Setup the application directory.
     appDir <- if "android" `isInfixOf` os
         then pure "/data/data/org.xenfret.app"
