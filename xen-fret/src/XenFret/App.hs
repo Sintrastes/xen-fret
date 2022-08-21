@@ -199,6 +199,7 @@ mainPage appDir = do
                     (head $ temperaments appData)
 
             let Just initialTunings = Map.lookup "12-TET" $ tunings appData
+            let Just initialScales = Map.lookup "12-TET" $ scales appData
 
             let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
                     temperament <- temperamentMay
@@ -350,6 +351,8 @@ temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
     let initialTemperaments = temperaments appData
+    let initialScales = scales appData
+    let initialTunings = tunings appData
 
     newTemperamentEvent <- button "New Temperament"
 
@@ -374,12 +377,6 @@ temperamentPage appDir = mdo
     newTemperamentSubmitted <- validatedModal newTemperamentEvent $
         temperamentForm isNewName def
 
-    let dynAppData = dynTemperaments <&> \t ->
-            appData { temperaments = t }
-
-    persistAppData dynAppData
-        (appDir <> "/app_data.json")
-
     deleteClickedEvent <- switchHold never =<< dyn (dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
             deleteEvents <- forM currentTemperaments (\temperament -> do
@@ -393,9 +390,43 @@ temperamentPage appDir = mdo
                     pure (deleteEvent $> temperament))
             pure $ leftmost deleteEvents)
 
-    let deleteEvent = pushAlways (\toDelete -> do
+    -- Determine events for how various data sources need to be updated
+    -- when deleting a temperament.
+    let updatedEvents = pushAlways (\toDelete -> do
             currentTemperaments <- getTemperaments appDir
-            pure $ filter (/= toDelete) currentTemperaments) deleteClickedEvent
+            currentTunings <- getTunings appDir
+            currentScales <- getScales appDir
+
+            let updatedTemperaments = filter (/= toDelete) currentTemperaments
+            let updatedTunings = Map.delete (temperamentName toDelete) currentTunings
+            let updatedScales = Map.delete (temperamentName toDelete) currentScales
+
+            pure (updatedTemperaments, updatedTunings, updatedScales)) 
+                deleteClickedEvent
+
+    let deleteEvent    = (\(x,_,_) -> x) <$> updatedEvents
+    let updatedTunings = (\(_,y,_) -> y) <$> updatedEvents
+    let updatedScales  = (\(_,_,z) -> z) <$> updatedEvents
+
+    dynTunings <- holdDyn initialTunings
+        updatedTunings
+
+    dynScales <- holdDyn initialScales
+        updatedScales
+
+    let dynData = (,,) <$>
+            dynTemperaments <*>
+            dynTunings <*>
+            dynScales
+
+    let dynAppData = dynData <&> \(temperaments, tunings, scales) -> appData { 
+        temperaments = temperaments,
+        tunings = tunings,
+        scales = scales
+    }
+
+    persistAppData dynAppData
+        (appDir <> "/app_data.json")
 
     blank
 
