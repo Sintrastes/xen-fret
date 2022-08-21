@@ -660,14 +660,15 @@ scalePage appDir = mdo
     dynScales <- holdDyn currentScales
         updatedScales
 
-    let isNewName = dynScales <&> \scales temperament name -> trace ("isNewName " ++ show temperament ++ " " ++ show name) $
+    -- Dynamic check for whether or not a scale's name already exists in the list of scales for a given temperament.
+    let isNewName initialName = dynScales <&> \scales temperament name -> trace ("isNewName " ++ show temperament ++ " " ++ show name) $
           let names = fmap scaleName (fromMaybe [] $ Map.lookup (temperamentName temperament) scales) in
-            if name `elem` names
+            if name `elem` names && (Just name /= initialName)
                 then Failure $ "There is already a scale with this name." :| []
                     else Success name
 
     newScaleSubmitted <- validatedModal newScaleClick $ \_ ->
-        scaleForm appData (head $ temperaments appData) isNewName def
+        scaleForm appData (head $ temperaments appData) (isNewName Nothing) def
 
     let dynAppData = dynScales <&> \s ->
             appData { scales = s }
@@ -699,7 +700,9 @@ scalePage appDir = mdo
             pure updatedScales) deleteEvents
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, scale) ->
-        scaleForm appData (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData) isNewName scale
+        scaleForm appData 
+            (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData) 
+            (isNewName (Just $ scaleName scale)) scale
 
     blank
 
