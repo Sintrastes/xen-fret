@@ -379,18 +379,22 @@ temperamentPage appDir = mdo
     newTemperamentSubmitted <- validatedModal newTemperamentEvent $ \_ ->
         temperamentForm isNewName def
 
-    deleteClickedEvent <- switchHold never =<< dyn (dynTemperaments <&> \currentTemperaments ->
+    (editEvent, deleteClickedEvent) <- fanEither <$> (switchHold never =<< dyn (dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
-            deleteEvents <- forM currentTemperaments (\temperament -> do
+            itemEvents <- forM currentTemperaments (\temperament -> do
                 elClass "li" "collection-item" $ do
                     deleteEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" (
                         text "clear")
-                    elClass "i" "material-icons" $
-                        text "edit"
+                    editEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" 
+                        (text "edit")
                     el "span" $ text $
                         T.pack $ show temperament
-                    pure (deleteEvent $> temperament))
-            pure $ leftmost deleteEvents)
+                    pure $ leftmost 
+                        [
+                            deleteEvent $> Right temperament
+                          , editEvent   $> Left temperament
+                        ])
+            pure $ leftmost itemEvents))
 
     -- Determine events for how various data sources need to be updated
     -- when deleting a temperament.
