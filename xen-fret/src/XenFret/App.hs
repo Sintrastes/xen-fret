@@ -473,20 +473,20 @@ tuningPage appDir = mdo
             currentTunings <- getTunings appDir
             pure $ addTuning temperament tuning currentTunings)
 
-    let updatedTunings = leftmost [addedTuning, deletedEvent]
+    let updatedTunings = leftmost [addedTuning, deletedEvent, editedTuning]
 
     dynTunings <- holdDyn initialTunings
         updatedTunings
 
-    let isNewName = dynTunings <&> \tunings temperament instrument name ->
+    let isNewName initialName = dynTunings <&> \tunings temperament instrument name ->
           let names = fmap tuningName (fromMaybe [] $ Map.lookup (temperamentName temperament) tunings) in
-            if name `elem` names
+            if name `elem` names && Just name /= initialName
                 then Failure $ ("There is already a " <> instrument <>
                         " tuning with this name for " <> temperamentName temperament <> ".") :| []
                 else Success name
 
     newTuningSubmitted <- validatedModal newTuningEvent $ \_ -> do
-        tuningForm appData isNewName def
+        tuningForm appData (head $ temperaments appData) (isNewName Nothing) def
 
     let dynAppData = dynTunings <&> \t ->
            appData { tunings = t }
@@ -524,6 +524,28 @@ tuningPage appDir = mdo
 
             pure updatedTunings) deleteEvents
 
+    completeEditDialog <- validatedModal editEvents $ \(temperament, tuning) -> do
+        res <- tuningForm appData
+            (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData)
+            (isNewName $ Just $ tuningName tuning) tuning
+        pure $ fmap (\(x,y) -> (x, tuning, y)) <$> res
+
+    let editSubmitted = mapMaybe id completeEditDialog
+
+    let editedTuning = pushAlways (\(temperament, origTuning, newTuning) -> do
+            currentTunings <- getTunings appDir
+            let tunings = currentTunings Map.! temperamentName temperament
+            let indexOfScale = fromJust $ tunings & elemIndex origTuning
+            let updatedTunings = Seq.fromList tunings
+                    & Seq.update indexOfScale newTuning
+                    & toList
+
+            let updatedMap = Map.insert 
+                    (temperamentName temperament)
+                    updatedTunings currentTunings
+
+            pure updatedMap) editSubmitted
+
     blank
 
 -- | Helper function to add a tuning to the given temperament.
@@ -533,15 +555,14 @@ addTuning Temperament{..} tuning map = case Data.Map.lookup temperamentName map 
   Just tuns -> Data.Map.insert temperamentName (tuns ++ [tuning]) map
 
 tuningForm :: MonadWidget t m => AppData
+    -> Temperament
     -> Dynamic t (Temperament -> T.Text -> T.Text -> Validation (NonEmpty ErrorMessage) T.Text)
     -> Tuning
     -> m (
         Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Tuning))
     )
-tuningForm appData isNewName initialValue = do
+tuningForm appData initialTemperament isNewName initialValue = do
     modalHeader "Add New Tuning"
-
-    let initialTemperament = head $ temperaments appData
 
     temperamentForm <- (validateNonNull "Temperament must be selected" <$>) <$>
             selectTemperament appData initialTemperament
