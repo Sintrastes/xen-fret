@@ -513,7 +513,7 @@ tuningPage appDir = mdo
             currentTunings <- getTunings appDir
 
             let tunings = currentTunings Map.! temperamentName
-            let updatedTunings = Map.insert temperamentName 
+            let updatedTunings = Map.insert temperamentName
                     (filter (/= deletedTuning) tunings) currentTunings
 
             pure updatedTunings) deleteEvents
@@ -649,12 +649,14 @@ scalePage appDir = mdo
 
     newScaleClick <- button "New Scale"
 
-    updatedScales <- switch . current <$> prerender (pure never) (performEvent $ newScaleSubmitted <&> \case
+    addedScale <- switch . current <$> prerender (pure never) (performEvent $ newScaleSubmitted <&> \case
         Nothing -> pure currentScales
         Just (temperament, scale) -> do
             toast "Added new temperament"
             currentScales <- getScales appDir
             pure (addScale temperament scale currentScales))
+
+    let updatedScales = leftmost [addedScale, removedScale]
 
     dynScales <- holdDyn currentScales
         updatedScales
@@ -674,18 +676,29 @@ scalePage appDir = mdo
     persistAppData dynAppData
         (appDir <> "/app_data.json")
 
-    _ <- dyn $ dynScales <&> \currentScales ->
+    deleteEvents <- switchHold never =<< dyn (dynScales <&> \currentScales ->
         elClass "ul" "collection" $ do
-            forM_ (Map.toList currentScales) (\(temperamentName, scales) -> do
+            deleteEvents <- forM (Map.toList currentScales) (\(temperamentName, scales) -> do
                 el "h3" $ text temperamentName
-                forM_ scales (\scale -> do
+                forM scales (\scale -> do
                     elClass "li" "collection-item" $ do
-                        elClass "i" "material-icons" $
-                            text "clear"
+                        deleteEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" (
+                            text "clear")
                         elClass "i" "material-icons" $
                             text "edit"
                         el "span" $ text $
-                            T.pack $ show scale))
+                            T.pack $ show scale
+                        pure (deleteEvent $> (temperamentName, scale))))
+            pure (leftmost $ join deleteEvents))
+
+    let removedScale = pushAlways (\(temperamentName, deletedScale) -> do
+            currentScales <- getScales appDir
+            let scales = currentScales Map.! temperamentName
+            let updatedScales = Map.insert temperamentName 
+                    (filter (/= deletedScale) scales) currentScales
+
+            pure updatedScales) deleteEvents
+
     blank
 
 preferencePage :: _ => FilePath -> m ()
@@ -808,6 +821,8 @@ githubWidget = do
     starsIcon :: _ => m ()
     starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
         elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z") blank
+
+
 
 
 
