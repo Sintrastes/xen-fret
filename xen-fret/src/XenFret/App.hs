@@ -494,7 +494,7 @@ tuningPage appDir = mdo
     persistAppData dynAppData
        (appDir <> "/app_data.json")
 
-    deleteEvents <- switchHold never =<< dyn (dynTunings <&> \currentTunings ->
+    (editEvents, deleteEvents) <- fanEither <$> (switchHold never =<< dyn (dynTunings <&> \currentTunings ->
         elClass "ul" "collection" $ do
             deleteEvents <- forM (Map.toList currentTunings) $ \(temperamentName, tunings) -> do
                 el "h3" $ text temperamentName
@@ -502,14 +502,18 @@ tuningPage appDir = mdo
                     elClass "li" "collection-item" $ do
                         deleteEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" (
                             text "clear")
-                        elClass "i" "material-icons" $
-                            text "edit"
+                        editEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" 
+                            (text "edit")
                         el "span" $ text $
                             "(" <> instrument tuning <> ") "
                         el "span" $ text $
                             T.pack $ show tuning
-                        pure (deleteEvent $> (temperamentName, tuning))
-            pure $ leftmost (join deleteEvents))
+                        pure $ leftmost
+                            [
+                              deleteEvent $> Right (temperamentName, tuning)
+                            , editEvent $> Left (temperamentName, tuning)
+                            ]
+            pure $ leftmost (join deleteEvents)))
 
     let deletedEvent = pushAlways (\(temperamentName, deletedTuning) -> do
             currentTunings <- getTunings appDir
@@ -690,7 +694,11 @@ scalePage appDir = mdo
                             (text "edit")
                         el "span" $ text $
                             T.pack $ show scale
-                        pure $ leftmost [deleteEvent $> Right (temperamentName, scale), editEvent $> Left (temperamentName, scale)]
+                        pure $ leftmost 
+                            [
+                              deleteEvent $> Right (temperamentName, scale)
+                            , editEvent $> Left (temperamentName, scale)
+                            ]
             pure (leftmost $ join itemEvents)))
 
     let removedScale = pushAlways (\(temperamentName, deletedScale) -> do
@@ -719,8 +727,7 @@ scalePage appDir = mdo
 
             let updatedMap = Map.insert 
                     (temperamentName temperament)
-                    updatedScales
-                    currentScales
+                    updatedScales currentScales
 
             pure updatedMap) editSubmitted
 
