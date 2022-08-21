@@ -587,13 +587,12 @@ mkTuningForm name instrument strings = do
 
 scaleForm :: MonadWidget t m =>
      AppData
+  -> Temperament
   -> Dynamic t (Temperament -> T.Text -> Validation (NonEmpty ErrorMessage) T.Text)
   -> Scale
   -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Scale)))
-scaleForm appData isValidName initialValue = mdo
+scaleForm appData initialTemperament isValidName initialValue = mdo
     modalHeader "Add New Scale"
-
-    let initialTemperament = head $ temperaments appData
 
     currentTemperament <- holdDyn initialTemperament =<<
         delay 0.1 temperamentUpdated
@@ -668,7 +667,7 @@ scalePage appDir = mdo
                     else Success name
 
     newScaleSubmitted <- validatedModal newScaleClick $ \_ ->
-        scaleForm appData isNewName def
+        scaleForm appData (head $ temperaments appData) isNewName def
 
     let dynAppData = dynScales <&> \s ->
             appData { scales = s }
@@ -699,8 +698,8 @@ scalePage appDir = mdo
 
             pure updatedScales) deleteEvents
 
-    completeEditDialog <- validatedModal editEvents $ \(temperamentName, scale) ->
-        scaleForm appData isNewName scale
+    completeEditDialog <- validatedModal editEvents $ \(temperament, scale) ->
+        scaleForm appData (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData) isNewName scale
 
     blank
 
