@@ -374,7 +374,7 @@ temperamentPage appDir = mdo
                     then Failure $ "There is already a temperament with this name." :| []
                     else Success name
 
-    newTemperamentSubmitted <- validatedModal newTemperamentEvent $
+    newTemperamentSubmitted <- validatedModal newTemperamentEvent $ \_ ->
         temperamentForm isNewName def
 
     deleteClickedEvent <- switchHold never =<< dyn (dynTemperaments <&> \currentTemperaments ->
@@ -483,7 +483,7 @@ tuningPage appDir = mdo
                         " tuning with this name for " <> temperamentName temperament <> ".") :| []
                 else Success name
 
-    newTuningSubmitted <- validatedModal newTuningEvent $ do
+    newTuningSubmitted <- validatedModal newTuningEvent $ \_ -> do
         tuningForm appData isNewName def
 
     let dynAppData = dynTunings <&> \t ->
@@ -667,7 +667,7 @@ scalePage appDir = mdo
                 then Failure $ "There is already a scale with this name." :| []
                     else Success name
 
-    newScaleSubmitted <- validatedModal newScaleClick $
+    newScaleSubmitted <- validatedModal newScaleClick $ \_ ->
         scaleForm appData isNewName def
 
     let dynAppData = dynScales <&> \s ->
@@ -676,20 +676,20 @@ scalePage appDir = mdo
     persistAppData dynAppData
         (appDir <> "/app_data.json")
 
-    deleteEvents <- switchHold never =<< dyn (dynScales <&> \currentScales ->
+    (editEvents, deleteEvents) <- fanEither <$> (switchHold never =<< dyn (dynScales <&> \currentScales ->
         elClass "ul" "collection" $ do
-            deleteEvents <- forM (Map.toList currentScales) (\(temperamentName, scales) -> do
+            itemEvents <- forM (Map.toList currentScales) $ \(temperamentName, scales) -> do
                 el "h3" $ text temperamentName
-                forM scales (\scale -> do
+                forM scales $ \scale -> do
                     elClass "li" "collection-item" $ do
                         deleteEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" (
                             text "clear")
-                        elClass "i" "material-icons" $
-                            text "edit"
+                        editEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" 
+                            (text "edit")
                         el "span" $ text $
                             T.pack $ show scale
-                        pure (deleteEvent $> (temperamentName, scale))))
-            pure (leftmost $ join deleteEvents))
+                        pure $ leftmost [deleteEvent $> Right (temperamentName, scale), editEvent $> Left (temperamentName, scale)]
+            pure (leftmost $ join itemEvents)))
 
     let removedScale = pushAlways (\(temperamentName, deletedScale) -> do
             currentScales <- getScales appDir
@@ -698,6 +698,9 @@ scalePage appDir = mdo
                     (filter (/= deletedScale) scales) currentScales
 
             pure updatedScales) deleteEvents
+
+    completeEditDialog <- validatedModal editEvents $ \(temperamentName, scale) ->
+        scaleForm appData isNewName scale
 
     blank
 

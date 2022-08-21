@@ -257,7 +257,7 @@ selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-fi
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
-            & inputElementConfig_elementConfig 
+            & inputElementConfig_elementConfig
             . elementConfig_initialAttributes .~ ("class" =: "select-dropdown dropdown-trigger" <> "readonly" =: "true")
             & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
             & inputElementConfig_setValue .~
@@ -325,7 +325,7 @@ selectOptgroups label missingText itemsDyn initialValue = elClass "div" "input-f
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do
         (form, _) <- el' "div" $ inputElement $ def
-            & inputElementConfig_elementConfig 
+            & inputElementConfig_elementConfig
             . elementConfig_initialAttributes .~ ("class" =: "select-dropdown dropdown-trigger" <> "readonly" =: "true")
             & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
             & inputElementConfig_setValue .~
@@ -541,11 +541,12 @@ modalWidget' styleExtras onClick contents = mdo
 -- | Helper function to open a simple Ok/Cancel modal dialog that takes a validated result.
 -- "Ok" can only be pressed if the passed dynamic returns a successful result.
 validatedModal :: (Reflex t, MonadFix m, PostBuild t m, MonadHold t m, MonadWidget t m, DomBuilder t m)
-      => Event t () -> m (Dynamic t (Validation (NonEmpty ErrorMessage) a)) -> m (Event t (Maybe a))
+      => Event t a -> (a -> m (Dynamic t (Validation (NonEmpty ErrorMessage) b))) -> m (Event t (Maybe b))
 validatedModal onClick contents = mdo
     (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
         res <- elClass "div" "modal-content" $
-            join <$> widgetHold contents (onClick $> contents)
+            join <$> widgetHold (pure $ pure $ Failure $ "Uninitialized" :| []) 
+                (fmap contents onClick)
 
         let okAttrs = "class" =: "modal-close waves-effect waves-green btn-flat" <>
                 "data-role" =: "button"
