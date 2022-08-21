@@ -658,14 +658,16 @@ scalePage appDir = mdo
 
     _ <- dyn $ dynScales <&> \currentScales ->
         elClass "ul" "collection" $ do
-            forM_ currentScales (\scale -> do
-                elClass "li" "collection-item" $ do
-                    elClass "i" "material-icons" $
-                        text "clear"
-                    elClass "i" "material-icons" $
-                        text "edit"
-                    el "span" $ text $
-                        T.pack $ show scale)
+            forM_ (Map.toList currentScales) (\(temperamentName, scales) -> do
+                el "h3" $ text temperamentName
+                forM_ scales (\scale -> do
+                    elClass "li" "collection-item" $ do
+                        elClass "i" "material-icons" $
+                            text "clear"
+                        elClass "i" "material-icons" $
+                            text "edit"
+                        el "span" $ text $
+                            T.pack $ show scale))
     blank
 
 preferencePage :: _ => FilePath -> m ()
