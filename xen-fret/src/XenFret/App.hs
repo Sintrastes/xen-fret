@@ -492,14 +492,18 @@ tuningPage appDir = mdo
 
     _ <- dyn $ dynTunings <&> \currentTunings ->
         elClass "ul" "collection" $ do
-            forM_ (join $ Map.elems $ currentTunings) (\tuning -> do
-                elClass "li" "collection-item" $ do
-                    elClass "i" "material-icons" $
-                        text "clear"
-                    elClass "i" "material-icons" $
-                        text "edit"
-                    el "span" $ text $
-                        T.pack $ show tuning)
+            forM_ (Map.toList currentTunings) $ \(temperamentName, tunings) -> do
+                el "h3" $ text temperamentName
+                forM_ tunings $ \tuning -> do
+                    elClass "li" "collection-item" $ do
+                        elClass "i" "material-icons" $
+                            text "clear"
+                        elClass "i" "material-icons" $
+                            text "edit"
+                        el "span" $ text $
+                            "(" <> instrument tuning <> ") "
+                        el "span" $ text $
+                            T.pack $ show tuning
     blank
 
 -- | Helper function to add a tuning to the given temperament.
