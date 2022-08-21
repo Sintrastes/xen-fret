@@ -410,6 +410,12 @@ temperamentPage appDir = mdo
             pure (updatedTemperaments, updatedTunings, updatedScales))
                 deleteClickedEvent
 
+    completeEditDialog <- validatedModal editEvent $ \temperament -> do
+        res <- temperamentForm isNewName temperament
+        pure $ fmap (\x -> (x, temperament)) <$> res
+
+    let editSubmitted = mapMaybe id completeEditDialog
+
     let deleteEvent    = (\(x,_,_) -> x) <$> updatedEvents
     let updatedTunings = (\(_,y,_) -> y) <$> updatedEvents
     let updatedScales  = (\(_,_,z) -> z) <$> updatedEvents
