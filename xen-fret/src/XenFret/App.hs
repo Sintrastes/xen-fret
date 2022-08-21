@@ -96,56 +96,56 @@ data Pages =
     deriving(Show)
 
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
-#ifdef ghcjs_HOST_OS
-loadAppData _ = liftIO $ JS.catch (do
-    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
-    (rawText :: Maybe T.Text) <- fromJSVal cookieData
-    case rawText of 
-        Nothing -> pure $ defaultAppData
-        Just rawText' -> do
-            liftIO $ traceIO $ T.unpack rawText'
-            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
-    (\(_ :: SomeException) -> pure defaultAppData)
-#else
+
+
+
+
+
+
+
+
+
+
+
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
         catch (fromJust <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
-#endif
+
 
 loadAppData' :: (MonadSample t m, MonadIO m) => FilePath -> m AppData
-#ifdef ghcjs_HOST_OS
-loadAppData' _ = liftIO $ JS.catch (do
-    cookieData <- liftJSM $ jsg0 ("getAppData" :: T.Text)
-    (rawText :: Maybe T.Text) <- fromJSVal cookieData
-    case rawText of 
-        Nothing -> pure $ defaultAppData
-        Just rawText' -> do
-            liftIO $ traceIO $ T.unpack rawText'
-            pure $ maybe defaultAppData id $ decodeStrict (encodeUtf8 rawText'))
-    (\(_ :: SomeException) -> pure defaultAppData)
-#else
+
+
+
+
+
+
+
+
+
+
+
 loadAppData' dataFile = liftIO $ catch (fromJust <$> decodeFileStrict dataFile)
     (\(_ :: SomeException) -> return defaultAppData)
-#endif
+
 
 persistAppData :: (ToJSON a, Applicative m, Prerender t m, Monad m ) =>
   Dynamic t a -> FilePath -> m ()
-#ifdef ghcjs_HOST_OS
-persistAppData dynAppData dataFile = do
-    prerender (pure never) $ performEvent $ updated dynAppData <&>
-        \newData -> do
-            liftJSM $ jsg1 ("storeAppData" :: T.Text)
-                (decodeUtf8 $ toStrict $ encode newData)
-    pure ()
-#else
+
+
+
+
+
+
+
+
 persistAppData dynAppData dataFile = do
     prerender (pure never) $ performEvent $ updated dynAppData <&>
         \newData ->
             liftIO $ encodeFile dataFile newData
     pure ()
-#endif
+
 
 validateNonEmpty :: T.Text -> Validation (NonEmpty T.Text) T.Text
 validateNonEmpty x
@@ -261,10 +261,10 @@ mainPage appDir = do
                 pure $ pure True
                 -- checkbox "Display markers on frets" False
 
-            saveEvent <- elClass "div" "show-when-pane-open" $ 
+            saveEvent <- elClass "div" "show-when-pane-open" $
                 button "Save"
 
-            viewDiagramEvent <- elClass "div" "hide-when-pane-open" $ 
+            viewDiagramEvent <- elClass "div" "hide-when-pane-open" $
                 button "View Diagram"
 
             pure (saveEvent, viewDiagramEvent, (,,,,,,,,,) <$>
@@ -305,10 +305,10 @@ mainPage appDir = do
 
         blank
 
-fretboardDisplay dynArgs = dyn $ dynArgs <&> 
-    \(frets, xSize, scale, 
-      temperament, verticalScaling, 
-      horizontalScaling, key, offset, 
+fretboardDisplay dynArgs = dyn $ dynArgs <&>
+    \(frets, xSize, scale,
+      temperament, verticalScaling,
+      horizontalScaling, key, offset,
       tuning, displayMarkersOnFrets) ->
   let
     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
@@ -353,12 +353,14 @@ temperamentPage appDir = mdo
 
     newTemperamentEvent <- button "New Temperament"
 
-    updatedTemperaments <- switch . current <$> prerender (pure never) (performEvent $ newTemperamentSubmitted <&> \case
+    newTemperament <- switch . current <$> prerender (pure never) (performEvent $ newTemperamentSubmitted <&> \case
         Nothing -> pure initialTemperaments
         Just temperament -> do
             toast "Added new temperament"
             currentTemperament <- getTemperaments appDir
             pure (currentTemperament ++ [temperament]))
+
+    let updatedTemperaments = leftmost [newTemperament, deleteEvent]
 
     dynTemperaments <- holdDyn initialTemperaments
         updatedTemperaments
@@ -378,16 +380,23 @@ temperamentPage appDir = mdo
     persistAppData dynAppData
         (appDir <> "/app_data.json")
 
-    _ <- dyn $ dynTemperaments <&> \currentTemperaments ->
+    deleteClickedEvent <- switchHold never =<< dyn (dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
-            forM_ currentTemperaments (\temperament -> do
+            deleteEvents <- forM currentTemperaments (\temperament -> do
                 elClass "li" "collection-item" $ do
-                    elClass "i" "material-icons" $ 
-                        text "clear"
-                    elClass "i" "material-icons" $ 
+                    deleteEvent <- domEvent Click . fst <$> elClass' "i" "material-icons" (
+                        text "clear")
+                    elClass "i" "material-icons" $
                         text "edit"
                     el "span" $ text $
-                        T.pack $ show temperament)
+                        T.pack $ show temperament
+                    pure (deleteEvent $> temperament))
+            pure $ leftmost deleteEvents)
+
+    let deleteEvent = pushAlways (\toDelete -> do
+            currentTemperaments <- getTemperaments appDir
+            pure $ filter (/= toDelete) currentTemperaments) deleteClickedEvent
+
     blank
 
 temperamentForm :: _ =>
@@ -454,9 +463,9 @@ tuningPage appDir = mdo
         elClass "ul" "collection" $ do
             forM_ (join $ Map.elems $ currentTunings) (\tuning -> do
                 elClass "li" "collection-item" $ do
-                    elClass "i" "material-icons" $ 
+                    elClass "i" "material-icons" $
                         text "clear"
-                    elClass "i" "material-icons" $ 
+                    elClass "i" "material-icons" $
                         text "edit"
                     el "span" $ text $
                         T.pack $ show tuning)
@@ -504,7 +513,7 @@ tuningForm appData isNewName initialValue = do
 
     intervalsDyn <- labeledEntryA "Intervals"
         intervalListEntry
-        (stringTunings initialValue)    
+        (stringTunings initialValue)
 
     let tuningFrom = mkTuningForm
             nameDyn instrumentDyn
@@ -620,9 +629,9 @@ scalePage appDir = mdo
         elClass "ul" "collection" $ do
             forM_ currentScales (\scale -> do
                 elClass "li" "collection-item" $ do
-                    elClass "i" "material-icons" $ 
+                    elClass "i" "material-icons" $
                         text "clear"
-                    elClass "i" "material-icons" $ 
+                    elClass "i" "material-icons" $
                         text "edit"
                     el "span" $ text $
                         T.pack $ show scale)
@@ -636,9 +645,9 @@ preferencePage appDir = do
 
 -- | Generate the formatted SVG output from a diagram.
 format :: XorY -> Diagram B -> String
-format (X x) d = T.unpack $ decodeUtf8 $ B.toStrict $ 
+format (X x) d = T.unpack $ decodeUtf8 $ B.toStrict $
     renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral x)) Nothing "" [] False) d
-format (Y y) d = T.unpack $ decodeUtf8 $ B.toStrict $ 
+format (Y y) d = T.unpack $ decodeUtf8 $ B.toStrict $
     renderBS $ renderDia SVG (SVGOptions (mkWidth (fromIntegral y)) Nothing "" [] False) d
 
 -- | Handle the error messages from parsing the arguments.
@@ -748,6 +757,9 @@ githubWidget = do
     starsIcon :: _ => m ()
     starsIcon = elSvg "svg" ("style" =: "margin-left: 0.4rem; height: 0.6rem; width: 0.6rem;" <>"viewBox" =: "0 0 16 16" <> "xmlns" =: "http://www.w3.org/2000/svg") $
         elSvg "path" ("fill-rule" =: "evenodd" <> "d" =: "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694v.001z") blank
+
+
+
 
 
 
