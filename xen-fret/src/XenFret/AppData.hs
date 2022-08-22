@@ -35,18 +35,18 @@ defaultAppData = AppData {
         [
             Temperament "11-TET" 11 (2 % 1) 
                   (Just [
-                      "Q/P#","Q#/Rb","R","R#/Sb","S",
-                      "S#/Tb","T","T#/Ub","U","U#/Pb","P/Qb"
+                      "Q","Q#","R","R#","S",
+                      "S#","T","T#","U","U#","P"
                     ]),
             Temperament "12-TET" 12 (2 % 1)
                   (Just [
-                      "A","A#/Bb","B","C","C#/Db","D",
-                      "D#/Eb","E","F","F#/Gb","G","G#/Ab"
+                      "A","A#","B","C","C#","D",
+                      "D#","E","F","F#","G","G#"
                     ]),
             Temperament "13-TET" 13 (2 % 1) 
                   (Just [
-                       "J","J#/Kb","K","L","L#/Mb","M","M#/Nb",
-                       "N","O","O#/Pb","P","Q","Q#/Jb"
+                       "J","J#","K","L","L#","M","M#",
+                       "N","O","O#","P","Q","Q#"
                     ]),
             Temperament "14-TET" 14 (2 % 1) 
                   (Just [
