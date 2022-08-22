@@ -420,8 +420,33 @@ temperamentPage appDir = mdo
             currentTemperaments <- getTemperaments appDir
             currentTunings <- getTunings appDir
             currentScales <- getScales appDir
+
+            let indexOfTemperament = fromJust $ elemIndex oldTemperament 
+                    currentTemperaments
+
+            let updatedTemperaments = currentTemperaments
+                    & Seq.fromList
+                    & Seq.update indexOfTemperament newTemperament
+                    & toList
+
+            let oldName = temperamentName oldTemperament
+            let newName = temperamentName newTemperament
+
+            let hasNewName = newName /= oldName
+
+            let updatedTunings = if hasNewName 
+                then currentTunings
+                    & Map.delete oldName
+                    & Map.insert newName (currentTunings Map.! oldName)
+                else currentTunings
+
+            let updatedScales = if hasNewName 
+                then currentScales
+                    & Map.delete oldName
+                    & Map.insert newName (currentScales Map.! oldName)
+                else currentScales
         
-            pure (currentTemperaments, currentTunings, currentScales)) editSubmitted
+            pure (updatedTemperaments, updatedTunings, updatedScales)) editSubmitted
 
     let editedTemperaments = (\(x,_,_) -> x) <$> editedEvents
     let editedTunings      = (\(_,y,_) -> y) <$> editedEvents
