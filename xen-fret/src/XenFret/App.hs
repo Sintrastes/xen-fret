@@ -368,7 +368,7 @@ temperamentPage appDir = mdo
     let updatedTemperaments = leftmost [newTemperament, deleteEvent]
 
     dynTemperaments <- holdDyn initialTemperaments
-        updatedTemperaments
+        (leftmost [updatedTemperaments, editedTemperaments])
 
     let isNewName = dynTemperaments <&> \ temperaments name ->
             let names = fmap temperamentName temperaments in
@@ -416,15 +416,26 @@ temperamentPage appDir = mdo
 
     let editSubmitted = mapMaybe id completeEditDialog
 
+    let editedEvents = pushAlways (\(newTemperament, oldTemperament) -> do
+            currentTemperaments <- getTemperaments appDir
+            currentTunings <- getTunings appDir
+            currentScales <- getScales appDir
+        
+            pure (currentTemperaments, currentTunings, currentScales)) editSubmitted
+
+    let editedTemperaments = (\(x,_,_) -> x) <$> editedEvents
+    let editedTunings      = (\(_,y,_) -> y) <$> editedEvents
+    let editedScales       = (\(_,_,z) -> z) <$> editedEvents
+
     let deleteEvent    = (\(x,_,_) -> x) <$> updatedEvents
     let updatedTunings = (\(_,y,_) -> y) <$> updatedEvents
     let updatedScales  = (\(_,_,z) -> z) <$> updatedEvents
 
     dynTunings <- holdDyn initialTunings
-        updatedTunings
+        (leftmost [updatedTunings, editedTunings])
 
     dynScales <- holdDyn initialScales
-        updatedScales
+        (leftmost [updatedScales, editedScales])
 
     let dynData = (,,) <$>
             dynTemperaments <*>
