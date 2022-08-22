@@ -370,14 +370,14 @@ temperamentPage appDir = mdo
     dynTemperaments <- holdDyn initialTemperaments
         (leftmost [updatedTemperaments, editedTemperaments])
 
-    let isNewName = dynTemperaments <&> \ temperaments name ->
+    let isNewName initialName = dynTemperaments <&> \ temperaments name ->
             let names = fmap temperamentName temperaments in
-                if name `elem` names
+                if name `elem` names && initialName /= Just name
                     then Failure $ "There is already a temperament with this name." :| []
                     else Success name
 
     newTemperamentSubmitted <- validatedModal newTemperamentEvent $ \_ ->
-        temperamentForm isNewName def
+        temperamentForm (isNewName Nothing) def
 
     (editEvent, deleteClickedEvent) <- fanEither <$> (switchHold never =<< dyn (dynTemperaments <&> \currentTemperaments ->
         elClass "ul" "collection" $ do
@@ -411,7 +411,7 @@ temperamentPage appDir = mdo
                 deleteClickedEvent
 
     completeEditDialog <- validatedModal editEvent $ \temperament -> do
-        res <- temperamentForm isNewName temperament
+        res <- temperamentForm (isNewName $ Just $ temperamentName temperament) temperament
         pure $ fmap (\x -> (x, temperament)) <$> res
 
     let editSubmitted = mapMaybe id completeEditDialog
