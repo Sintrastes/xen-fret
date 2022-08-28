@@ -42,8 +42,6 @@ mainPage appDir = do
             tabSwitcher ["Scale Diagram", "Chord Diagram"] "Scale Diagram"
 
             elClass "div" "pane-body" $ do
-                elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
-
                 temperamentDyn <- elClass "div" "row" $
                     selectTemperament appData
                         (head $ temperaments appData)
