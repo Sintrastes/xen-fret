@@ -25,6 +25,7 @@ data AppData = AppData {
     scales  :: Map T.Text [Scale],
     -- | Get the chords associated with a temperament
     chords :: Map T.Text [Chord],
+    -- | Get the current preferences for the app.
     preferences :: PreferenceData
 }
 
