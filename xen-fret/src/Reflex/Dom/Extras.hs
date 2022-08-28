@@ -650,19 +650,26 @@ multiSelect options initialValue = do
     return $ checkedDyn <&> \checked ->
         map fst $ filter snd $ zip options checked
 
-tabSwitcher :: (DomBuilder t m) => [String] -> String -> m (Dynamic t String)
-tabSwitcher tabLabels initialTab = do
-    elAttr "div" ("class" =: "row" <> "style" =: "padding: 0;") $
+tabSwitcher :: (PostBuild t m, MonadFix m, MonadHold t m, DomBuilder t m) => [String] -> String -> m (Dynamic t String)
+tabSwitcher tabLabels initialTab = mdo
+    currentlySelected <- holdDyn initialTab 
+        (leftmost clickedEvents)
+
+    clickedEvents <- elAttr "div" ("class" =: "row" <> "style" =: "padding: 0;") $
         elAttr "div" ("class" =: "col s12" <> "style" =: "padding: 0;") $ 
             elClass "ul" "tabs z-depth-1" $ do
-                forM_ tabLabels $ \tab -> do
-                    elAttr "li" ("class" =: "tab col s6" <> "style" =: "position: relative;") $
-                        if tab == initialTab
-                        then do
-                            elClass "a" "active" $
-                                text $ T.pack tab
-                        else el "a" $
-                            text $ T.pack tab
-                        
+                forM tabLabels $ \tab -> do
+                    elAttr "li" ("class" =: "tab col s6" <> "style" =: "position: relative;") $ do
+                        switchHold never =<< (dyn $ currentlySelected <&> \currentTab ->
+                            if tab == currentTab
+                                then do
+                                    clickEvent <- domEvent Click . fst <$> elClass' "a" "active"
+                                        (text $ T.pack tab)
+                                    elAttr "div" ("style" =: "position:absolute;z-index: 100;height: 3px; bottom: 0;left: 0;width: 100%;background-color: coral;") blank
+                                    pure $ clickEvent $> tab
+                                else do
+                                    clickEvent <- domEvent Click . fst <$> el' "a"
+                                        (text $ T.pack tab)
+                                    pure $ clickEvent $> tab)
 
-    pure $ pure initialTab
+    pure currentlySelected
