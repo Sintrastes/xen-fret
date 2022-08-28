@@ -317,6 +317,15 @@ defaultAppData = AppData {
           , ("Bohlen Pierce", Scale "Walker II"
                   (2 :| [1,2,1,2,1,1,2,1]))
         ]
+    , chords = toMap $ fromList 
+        [
+            ("12-TET", Chord "Major" (5 :| [4])),
+            ("12-TET", Chord "Minor" (4 :| [5])),
+            ("12-TET", Chord "Major 7th" (5 :| [4, 5])),
+            ("12-TET", Chord "Dominant 7th" (5 :| [4, 4])),
+            ("12-TET", Chord "Minor 7th" (4 :| [5, 4])),
+            ("12-TET", Chord "MinMaj 7th" (4 :| [5, 5]))
+        ]
     , preferences = defaultPreferences
 }
 
