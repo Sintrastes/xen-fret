@@ -42,98 +42,14 @@ mainPage appDir = do
             tabSwitcher ["Scale Diagram", "Chord Diagram"] "Scale Diagram"
 
             elClass "div" "pane-body" $ do
-                temperamentDyn <- elClass "div" "row" $
-                    selectTemperament appData
-                        (head $ temperaments appData)
-
-                let Just initialTunings = Map.lookup "12-TET" $ tunings appData
-                let Just initialScales = Map.lookup "12-TET" $ scales appData
-
-                let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
-                        temperament <- temperamentMay
-                        Map.lookup (temperamentName temperament) $ tunings appData)
-
-                let groupedTunings = loadedTunings <&> (\tunings ->
-                        let groupings = groupBy (\x y -> instrument x == instrument y) tunings
-                        in (\grouping -> (instrument $ head grouping, grouping)) <$> groupings)
-
-                tuningDyn <- elClass "div" "row" $
-                    selectOptgroups "Instrument/Tuning"
-                        "No Tunings Defined"
-                        groupedTunings
-                        (head initialTunings)
-
-                let Just initialScales = Map.lookup "12-TET" $ scales appData
-
-                let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
-                        temperament <- temperamentMay
-                        Map.lookup (temperamentName temperament) $ scales appData)
-
-                scaleDyn <- elClass "div" "row" $
-                    selectMaterial "Scale"
-                        "No Scales Defined"
-                        loadedScales
-                        (head initialScales)
-
-                (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
-                    keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
-                        labeledEntry "Key" positiveIntEntry 0
-                    offsetDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
-                        labeledEntry "Fret Offset" positiveIntEntry 0
-                    pure (keyDyn, offsetDyn)
-
-                elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Display Options:"
-
-                (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
-                    sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
-                        labeledEntry "Size" intEntry 264
-                    fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
-                        labeledEntry "Number of Frets" intEntry 10
-                    pure (sizeDyn, fretsDyn)
-
-                (verticalScalingDyn, horizontalScalingDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
-                    verticalScalingDyn   <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
-                        labeledEntry "Vertical Spacing" intEntry 200
-                    horizontalScalingDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
-                        labeledEntry "Horizontal Spacing" intEntry 331
-                    pure (verticalScalingDyn, horizontalScalingDyn)
-
-                elClass "div" "col s12" $
-                    blank
-                    -- checkbox "Display vertically" True
-
-                elClass "div" "col s12" $
-                    blank
-                    -- checkbox "Use realistic fret spacing" False
-
-                displayMarkersOnFretsDyn <- elClass "div" "col s12" $
-                    pure $ pure True
-                    -- checkbox "Display markers on frets" False
-
-                saveEvent <- elClass "div" "show-when-pane-open" $
-                    button "Save"
-
-                viewDiagramEvent <- elClass "div" "hide-when-pane-open" $
-                    button "View Diagram"
-
-                pure (saveEvent, viewDiagramEvent, (,,,,,,,,,) <$>
-                    fretsDyn <*>
-                    sizeDyn <*>
-                    scaleDyn <*>
-                    temperamentDyn <*>
-                    verticalScalingDyn <*>
-                    horizontalScalingDyn <*>
-                    keyDyn <*>
-                    offsetDyn <*>
-                    tuningDyn <*>
-                    displayMarkersOnFretsDyn)
+                diagramOptionsWidget appData
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
-            fretboardDisplay dynArgs
+            fretboardDisplayWidget dynArgs
 
         mobileSaveEvent <- modalWidget' "top: 2.5%;" viewDiagramEvent $ do
             res <- button "Save"
-            fretboardDisplay dynArgs
+            fretboardDisplayWidget dynArgs
             pure res
 
         diagramDyn <- holdDyn Nothing
@@ -154,7 +70,94 @@ mainPage appDir = do
 
         blank
 
-fretboardDisplay dynArgs = dyn $ dynArgs <&>
+diagramOptionsWidget appData = do
+    temperamentDyn <- elClass "div" "row" $
+                    selectTemperament appData
+                        (head $ temperaments appData)
+
+    let Just initialTunings = Map.lookup "12-TET" $ tunings appData
+    let Just initialScales = Map.lookup "12-TET" $ scales appData
+
+    let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+            temperament <- temperamentMay
+            Map.lookup (temperamentName temperament) $ tunings appData)
+
+    let groupedTunings = loadedTunings <&> (\tunings ->
+            let groupings = groupBy (\x y -> instrument x == instrument y) tunings
+            in (\grouping -> (instrument $ head grouping, grouping)) <$> groupings)
+
+    tuningDyn <- elClass "div" "row" $
+        selectOptgroups "Instrument/Tuning"
+            "No Tunings Defined"
+            groupedTunings
+            (head initialTunings)
+
+    let Just initialScales = Map.lookup "12-TET" $ scales appData
+
+    let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+            temperament <- temperamentMay
+            Map.lookup (temperamentName temperament) $ scales appData)
+
+    scaleDyn <- elClass "div" "row" $
+        selectMaterial "Scale"
+            "No Scales Defined"
+            loadedScales
+            (head initialScales)
+
+    (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
+        keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
+            labeledEntry "Key" positiveIntEntry 0
+        offsetDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
+            labeledEntry "Fret Offset" positiveIntEntry 0
+        pure (keyDyn, offsetDyn)
+
+    elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Display Options:"
+
+    (sizeDyn, fretsDyn) <- elClass "div" "row" $ do
+        sizeDyn  <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
+            labeledEntry "Size" intEntry 264
+        fretsDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
+            labeledEntry "Number of Frets" intEntry 10
+        pure (sizeDyn, fretsDyn)
+
+    (verticalScalingDyn, horizontalScalingDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
+        verticalScalingDyn   <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
+            labeledEntry "Vertical Spacing" intEntry 200
+        horizontalScalingDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-right: 0px;") $
+            labeledEntry "Horizontal Spacing" intEntry 331
+        pure (verticalScalingDyn, horizontalScalingDyn)
+
+    elClass "div" "col s12" $
+        blank
+        -- checkbox "Display vertically" True
+
+    elClass "div" "col s12" $
+        blank
+        -- checkbox "Use realistic fret spacing" False
+
+    displayMarkersOnFretsDyn <- elClass "div" "col s12" $
+        pure $ pure True
+        -- checkbox "Display markers on frets" False
+
+    saveEvent <- elClass "div" "show-when-pane-open" $
+        button "Save"
+
+    viewDiagramEvent <- elClass "div" "hide-when-pane-open" $
+        button "View Diagram"
+
+    pure (saveEvent, viewDiagramEvent, (,,,,,,,,,) <$>
+        fretsDyn <*>
+        sizeDyn <*>
+        scaleDyn <*>
+        temperamentDyn <*>
+        verticalScalingDyn <*>
+        horizontalScalingDyn <*>
+        keyDyn <*>
+        offsetDyn <*>
+        tuningDyn <*>
+        displayMarkersOnFretsDyn)
+
+fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
     \(frets, xSize, scale,
       temperament, verticalScaling,
       horizontalScaling, key, offset,
