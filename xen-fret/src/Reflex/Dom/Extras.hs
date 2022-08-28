@@ -649,3 +649,12 @@ multiSelect options initialValue = do
         Reflex.Dom.Extras.checkbox (T.pack $ show option) (option `elem` initialValue))
     return $ checkedDyn <&> \checked ->
         map fst $ filter snd $ zip options checked
+
+tabSwitcher :: _ => [String] -> String -> m (Dynamic t String)
+tabSwitcher tabLabels initialTab = do
+    elClass "ul" "tabs" $ do
+        forM_ tabLabels $ \tab -> do
+            elClass "li" "tab col" $
+                text $ T.pack tab
+
+    pure $ pure initialTab
