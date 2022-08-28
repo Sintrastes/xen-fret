@@ -650,11 +650,18 @@ multiSelect options initialValue = do
     return $ checkedDyn <&> \checked ->
         map fst $ filter snd $ zip options checked
 
-tabSwitcher :: _ => [String] -> String -> m (Dynamic t String)
+tabSwitcher :: (DomBuilder t m) => [String] -> String -> m (Dynamic t String)
 tabSwitcher tabLabels initialTab = do
-    elClass "ul" "tabs" $ do
-        forM_ tabLabels $ \tab -> do
-            elClass "li" "tab col" $
-                text $ T.pack tab
+    elClass "div" "row" $
+        elClass "div" "col s12" $ 
+            elClass "ul" "tabs" $ do
+                forM_ tabLabels $ \tab -> do
+                    elClass "li" "tab col s3" $
+                        if tab == initialTab
+                        then elClass "a" "active" $
+                            text $ T.pack tab
+                        else el "a" $
+                            text $ T.pack tab
+                        
 
     pure $ pure initialTab

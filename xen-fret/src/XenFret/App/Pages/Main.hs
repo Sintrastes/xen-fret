@@ -39,6 +39,8 @@ mainPage appDir = do
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
         (saveEvent, viewDiagramEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
+            tabSwitcher ["Scale Diagram", "Chord Diagram"] "Scale Diagram"
+            
             elAttr "h5" ("class" =: "unselectable" <> "style" =: "padding-bottom: 10px;") $ text "Diagram Options:"
 
             temperamentDyn <- elClass "div" "row" $
