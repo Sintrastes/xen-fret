@@ -18,6 +18,9 @@ g > text {
     float: left;
     width: 50%;
     border-style: solid;
+}
+
+.pane-body {
     padding: 25px;
 }
 

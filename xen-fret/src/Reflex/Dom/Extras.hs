@@ -652,14 +652,15 @@ multiSelect options initialValue = do
 
 tabSwitcher :: (DomBuilder t m) => [String] -> String -> m (Dynamic t String)
 tabSwitcher tabLabels initialTab = do
-    elClass "div" "row" $
-        elClass "div" "col s12" $ 
-            elClass "ul" "tabs" $ do
+    elAttr "div" ("class" =: "row" <> "style" =: "padding: 0;") $
+        elAttr "div" ("class" =: "col s12" <> "style" =: "padding: 0;") $ 
+            elClass "ul" "tabs z-depth-1" $ do
                 forM_ tabLabels $ \tab -> do
-                    elClass "li" "tab col s3" $
+                    elClass "li" "tab col s6" $
                         if tab == initialTab
-                        then elClass "a" "active" $
-                            text $ T.pack tab
+                        then do
+                            elClass "a" "active" $
+                                text $ T.pack tab
                         else el "a" $
                             text $ T.pack tab
                         
