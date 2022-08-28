@@ -89,6 +89,7 @@ data Pages =
   | Scales
   | EditScale
   | EditTemperament
+  | Chords
     deriving(Show)
 
 app :: _ => m ()
@@ -103,7 +104,7 @@ app = do
             pure $ Right ())
         (\(e :: SomeException) -> pure $ Left e)
 
-    navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Preferences] $
+    navEvents <- materialNavBar [Home, Temperaments, Tunings, Scales, Chords, Preferences] $
         githubWidget
 
     currentPage <- holdDyn Home navEvents
@@ -114,6 +115,7 @@ app = do
         Tunings -> tuningPage appDir
         Scales -> scalePage appDir
         Preferences -> preferencePage appDir
+        Chords -> chordPage appDir
     blank
 
 
