@@ -68,3 +68,17 @@ instance Default Scale where
     def = Scale "" (0 :| [])
 
 $(deriveJSON defaultOptions ''Scale)
+
+data Chord = Chord {
+    chordName  :: T.Text,
+    chordIntervals :: NonEmpty Int
+}
+    deriving(Eq)
+
+instance Show Chord where
+    show = T.unpack . chordName
+
+instance Default Chord where
+    def = Chord "" (0 :| [])
+
+$(deriveJSON defaultOptions ''Chord)

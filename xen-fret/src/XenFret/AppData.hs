@@ -23,11 +23,12 @@ data AppData = AppData {
     tunings :: Map T.Text [Tuning],
     -- | Get the scales associated with a temperament.
     scales  :: Map T.Text [Scale],
+    -- | Get the chords associated with a temperament
+    chords :: Map T.Text [Chord],
     preferences :: PreferenceData
 }
 
 $(deriveJSON defaultOptions ''AppData)
-
 
 defaultAppData :: AppData
 defaultAppData = AppData {
