@@ -34,6 +34,20 @@ preferencePage appDir = do
 
         divider
 
+    prefRow $ do
+        prefHeader "Note Font Size"
+
+        el "p" $ text "Set the font size used for displaying note names."
+
+        divider
+
+    prefRow $ do
+        prefHeader "Root Note Color"
+
+        el "p" $ text "Set the color used to display root notes of scales."
+
+        divider
+
     _ <- prerender (pure never) $ performEvent $ clickExport <&> \_ -> do
         -- appData <- liftIO $ loadAppData (appDir <> "/app_data.json")
 
