@@ -42,7 +42,7 @@ mainPage appDir = do
             tabSwitcher ["Scale Diagram", "Chord Diagram"] "Scale Diagram"
 
             elClass "div" "pane-body" $ do
-                diagramOptionsWidget appData
+                diagramOptionsWidget scaleSelectForm appData
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             fretboardDisplayWidget dynArgs
@@ -70,14 +70,29 @@ mainPage appDir = do
 
         blank
 
-diagramOptionsWidget appData = do
+scaleSelectForm appData = do
+    let Just initialScales = Map.lookup "12-TET" $ scales appData
+
+    selectMaterial "Scale"
+        "No Scales Defined"
+        (pure initialScales)
+        (head initialScales)
+
+chordSelectForm appData = do
+    let Just initialChords = Map.lookup "12-TET" $ chords appData
+
+    selectMaterial "Chord"
+        "No Chords Defined"
+        (pure initialChords)
+        (head initialChords)
+
+diagramOptionsWidget selectForm appData = do
     temperamentDyn <- elClass "div" "row" $
                     selectTemperament appData
                         (head $ temperaments appData)
 
     let Just initialTunings = Map.lookup "12-TET" $ tunings appData
-    let Just initialScales = Map.lookup "12-TET" $ scales appData
-
+    
     let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
             Map.lookup (temperamentName temperament) $ tunings appData)
@@ -99,10 +114,7 @@ diagramOptionsWidget appData = do
             Map.lookup (temperamentName temperament) $ scales appData)
 
     scaleDyn <- elClass "div" "row" $
-        selectMaterial "Scale"
-            "No Scales Defined"
-            loadedScales
-            (head initialScales)
+        selectForm appData
 
     (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
         keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
