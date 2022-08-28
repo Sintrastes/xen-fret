@@ -48,6 +48,20 @@ preferencePage appDir = do
 
         divider
 
+    prefRow $ do
+        prefHeader "Note Dot Size"
+
+        el "p" $ text "Set the size used for note dots used in the diagram."
+
+        divider
+
+    prefRow $ do
+        prefHeader "Fretboard Color"
+
+        el "p" $ text "Set the background color used for fretboards"
+
+        divider
+
     _ <- prerender (pure never) $ performEvent $ clickExport <&> \_ -> do
         -- appData <- liftIO $ loadAppData (appDir <> "/app_data.json")
 
