@@ -98,7 +98,8 @@ applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
             pitch = pitch s
           } :| ss)
           period
-    | otherwise = error "Periods do not match"
+    | otherwise = error $ "Periods do not match. Period was: " <> show period <> " but sum was " 
+        <> show (sum intervals) <> "for scale: " <> show name
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)

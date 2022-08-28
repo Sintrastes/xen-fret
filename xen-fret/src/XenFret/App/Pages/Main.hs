@@ -39,10 +39,20 @@ mainPage appDir = do
 
     elAttr "div" ("style" =: "display: flex;height:100%;") $ do
         (saveEvent, viewDiagramEvent, dynArgs) <- elClass "div" "main-pane-left" $ do
-            tabSwitcher ["Scale Diagram", "Chord Diagram"] "Scale Diagram"
+            currentTab <- tabSwitcher ["Scale Diagram", "Chord Diagram"] "Scale Diagram"
+
+            initialTab <- sample $ current currentTab
+
+            let getSelectForm = \x -> \case
+                  "Scale Diagram" -> scaleSelectForm x
+                  "Chord Diagram" -> chordSelectForm x
+
+            let selectForm = \x -> join <$> widgetHold 
+                  ((getSelectForm x) initialTab)
+                  (getSelectForm x <$> updated currentTab)
 
             elClass "div" "pane-body" $ do
-                diagramOptionsWidget scaleSelectForm appData
+                diagramOptionsWidget selectForm appData
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
             fretboardDisplayWidget dynArgs
@@ -71,7 +81,9 @@ mainPage appDir = do
         blank
 
 scaleSelectForm appData = do
-    let Just initialScales = Map.lookup "12-TET" $ scales appData
+    let initialTemperament = temperamentName $ head $ temperaments appData
+    let initialScales = maybe [] id $ 
+            Map.lookup initialTemperament $ scales appData
 
     selectMaterial "Scale"
         "No Scales Defined"
@@ -79,7 +91,9 @@ scaleSelectForm appData = do
         (head initialScales)
 
 chordSelectForm appData = do
-    let Just initialChords = Map.lookup "12-TET" $ chords appData
+    let initialTemperament = temperamentName $ head $ temperaments appData
+    let initialChords = maybe [] id $ 
+            Map.lookup initialTemperament $ chords appData
 
     -- Convert to scale, as that is the format the
     -- diagram display widget understands
