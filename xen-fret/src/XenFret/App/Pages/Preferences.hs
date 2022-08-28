@@ -19,11 +19,20 @@ preferencePage :: _ => FilePath -> m ()
 preferencePage appDir = do
     currentAppData <- loadAppData (appDir <> "/app_data.json")
     let currentPrefs = preferences currentAppData
-    el "p" $ text "Preferences"
 
-    clickImport <- button "Import Data"
+    (_, clickImport) <- prefRow $ do
+        prefHeader "Import Data"
 
-    clickExport <- button "Export Data"
+        el "p" $ text "Import previously exported xen fret data."
+
+        divider
+
+    (_, clickExport) <- prefRow $ do
+        prefHeader "Export Data"
+
+        el "p" $ text "Export xen fret data to a JSON file."
+
+        divider
 
     _ <- prerender (pure never) $ performEvent $ clickExport <&> \_ -> do
         -- appData <- liftIO $ loadAppData (appDir <> "/app_data.json")
