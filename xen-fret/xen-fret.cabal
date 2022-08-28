@@ -9,7 +9,8 @@ cabal-version:       >=1.10
 
 library       
   exposed-modules:   
-      XenFret,    
+      XenFret,
+      XenFret.Diagrams.Fretboard,
       XenFret.App,
       XenFret.App.Util,
       XenFret.App.Pages.Chords,
