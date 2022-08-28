@@ -656,7 +656,7 @@ tabSwitcher tabLabels initialTab = do
         elAttr "div" ("class" =: "col s12" <> "style" =: "padding: 0;") $ 
             elClass "ul" "tabs z-depth-1" $ do
                 forM_ tabLabels $ \tab -> do
-                    elClass "li" "tab col s6" $
+                    elAttr "li" ("class" =: "tab col s6" <> "style" =: "position: relative;") $
                         if tab == initialTab
                         then do
                             elClass "a" "active" $
