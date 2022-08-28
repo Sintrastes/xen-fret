@@ -628,3 +628,24 @@ toastOnErrors x = do
                 toast $ "An exception occured when loading Bedelibry: " <> T.pack (show e)
         Right _ ->
             pure ()
+
+divider :: _ => m ()
+divider = elClass "div" "divider" $ pure ()
+
+radioGroup :: (MonadHold t m, DomBuilder t m, Eq a, Show a) => T.Text -> [a] -> a -> m (Dynamic t a)
+radioGroup name values initialValue = do
+    events <- forM values $ \value -> do
+        event <- el' "p" $ el "label" $ do
+            elAttr "input" ("type" =: "radio" <> "class" =: "with-gap" <> "name" =: name <>
+                if value == initialValue then "checked" =: "" else empty) $
+                pure ()
+            el "span" $ text $ T.pack $ show value
+        pure $ value <$ domEvent Click (fst event)
+    holdDyn initialValue (leftmost events)
+
+multiSelect :: _ => [a] -> [a] -> m (Dynamic t [a])
+multiSelect options initialValue = do
+    checkedDyn <- sequence <$> forM options (\option ->
+        Reflex.Dom.Extras.checkbox (T.pack $ show option) (option `elem` initialValue))
+    return $ checkedDyn <&> \checked ->
+        map fst $ filter snd $ zip options checked
