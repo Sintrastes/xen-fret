@@ -78,6 +78,8 @@ data Chord = Chord {
 instance Show Chord where
     show = T.unpack . chordName
 
+toScale (Chord name intervals) = Scale name intervals
+
 instance Default Chord where
     def = Chord "" (0 :| [])
 

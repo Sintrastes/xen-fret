@@ -81,7 +81,9 @@ scaleSelectForm appData = do
 chordSelectForm appData = do
     let Just initialChords = Map.lookup "12-TET" $ chords appData
 
-    selectMaterial "Chord"
+    -- Convert to scale, as that is the format the
+    -- diagram display widget understands
+    fmap (toScale <$>) <$> selectMaterial "Chord"
         "No Chords Defined"
         (pure initialChords)
         (head initialChords)
