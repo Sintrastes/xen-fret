@@ -98,7 +98,7 @@ chordSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ temperaments appData
     let initialChords = maybe [] id $ 
             Map.lookup initialTemperament $ chords appData
-    
+
     let loadedChords = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
             Map.lookup (temperamentName temperament) $ chords appData)
@@ -209,11 +209,16 @@ fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
                 Right (fretboard, _) -> elAttr "div" ("style" =: "text-align: center;") $ do
                     let Just scalePeriod = sum . scaleIntervals <$> scale
                     let Just (scaleRoot NE.:| _) = scaleIntervals <$> scale
-                    let diagram = board displayMarkersOnFrets
-                            (maybe "" show scale) offset scalePeriod key
-                            frets verticalSpacing horizontalSpacing
+
+                    let style = FretboardStyle displayMarkersOnFrets
+                            offset frets verticalSpacing horizontalSpacing
+
+
+                    let diagram = board 
+                            (maybe "" show scale) scalePeriod key
                                 (changeScale fretboard key (fromJust scale))
                                 ((T.unpack <$>) <$> (noteNames =<< temperament))
+                                style
                     case xy of
                         X x -> do
                             elDynHtml' "div" (constDyn $ T.pack $
