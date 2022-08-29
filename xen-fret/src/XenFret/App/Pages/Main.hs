@@ -85,14 +85,13 @@ scaleSelectForm appData temperamentDyn = do
     let initialScales = maybe [] id $ 
             Map.lookup initialTemperament $ scales appData
 
-    -- TODO: Probablyt need to use this somehow
-    -- let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
-    --         temperament <- temperamentMay
-    --         Map.lookup (temperamentName temperament) $ scales appData)
+    let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+            temperament <- temperamentMay
+            Map.lookup (temperamentName temperament) $ scales appData)
 
     selectMaterial "Scale"
         "No Scales Defined"
-        (pure initialScales)
+        loadedScales
         (head initialScales)
 
 chordSelectForm appData temperamentDyn = do
