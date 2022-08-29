@@ -2,18 +2,20 @@
 module XenFret.App.Pages.Preferences where
 
 import qualified Data.Text as T
-import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal)
+import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal, fun, valToStr, JSString(..))
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import XenFret.AppData
 import XenFret.Data
 import XenFret.App.Util
-import Data.Aeson (encode)
+import Data.Aeson (encode, decode, encodeFile)
 import Data.Functor
 import Data.ByteString.Lazy (toStrict)
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Control.Monad.IO.Class
 import Control.Monad.Fix
+import qualified Data.Text.Lazy.Encoding as TL
+import Data.Text.Lazy (fromStrict)
 
 preferencePage :: _ => FilePath -> m ()
 preferencePage appDir = do
@@ -70,8 +72,12 @@ preferencePage appDir = do
             ("text/json" :: T.Text)
 
     _ <- prerender (pure never) $ performEvent $ clickImport <&> \_ -> do
-        -- TODO: Need a file chooser tool.
-        pure ()
+        liftJSM $ jsg1 ("importFile" :: T.Text)
+            (fun $ \_ this args -> do
+                let firstArg = args !! 0
+                JSString contents <- valToStr firstArg
+                let Just appData = decode (TL.encodeUtf8 $ fromStrict contents) :: Maybe AppData
+                liftIO $ encodeFile (appDir <> "/app_data.json") appData)
 
     blank
 
