@@ -6,7 +6,8 @@ module XenFret (
     repeatingNotes,
     board,
     transpose,
-    Fretboard()
+    Fretboard(),
+    FretboardStyle(..)
 ) where
 
 import Diagrams.Attributes
@@ -129,19 +130,24 @@ frettingDot displayMarkersOnFrets _ vs (n, colored) =
         then 0.0
         else 0.5 * vs
 
+data FretboardStyle = FretboardStyle {
+    displayMarkersOnFrets :: Bool,
+    offset :: Int,
+    nFrets :: Int,
+    verticalSpacing :: Double,
+    horizontalSpacing :: Double
+}
+
 -- | Create a fretboard diagram
-board :: Bool
-  -> String
+board :: 
+     String
   -> Int
   -> Int
-  -> Int
-  -> Int    -- Number of frets to display on board.
-  -> Double -- Vertical spacing
-  -> Double -- Horizontal spacing
   -> Fretboard
   -> Maybe [String]
+  -> FretboardStyle
   -> Diagram B
-board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs fretboard optNoteNames = frame 0.005 $
+board scaleName scalePeriod scaleRoot fretboard optNoteNames FretboardStyle{..} = frame 0.005 $
         (alignL (baselineText scaleLabelFormatted # scale 0.075) <> strutY 0.12)
             ===
             (translateY (-0.12) (alignT noteMarkers) |||
@@ -157,6 +163,8 @@ board displayMarkersOnFrets scaleName offset scalePeriod scaleRoot nFrets vs hs 
         )
 
   where
+    vs = verticalSpacing
+    hs = horizontalSpacing
     emptyboard = emptyBoard nFrets vs hs nStr offset
     scaleLabelFormatted =  case optNoteNames of
         Nothing        -> scaleName
