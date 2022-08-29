@@ -43,13 +43,13 @@ mainPage appDir = do
 
             initialTab <- sample $ current currentTab
 
-            let getSelectForm = \x -> \case
-                  "Scale Diagram" -> scaleSelectForm x
-                  "Chord Diagram" -> chordSelectForm x
+            let getSelectForm = \x y -> \case
+                  "Scale Diagram" -> scaleSelectForm x y
+                  "Chord Diagram" -> chordSelectForm x y
 
-            let selectForm = \x -> join <$> widgetHold 
-                  ((getSelectForm x) initialTab)
-                  (getSelectForm x <$> updated currentTab)
+            let selectForm = \x y -> join <$> widgetHold 
+                  ((getSelectForm x y) initialTab)
+                  (getSelectForm x y <$> updated currentTab)
 
             elClass "div" "pane-body" $ do
                 diagramOptionsWidget selectForm appData
@@ -80,7 +80,7 @@ mainPage appDir = do
 
         blank
 
-scaleSelectForm appData = do
+scaleSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ temperaments appData
     let initialScales = maybe [] id $ 
             Map.lookup initialTemperament $ scales appData
@@ -95,7 +95,7 @@ scaleSelectForm appData = do
         (pure initialScales)
         (head initialScales)
 
-chordSelectForm appData = do
+chordSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ temperaments appData
     let initialChords = maybe [] id $ 
             Map.lookup initialTemperament $ chords appData
@@ -128,8 +128,8 @@ diagramOptionsWidget selectForm appData = do
             groupedTunings
             (head initialTunings)
 
-    scaleDyn <- elClass "div" "row" $
-        selectForm appData
+    scaleDyn <- elClass "div" "row" 
+        (selectForm appData temperamentDyn)
 
     (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
         keyDyn <- elAttr "div" ("class" =: "col s6" <> "style" =: "padding-left: 0px;") $
