@@ -85,6 +85,11 @@ scaleSelectForm appData = do
     let initialScales = maybe [] id $ 
             Map.lookup initialTemperament $ scales appData
 
+    -- TODO: Probablyt need to use this somehow
+    -- let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+    --         temperament <- temperamentMay
+    --         Map.lookup (temperamentName temperament) $ scales appData)
+
     selectMaterial "Scale"
         "No Scales Defined"
         (pure initialScales)
@@ -103,11 +108,11 @@ chordSelectForm appData = do
         (head initialChords)
 
 diagramOptionsWidget selectForm appData = do
+    let initialTemperament = head $ temperaments appData
     temperamentDyn <- elClass "div" "row" $
-                    selectTemperament appData
-                        (head $ temperaments appData)
+        selectTemperament appData initialTemperament
 
-    let Just initialTunings = Map.lookup "12-TET" $ tunings appData
+    let initialTunings = maybe [] id $ Map.lookup (temperamentName initialTemperament) $ tunings appData
     
     let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
@@ -122,12 +127,6 @@ diagramOptionsWidget selectForm appData = do
             "No Tunings Defined"
             groupedTunings
             (head initialTunings)
-
-    let Just initialScales = Map.lookup "12-TET" $ scales appData
-
-    let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
-            temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ scales appData)
 
     scaleDyn <- elClass "div" "row" $
         selectForm appData
