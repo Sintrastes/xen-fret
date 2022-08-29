@@ -322,11 +322,11 @@ defaultAppData = AppData {
             ("11-TET", Chord "Major" (4 :| [3, 4])),
             ("11-TET", Chord "Minor" (3 :| [4, 4])),
             ("12-TET", Chord "Major" (4 :| [3, 5])),
-            ("12-TET", Chord "Minor" (3 :| [4, 5]))
-            -- ("12-TET", Chord "Major 7th" (5 :| [4, 5, 1])),
-            -- ("12-TET", Chord "Dominant 7th" (5 :| [4, 4, 2])),
-            -- ("12-TET", Chord "Minor 7th" (4 :| [5, 4, 2])),
-            -- ("12-TET", Chord "MinMaj 7th" (4 :| [5, 5, 1]))
+            ("12-TET", Chord "Minor" (3 :| [4, 5])),
+            ("12-TET", Chord "Major 7th" (4 :| [3, 4, 1])),
+            ("12-TET", Chord "Dominant 7th" (4 :| [3, 3, 2])),
+            ("12-TET", Chord "Minor 7th" (3 :| [4, 3, 2])),
+            ("12-TET", Chord "MinMaj 7th" (3 :| [4, 4, 1]))
         ]
     , preferences = defaultPreferences
 }
