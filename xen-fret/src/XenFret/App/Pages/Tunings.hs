@@ -154,6 +154,9 @@ tuningForm appData initialTemperament isNewName initialValue = do
         intervalListEntry
         (stringTunings initialValue)
 
+    labeledEntry "Skip Fretting"
+        intEntry 0
+
     let tuningFrom = mkTuningForm
             nameDyn instrumentDyn
             intervalsDyn
