@@ -319,6 +319,8 @@ defaultAppData = AppData {
         ]
     , chords = toMap $ fromList 
         [
+            ("11-TET", Chord "Major" (4 :| [3, 4])),
+            ("11-TET", Chord "Minor" (3 :| [4, 4])),
             ("12-TET", Chord "Major" (4 :| [3, 5])),
             ("12-TET", Chord "Minor" (3 :| [4, 5]))
             -- ("12-TET", Chord "Major 7th" (5 :| [4, 5, 1])),

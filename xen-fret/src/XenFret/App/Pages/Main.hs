@@ -98,12 +98,16 @@ chordSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ temperaments appData
     let initialChords = maybe [] id $ 
             Map.lookup initialTemperament $ chords appData
+    
+    let loadedChords = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
+            temperament <- temperamentMay
+            Map.lookup (temperamentName temperament) $ chords appData)
 
     -- Convert to scale, as that is the format the
     -- diagram display widget understands
     fmap (toScale <$>) <$> selectMaterial "Chord"
         "No Chords Defined"
-        (pure initialChords)
+        loadedChords
         (head initialChords)
 
 diagramOptionsWidget selectForm appData = do
