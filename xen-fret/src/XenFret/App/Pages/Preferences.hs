@@ -77,7 +77,7 @@ preferencePage appDir = do
 
 prefRow :: _ => m a -> m (a, Event t ())
 prefRow x = do
-    (e, res) <- elAttr' "div" ("class" =: "row" <> "style" =: "margin-bottom: 0;") x
+    (e, res) <- elAttr' "div" ("class" =: "row" <> "style" =: "margin-bottom: 0; margin-left: 2em; margin-right: 2em;") x
 
     pure (res, domEvent Click e)
 
