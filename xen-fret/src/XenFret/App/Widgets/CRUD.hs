@@ -5,6 +5,7 @@ import XenFret.AppData
 import Witherable(Witherable, wither)
 import Control.Applicative
 
+-- | Witherable optic. https://chrispenner.ca/posts/witherable-optics
 type Wither s t a b = forall f. Alternative f => (a -> f b) -> s -> f t
 type Wither' s a = Wither s s a a
 
