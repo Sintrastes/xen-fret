@@ -9,6 +9,7 @@ import Data.MultiMap
 import Data.List.NonEmpty  hiding(fromList)
 import Data.Ratio
 import XenFret.Sagittal
+import Control.Lens.TH
 
 data PreferenceData = PreferenceData {
     useDarkMode :: Bool
@@ -18,22 +19,24 @@ $(deriveJSON defaultOptions ''PreferenceData)
 
 data AppData = AppData {
     -- | Get the list of temperaments
-    temperaments :: [Temperament],
+    _temperaments :: [Temperament],
     -- | Get the tunings associated with a temperament.
-    tunings :: Map T.Text [Tuning],
+    _tunings :: Map T.Text [Tuning],
     -- | Get the scales associated with a temperament.
-    scales  :: Map T.Text [Scale],
+    _scales  :: Map T.Text [Scale],
     -- | Get the chords associated with a temperament
-    chords :: Map T.Text [Chord],
+    _chords :: Map T.Text [Chord],
     -- | Get the current preferences for the app.
-    preferences :: PreferenceData
+    _preferences :: PreferenceData
 }
+
+$(makeLenses ''AppData)
 
 $(deriveJSON defaultOptions ''AppData)
 
 defaultAppData :: AppData
 defaultAppData = AppData {
-      temperaments = 
+      _temperaments = 
         [
             Temperament "11-TET" 11 (2 % 1) 
                   (Just [
@@ -123,7 +126,7 @@ defaultAppData = AppData {
                     "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
                   ])
         ]
-    , tunings = toMap $ fromList 
+    , _tunings = toMap $ fromList 
         [
             ("11-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar" 
                 (0 :| [5, 10, 15, 20, 25])),
@@ -182,7 +185,7 @@ defaultAppData = AppData {
             ("Bohlen Pierce", Tuning "Bohlen's Tuning" "Six String Guitar"
                 (0 :| [3,6,9,13,16])) -- A1 C E G A C
         ]
-    , scales = toMap $ fromList 
+    , _scales = toMap $ fromList 
         [
             ("11-TET", Scale "Orgone[7]"
                 (1 :| [2, 1, 2, 1, 2, 2]))
@@ -317,7 +320,7 @@ defaultAppData = AppData {
           , ("Bohlen Pierce", Scale "Walker II"
                   (2 :| [1,2,1,2,1,1,2,1]))
         ]
-    , chords = toMap $ fromList 
+    , _chords = toMap $ fromList 
         [
             ("11-TET", Chord "Major" (4 :| [3, 4])),
             ("11-TET", Chord "Minor" (3 :| [4, 4])),
@@ -328,7 +331,7 @@ defaultAppData = AppData {
             ("12-TET", Chord "Minor 7th" (3 :| [4, 3, 2])),
             ("12-TET", Chord "MinMaj 7th" (3 :| [4, 4, 1]))
         ]
-    , preferences = defaultPreferences
+    , _preferences = defaultPreferences
 }
 
 defaultPreferences :: PreferenceData
