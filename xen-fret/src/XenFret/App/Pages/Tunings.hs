@@ -25,7 +25,7 @@ import Data.Foldable
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    let initialTunings = tunings appData
+    let initialTunings = _tunings appData
 
     newTuningEvent <- button "New Tuning"
 
@@ -49,10 +49,10 @@ tuningPage appDir = mdo
                 else Success name
 
     newTuningSubmitted <- validatedModal newTuningEvent $ \_ -> do
-        tuningForm appData (head $ temperaments appData) (isNewName Nothing) def
+        tuningForm appData (head $ _temperaments appData) (isNewName Nothing) def
 
     let dynAppData = dynTunings <&> \t ->
-           appData { tunings = t }
+           appData { _tunings = t }
 
     persistAppData dynAppData
        (appDir <> "/app_data.json")
@@ -89,7 +89,7 @@ tuningPage appDir = mdo
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, tuning) -> do
         res <- tuningForm appData
-            (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData)
+            (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
             (isNewName $ Just $ tuningName tuning) tuning
         pure $ fmap (\(x,y) -> (x, tuning, y)) <$> res
 

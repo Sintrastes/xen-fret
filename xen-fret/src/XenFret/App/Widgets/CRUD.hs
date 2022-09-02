@@ -68,7 +68,7 @@ crudPage appDir entityName form optic = mdo
     --                 else Success name
 
     newEntitySubmitted <- validatedModal newEntityClick $ \_ ->
-        form appData (head $ temperaments appData) getName def
+        form appData (head $ _temperaments appData) getName def
 
     persistAppData dynUpdatedData
         (appDir <> "/app_data.json")
@@ -99,7 +99,7 @@ crudPage appDir entityName form optic = mdo
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, entity) -> do
         res <- form appData
-            (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData)
+            (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
             getName entity
         pure $ fmap (\(x, y) -> (x, entity, y)) <$> res
 
@@ -134,9 +134,9 @@ getEntitiesFor :: t -> (t -> Lens' s a) -> s -> a
 getEntitiesFor temperament optic appData = appData ^. optic temperament
 
 getEntities :: (T.Text -> Lens' AppData [a]) -> AppData -> [a]
-getEntities optic appData = mconcat $ temperaments appData <&> \temperament ->
+getEntities optic appData = mconcat $ _temperaments appData <&> \temperament ->
     appData ^. optic (temperamentName temperament)
 
 getEntitiesMap :: (T.Text -> Lens' AppData [a]) -> AppData -> Map.Map T.Text [a]
-getEntitiesMap optic appData = Map.fromList $ temperaments appData <&> \temperament ->
+getEntitiesMap optic appData = Map.fromList $ _temperaments appData <&> \temperament ->
     (temperamentName temperament, appData ^. optic (temperamentName temperament))

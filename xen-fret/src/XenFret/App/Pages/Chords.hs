@@ -22,6 +22,22 @@ import Data.Maybe hiding (mapMaybe)
 import Data.Functor
 import Control.Monad
 import Data.Foldable
+import XenFret.App.Widgets.CRUD
+import Control.Lens
 
-chordPage appDir = do
-    el "p" $ text "chords"
+-- Helper "Iso" (really not a strict isomorphism)
+--  to help reduce "at"s that return a list.
+reduceMaybe :: Iso' (Maybe [a]) [a]
+reduceMaybe = iso (fromMaybe []) Just
+
+chordPage :: _ => FilePath -> m ()
+chordPage appDir = crudPage appDir "chord" chordForm 
+    (\x -> chords . at x . reduceMaybe)
+
+chordForm :: _ =>
+    AppData
+ -> Temperament
+ -> (T.Text -> Dynamic t [T.Text])
+ -> a
+ -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, a)))
+chordForm = undefined
