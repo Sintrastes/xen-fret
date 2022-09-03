@@ -27,9 +27,9 @@ import XenFret.App.Widgets.Fretboard
 temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    let initialTemperaments = temperaments appData
-    let initialScales = scales appData
-    let initialTunings = tunings appData
+    let initialTemperaments = _temperaments appData
+    let initialScales = _scales appData
+    let initialTunings = _tunings appData
 
     newTemperamentEvent <- button "New Temperament"
 
@@ -143,9 +143,9 @@ temperamentPage appDir = mdo
             dynScales
 
     let dynAppData = dynData <&> \(temperaments, tunings, scales) -> appData {
-        temperaments = temperaments,
-        tunings = tunings,
-        scales = scales
+        _temperaments = temperaments,
+        _tunings = tunings,
+        _scales = scales
     }
 
     persistAppData dynAppData

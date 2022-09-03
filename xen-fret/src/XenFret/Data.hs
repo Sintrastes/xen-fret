@@ -8,6 +8,9 @@ import Data.Aeson.TH
 import Data.List.NonEmpty hiding((!!), cycle)
 import Data.Ratio
 
+class Named a where
+    name :: a -> T.Text
+
 data Temperament = Temperament {
     temperamentName :: T.Text, 
     divisions :: Int,
@@ -74,6 +77,9 @@ data Chord = Chord {
     chordIntervals :: NonEmpty Int
 }
     deriving(Eq)
+
+instance Named Chord where
+    name = chordName
 
 instance Show Chord where
     show = T.unpack . chordName

@@ -68,12 +68,12 @@ addScale Temperament{..} scale map = case Map.lookup temperamentName map of
 getScales :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Scale])
 getScales appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ scales appData
+    return $ _scales appData
 
 getTunings :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Tuning])
 getTunings appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ tunings appData
+    return $ _tunings appData
 
 pairForms :: (Semigroup e, Reflex t) =>
     Dynamic t (Validation e a)
@@ -90,7 +90,7 @@ validationToMaybe = \case
 
 selectTemperament :: _ => AppData -> Temperament -> m (Dynamic t (Maybe Temperament))
 selectTemperament appData temperament = do
-    let loadedTemperaments = temperaments appData
+    let loadedTemperaments = _temperaments appData
 
     selectMaterial "Temperament"
         "No Temperaments Defined"
@@ -99,7 +99,7 @@ selectTemperament appData temperament = do
 
 getTemperaments appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ temperaments appData
+    return $ _temperaments appData
 
 loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppData
 

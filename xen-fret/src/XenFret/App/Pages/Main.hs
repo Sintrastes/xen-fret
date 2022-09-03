@@ -81,13 +81,13 @@ mainPage appDir = do
         blank
 
 scaleSelectForm appData temperamentDyn = do
-    let initialTemperament = temperamentName $ head $ temperaments appData
+    let initialTemperament = temperamentName $ head $ _temperaments appData
     let initialScales = maybe [] id $ 
-            Map.lookup initialTemperament $ scales appData
+            Map.lookup initialTemperament $ _scales appData
 
     let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ scales appData)
+            Map.lookup (temperamentName temperament) $ _scales appData)
 
     selectMaterial "Scale"
         "No Scales Defined"
@@ -95,13 +95,13 @@ scaleSelectForm appData temperamentDyn = do
         (head initialScales)
 
 chordSelectForm appData temperamentDyn = do
-    let initialTemperament = temperamentName $ head $ temperaments appData
+    let initialTemperament = temperamentName $ head $ _temperaments appData
     let initialChords = maybe [] id $ 
-            Map.lookup initialTemperament $ chords appData
+            Map.lookup initialTemperament $ _chords appData
 
     let loadedChords = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ chords appData)
+            Map.lookup (temperamentName temperament) $ _chords appData)
 
     -- Convert to scale, as that is the format the
     -- diagram display widget understands
@@ -111,15 +111,15 @@ chordSelectForm appData temperamentDyn = do
         (head initialChords)
 
 diagramOptionsWidget selectForm appData = do
-    let initialTemperament = head $ temperaments appData
+    let initialTemperament = head $ _temperaments appData
     temperamentDyn <- elClass "div" "row" $
         selectTemperament appData initialTemperament
 
-    let initialTunings = maybe [] id $ Map.lookup (temperamentName initialTemperament) $ tunings appData
+    let initialTunings = maybe [] id $ Map.lookup (temperamentName initialTemperament) $ _tunings appData
     
     let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ tunings appData)
+            Map.lookup (temperamentName temperament) $ _tunings appData)
 
     let groupedTunings = loadedTunings <&> (\tunings ->
             let groupings = groupBy (\x y -> instrument x == instrument y) tunings

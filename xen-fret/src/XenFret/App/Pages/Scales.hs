@@ -27,7 +27,7 @@ import XenFret.App.Widgets.Fretboard
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    let currentScales = scales appData
+    let currentScales = _scales appData
 
     newScaleClick <- button "New Scale"
 
@@ -51,10 +51,10 @@ scalePage appDir = mdo
                     else Success name
 
     newScaleSubmitted <- validatedModal newScaleClick $ \_ ->
-        scaleForm appData (head $ temperaments appData) (isNewName Nothing) def
+        scaleForm appData (head $ _temperaments appData) (isNewName Nothing) def
 
     let dynAppData = dynScales <&> \s ->
-            appData { scales = s }
+            appData { _scales = s }
 
     persistAppData dynAppData
         (appDir <> "/app_data.json")
@@ -88,7 +88,7 @@ scalePage appDir = mdo
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, scale) -> do
         res <- scaleForm appData
-            (fromJust $ find (\x -> temperamentName x == temperament) $ temperaments appData)
+            (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
             (isNewName (Just $ scaleName scale)) scale
         pure $ fmap (\(x,y) -> (x, scale, y)) <$> res
 
