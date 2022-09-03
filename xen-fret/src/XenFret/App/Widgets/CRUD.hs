@@ -17,7 +17,6 @@ import Data.Maybe hiding (mapMaybe)
 import Data.Functor
 import Control.Monad
 import Data.Foldable
-import Witherable(Witherable, wither)
 import Control.Applicative
 import Control.Lens (toListOf, Lens', (^.), (%~), At (at), (.=), lens)
 import Control.Lens.Prism
