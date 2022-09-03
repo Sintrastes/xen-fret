@@ -54,6 +54,7 @@ library
     , diagrams-lib
     , diagrams-svg
     , svg-builder
+    , SVGFonts
     , bytestring
     , containers
     , multimap

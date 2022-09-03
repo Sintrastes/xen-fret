@@ -23,9 +23,6 @@ import Control.Lens (toListOf, Lens', (^.), (%~), At (at), (.=), lens)
 import Control.Lens.Prism
 import Diagrams (yDir)
 
-class Named a where
-    name :: a -> T.Text
-
 -- | Generic widget for a CRUD page that updates a collection contained in AppData.
 crudPage :: _ =>
     FilePath
@@ -53,7 +50,7 @@ crudPage appDir entityName form optic = mdo
         updatedEntities
 
     let getName = \temperament -> dynUpdatedData <&> (\x ->
-         let ts = temperaments x
+         let ts = _temperaments x
              n = find ((== temperament) . temperamentName) ts
              ents = maybe [] (\y -> getEntitiesFor (temperamentName y) optic x) n
          in fmap name ents)

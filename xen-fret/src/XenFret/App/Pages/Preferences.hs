@@ -20,7 +20,7 @@ import Data.Text.Lazy (fromStrict)
 preferencePage :: _ => FilePath -> m ()
 preferencePage appDir = do
     currentAppData <- loadAppData (appDir <> "/app_data.json")
-    let currentPrefs = preferences currentAppData
+    let currentPrefs = _preferences currentAppData
 
     (_, clickImport) <- prefRow $ do
         prefHeader "Import Data"
