@@ -2,8 +2,7 @@
 module XenFret.App.Pages.Preferences where
 
 import qualified Data.Text as T
-import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal, fun, valToStr, JSString(..))
-import Data.JSString
+import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal, fun, valToStr, JSString(..), textFromJSString)
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import XenFret.AppData
@@ -76,7 +75,7 @@ preferencePage appDir = do
         liftJSM $ jsg1 ("importFile" :: T.Text)
             (fun $ \_ this args -> do
                 let firstArg = args !! 0
-                JSString contents <- valToStr firstArg
+                contents <- textFromJSString <$> valToStr firstArg
                 let Just appData = decode (TL.encodeUtf8 $ fromStrict contents) :: Maybe AppData
                 liftIO $ encodeFile (appDir <> "/app_data.json") appData)
 
