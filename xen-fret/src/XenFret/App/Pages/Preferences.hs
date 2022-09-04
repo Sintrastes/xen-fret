@@ -3,6 +3,7 @@ module XenFret.App.Pages.Preferences where
 
 import qualified Data.Text as T
 import Language.Javascript.JSaddle (liftJSM, jsg, jsg0, jsg3, jsg1, fromJSVal, fun, valToStr, JSString(..))
+import Data.JSString
 import Reflex.Dom.Core hiding(Home, button, checkbox)
 import Reflex.Dom.Extras
 import XenFret.AppData
