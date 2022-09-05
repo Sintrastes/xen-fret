@@ -34,10 +34,36 @@ chordPage :: _ => FilePath -> m ()
 chordPage appDir = crudPage appDir "chord" chordForm 
     (\x -> chords . at x . reduceMaybe)
 
-chordForm :: _ =>
+chordForm :: MonadWidget t m =>
     AppData
  -> Temperament
  -> (T.Text -> Dynamic t [T.Text])
- -> a
- -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, a)))
-chordForm appData initialTemperament currentChords initialValue = undefined
+ -> Chord
+ -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, Chord)))
+chordForm appData initialTemperament currentChords initialValue = mdo
+    modalHeader "Add New Chord"
+
+    currentTemperament <- holdDyn initialTemperament =<<
+        delay 0.1 temperamentUpdated
+
+    let isValidName = pure $ \_ x -> Success x
+
+    let chordValidation = combineDynValidations
+          [ pure $ nonEmptyText "Chord name must not be entry"
+          , isValidName <*> currentTemperament]
+
+    temperamentForm <- (validateNonNull "Temperament must be selected" <$>) <$>
+            selectTemperament appData initialTemperament
+
+    let temperamentUpdated = fmapMaybe validationToMaybe
+            (updated temperamentForm)
+
+    let periodDyn = currentTemperament <&> divisions
+
+    chordForm <- initFormA (Chord <$>
+          formA (chordName =. labeledEntryA "Name"
+            (validatedTextEntryDyn chordValidation id)) <*>
+          formA (chordIntervals =. labeledEntryA "Intervals"
+            (scaleListEntry periodDyn))) initialValue
+
+    pure $ pairForms temperamentForm chordForm
