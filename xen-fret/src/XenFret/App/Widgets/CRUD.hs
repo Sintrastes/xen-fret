@@ -21,9 +21,12 @@ import Control.Applicative
 import Control.Lens (toListOf, Lens', (^.), (%~), At (at), (.=), lens)
 import Control.Lens.Prism
 import Diagrams (yDir)
+import Control.Monad.Fix
+import Data.Default
+import Control.Monad.IO.Class
 
 -- | Generic widget for a CRUD page that updates a collection contained in AppData.
-crudPage :: _ =>
+crudPage :: (Named a, Default a, Eq a, Show a, MonadWidget t m, Prerender t m) =>
     FilePath
  -> T.Text
  -> (AppData -> Temperament -> (T.Text -> Dynamic t [T.Text]) -> a -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, a))))
@@ -89,7 +92,7 @@ crudPage appDir entityName form optic = mdo
             pure (leftmost $ join itemEvents)))
 
     let removedEntity = pushAlways (\(temperamentName, deletedEntity) -> do
-            currentData <- loadAppData (appDir <> "/app_data.json")
+            currentData <- sample $ current dynUpdatedData
 
             pure $ deleteEntity (optic temperamentName) currentData deletedEntity) deleteEvents
 
@@ -102,7 +105,7 @@ crudPage appDir entityName form optic = mdo
     let editSubmitted = mapMaybe id completeEditDialog
 
     let editedEntity = pushAlways (\(temperament, origEntity, newEntity) -> do
-            currentData <- loadAppData (appDir <> "/app_data.json")
+            currentData <- sample $ current dynUpdatedData
 
             pure $ editEntity (optic $ temperamentName temperament) currentData origEntity newEntity) editSubmitted
 

@@ -115,7 +115,7 @@ app = do
         Tunings -> tuningPage appDir
         Scales -> scalePage appDir
         Preferences -> preferencePage appDir
-        Chords ->  blank -- chordPage appDir
+        Chords -> chordPage appDir
     blank
 
 
