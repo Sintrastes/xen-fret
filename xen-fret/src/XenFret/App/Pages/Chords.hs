@@ -40,4 +40,4 @@ chordForm :: _ =>
  -> (T.Text -> Dynamic t [T.Text])
  -> a
  -> m (Dynamic t (Validation (NonEmpty ErrorMessage) (Temperament, a)))
-chordForm = undefined
+chordForm appData initialTemperament currentChords initialValue = undefined
