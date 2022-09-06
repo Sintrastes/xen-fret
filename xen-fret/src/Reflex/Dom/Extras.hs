@@ -247,12 +247,12 @@ selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) =>
      T.Text
   -> T.Text
   -> Dynamic t [a]
-  -> a -> m (Dynamic t (Maybe a))
+  -> Maybe a -> m (Dynamic t (Maybe a))
 selectMaterial label missingText itemsDyn initialValue = elClass "div" "input-field" $ mdo
     initialItems <- sample $ current itemsDyn
 
-    let initialValueActual = if initialValue `elem` initialItems
-        then Just initialValue
+    let initialValueActual = if initialValue `elem` (Just <$> initialItems)
+        then initialValue
         else headMay initialItems
 
     (form, changeSelection) <- elClass "div" "select-wrapper" $ do

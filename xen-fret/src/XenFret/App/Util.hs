@@ -95,7 +95,7 @@ selectTemperament appData temperament = do
     selectMaterial "Temperament"
         "No Temperaments Defined"
         (pure loadedTemperaments)
-        temperament
+        (Just temperament)
 
 getTemperaments appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")

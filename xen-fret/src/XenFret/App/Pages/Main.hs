@@ -92,7 +92,7 @@ scaleSelectForm appData temperamentDyn = do
     selectMaterial "Scale"
         "No Scales Defined"
         loadedScales
-        (head initialScales)
+        (headMay initialScales)
 
 chordSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ _temperaments appData
@@ -108,7 +108,7 @@ chordSelectForm appData temperamentDyn = do
     fmap (toScale <$>) <$> selectMaterial "Chord"
         "No Chords Defined"
         loadedChords
-        (head initialChords)
+        (headMay initialChords)
 
 diagramOptionsWidget selectForm appData = do
     let initialTemperament = head $ _temperaments appData
