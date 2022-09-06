@@ -17,10 +17,6 @@ colorPicker :: (MonadWidget t m, _) => Color -> m (Dynamic t Color)
 colorPicker initialColor = do
     elAttr "div" ("id" =: "picker") blank
 
-    postBuild <- getPostBuild
-
-    _ <- performEvent $ postBuild <&> \_ -> do
-        liftJSM $ do 
-           eval ("iro.ColorPicker(\"#picker\");" :: Text)
+    el "script" $ text "iro.ColorPicker(\"#picker\");"
 
     pure $ pure initialColor
