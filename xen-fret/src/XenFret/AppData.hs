@@ -12,7 +12,8 @@ import XenFret.Sagittal
 import Control.Lens.TH
 
 data PreferenceData = PreferenceData {
-    useDarkMode :: Bool
+    useDarkMode :: Bool,
+    noteNameSize :: Double
 }
 
 $(deriveJSON defaultOptions ''PreferenceData)
@@ -370,5 +371,6 @@ defaultAppData = AppData {
 
 defaultPreferences :: PreferenceData
 defaultPreferences = PreferenceData {
-    useDarkMode = False
+    useDarkMode = False,
+    noteNameSize = 1.0
 }
