@@ -154,12 +154,13 @@ tuningForm appData initialTemperament isNewName initialValue = do
         intervalListEntry
         (stringTunings initialValue)
 
-    labeledEntry "Skip Fretting"
+    skipFrettingDyn <- labeledEntry "Skip Fretting"
         intEntry 0
 
     let tuningFrom = mkTuningForm
             nameDyn instrumentDyn
-            intervalsDyn
+            intervalsDyn 
+            (Success <$> skipFrettingDyn)
 
     pure $ pairForms temperamentForm tuningFrom
 
@@ -167,13 +168,16 @@ mkTuningForm :: (Semigroup e, Reflex t) =>
      Dynamic t (Validation e T.Text)
   -> Dynamic t (Validation e T.Text)
   -> Dynamic t (Validation e (NonEmpty Int))
+  -> Dynamic t (Validation e Int)
   -> Dynamic t (Validation e Tuning)
-mkTuningForm name instrument strings = do
+mkTuningForm name instrument strings skipFretting = do
     name' <- name
     instrument' <- instrument
     strings' <- strings
+    skipFretting' <- skipFretting
 
     return $ Tuning <$>
         name' <*>
         instrument' <*>
-        strings'
+        strings' <*>
+        skipFretting'
