@@ -303,6 +303,34 @@ defaultAppData = AppData {
                 (4 :| [3, 3, 4, 4, 3, 3]))
           , ("24-TET", Scale "Mohajira[7]"
                 (3 :| [4, 3, 4, 3, 4, 3]))
+          , ("41-TET", Scale "Down Lydian"
+                (7 :| [6,7,4,7,6,4]))
+          , ("41-TET", Scale "Down Major"
+                  (7 :| [6, 4, 7, 6, 7, 4]))
+          , ("41-TET", Scale "Down Mixolydian"
+                  (6 :| [7, 4, 7, 6, 4, 7]))
+          , ("41-TET", Scale "Up Minor"
+                  (7 :| [4, 6, 7, 4, 7, 6]))
+          , ("41-TET", Scale "Up Phrygian"
+                  (4 :| [7, 6, 7, 4, 6, 7]))
+          , ("41-TET", Scale "Up Dorian"
+                  (7 :| [4, 6, 7, 7, 4, 6]))
+          , ("41-TET", Scale "Up Locrian"
+                  (4 :| [6, 7, 3, 8, 6, 7]))
+          , ("41-TET", Scale "Up Lydian"
+                  (7 :| [8, 7, 2, 7, 8, 2]))
+          , ("41-TET", Scale "Up Major"
+                  (7 :| [8, 2, 7, 8, 7, 2]))
+          , ("41-TET", Scale "Up Mixolydian"
+                  (8 :| [7, 2, 7, 8, 2, 7]))
+          , ("41-TET", Scale "Down Minor"
+                  (7 :| [2, 8, 7, 2, 7, 8]))
+          , ("41-TET", Scale "Down Phrygian"
+                  (2 :| [7, 8, 7, 2, 8, 7]))
+          , ("41-TET", Scale "Down Dorian"
+                  (7 :| [2, 8, 7, 7, 2, 8]))
+          , ("41-TET", Scale "Down Locrian"
+                  (2 :| [8, 7, 3, 6, 8, 7]))
           , ("Bohlen Pierce", Scale "Lambda"
                 (2 :| [1, 1, 2, 1, 2, 1, 2, 1]))
           , ("Bohlen Pierce", Scale "Moll 1"
