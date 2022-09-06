@@ -24,6 +24,7 @@ import Control.Monad
 import Data.Foldable
 import XenFret.App.Widgets.CRUD
 import Control.Lens
+import Debug.Trace
 
 -- Helper "Iso" (really not a strict isomorphism)
 --  to help reduce "at"s that return a list.
@@ -46,11 +47,16 @@ chordForm appData initialTemperament currentChords initialValue = mdo
     currentTemperament <- holdDyn initialTemperament =<<
         delay 0.1 temperamentUpdated
 
-    let isValidName = pure $ \_ x -> Success x
+    let isValidName = \temperament -> do
+          chords <- currentChords (temperamentName temperament)
+          pure $ trace (show chords) $ \x -> if x `elem` chords
+            then Failure $ "There is already a chord with this name." :| [] 
+            else Success x
 
     let chordValidation = combineDynValidations
           [ pure $ nonEmptyText "Chord name must not be entry"
-          , isValidName <*> currentTemperament]
+          , isValidName =<< currentTemperament
+          ]
 
     temperamentForm <- (validateNonNull "Temperament must be selected" <$>) <$>
             selectTemperament appData initialTemperament
