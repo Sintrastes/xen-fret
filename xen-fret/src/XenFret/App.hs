@@ -53,6 +53,8 @@ header = do
   elAttr "script" (
     "src" =: "https://sintrastes.github.io/demos/xen_fret/main.js") blank
   elAttr "script" (
+    "src" =: "https://sintrastes.github.io/demos/xen_fret/iro.min.js") blank
+  elAttr "script" (
     "src" =: "https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js") blank
   elAttr "link" (
     "id" =: "css-style" <>
