@@ -43,6 +43,7 @@ import XenFret.App.Pages.Preferences
 import XenFret.App.Pages.Scales
 import XenFret.App.Pages.Temperaments
 import XenFret.App.Pages.Tunings
+import XenFret.App.Widgets.ColorPicker
 
 header :: _ => m ()
 header = do
