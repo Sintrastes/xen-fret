@@ -92,3 +92,18 @@ instance Default Chord where
     def = Chord "" (0 :| [])
 
 $(deriveJSON defaultOptions ''Chord)
+
+data NotationSystem = NotationSystem {
+    notationName :: T.Text,
+    notes :: [T.Text]
+}
+    deriving(Eq)
+
+instance Show NotationSystem where
+    show = T.unpack . notationName
+
+instance Default NotationSystem where
+    def = NotationSystem {
+        notationName = "",
+        notes = []
+    }
