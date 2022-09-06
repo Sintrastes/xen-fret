@@ -186,6 +186,8 @@ defaultAppData = AppData {
                 (fmap (+14) $ 0 :| [10, 20, 30, 38, 48]) 0),
             ("24-TET", Tuning "Drop D" "Six-String Guitar" 
                 (fmap (+12) $ 0 :| [14, 24, 34, 42, 52]) 0),
+            ("41-TET", Tuning "Standard Tuning" "Kite Guitar" 
+                (0 :| [13, 26, 39, 52, 65]) 1),
             ("Bohlen Pierce", Tuning "Bohlen's Tuning" "Six String Guitar"
                 (0 :| [3,6,9,13,16]) 0) -- A1 C E G A C
         ]
