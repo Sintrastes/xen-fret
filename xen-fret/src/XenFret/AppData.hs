@@ -129,61 +129,61 @@ defaultAppData = AppData {
     , _tunings = toMap $ fromList 
         [
             ("11-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar" 
-                (0 :| [5, 10, 15, 20, 25])),
+                (0 :| [5, 10, 15, 20, 25]) 0),
             ("11-TET", Tuning "Major Thirds Tuning" "Six-String Guitar" 
-                (0 :| [4, 8, 12, 16, 20])),
+                (0 :| [4, 8, 12, 16, 20]) 0),
             ("11-TET", Tuning "Wide Fourths Tuning" "Four-String Bass Guitar" 
-                (0 :| [5, 10, 15])),
+                (0 :| [5, 10, 15]) 0),
             ("11-TET", Tuning "Major Thirds Tuning" "Four-String Bass Guitar" 
-                (0 :| [4, 8, 120])),
+                (0 :| [4, 8, 120]) 0),
             ("12-TET", Tuning "Standard Tuning" "Mandolin"
-                (fmap (+10) $ 0 :| [7, 14, 21])),
+                (fmap (+10) $ 0 :| [7, 14, 21]) 0),
             ("12-TET", Tuning "Standard Tuning" "Ukulele"
-                (fmap (+3) $ 7 :| [0, 4, 9])),
+                (fmap (+3) $ 7 :| [0, 4, 9]) 0),
             ("12-TET", Tuning "Standard Tuning" "Six-String Guitar" 
-                (fmap (+7) $ 0 :| [5, 10, 15, 19, 24])),
+                (fmap (+7) $ 0 :| [5, 10, 15, 19, 24]) 0),
             ("12-TET", Tuning "Standard Tuning" "Four-String Bass Guitar" 
-                (fmap (+7) $ 0 :| [5, 10, 15])),
+                (fmap (+7) $ 0 :| [5, 10, 15]) 0),
             ("12-TET", Tuning "Standard Tuning" "Seven-String Guitar" 
-                (fmap (+2) $ 0 :| [5, 10, 15, 20, 14, 29])),
+                (fmap (+2) $ 0 :| [5, 10, 15, 20, 14, 29]) 0),
             ("12-TET", Tuning "Drop D" "Six-String Guitar" 
-                (fmap (+5) $ 0 :| [7, 12, 17, 21, 26])),
+                (fmap (+5) $ 0 :| [7, 12, 17, 21, 26]) 0),
             ("12-TET", Tuning "DADGAD" "Six-String Guitar" 
-                (fmap (+5) $ 0 :| [7, 12, 17, 19, 24])),
+                (fmap (+5) $ 0 :| [7, 12, 17, 19, 24]) 0),
             ("12-TET", Tuning "All Fourths" "Six-String Guitar" 
-                (fmap (+7) $ 0 :| [5, 10, 15, 20, 25])),
+                (fmap (+7) $ 0 :| [5, 10, 15, 20, 25]) 0),
             ("12-TET", Tuning "All Fifths" "Six-String Guitar" 
-                (0 :| [7, 14, 21, 28, 35])),
+                (0 :| [7, 14, 21, 28, 35]) 0),
             ("13-TET", Tuning "Oneirotonic Tuning" "Six-String Guitar"
-                (3 :| [8, 14, 19, 24, 29])),
+                (3 :| [8, 14, 19, 24, 29]) 0),
             ("14-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
-                (0 :| [5, 10, 15, 20, 25])),
+                (0 :| [5, 10, 15, 20, 25]) 0),
             ("15-TET", Tuning "All Fourths Tuning" "Six-String Guitar"
-                (0 :| [5, 10, 15, 20, 25])),
+                (0 :| [5, 10, 15, 20, 25]) 0),
             ("16-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar"
-                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35])),
+                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35]) 0),
             ("16-TET", Tuning "Diminished Fourths Tuning" "Six-String Guitar"
-                (fmap (+9) $ 0 :| [6, 12, 18, 24, 30])),
+                (fmap (+9) $ 0 :| [6, 12, 18, 24, 30]) 0),
             ("16-TET", Tuning "Wide Fourths Tuning (7 String)" "Seven-String Guitar"
-                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35, 40])),
+                (fmap (+9) $ 0 :| [7, 14, 21, 28, 35, 40]) 0),
             ("16-TET", Tuning "Diminished Fourths Tuning (7 String)" "Seven-String Guitar"
-                (fmap (+2) $ 0 :| [6, 12, 18, 24, 30, 36])),
+                (fmap (+2) $ 0 :| [6, 12, 18, 24, 30, 36]) 0),
             ("17-TET", Tuning "Standard Tuning" "Six-String Guitar"
-                (fmap (+10) $ 0 :| [7, 14, 21, 27, 34])),
+                (fmap (+10) $ 0 :| [7, 14, 21, 27, 34]) 0),
             ("17-TET", Tuning "All Fourths" "Six-String Guitar"
-                (fmap (+10) $ 0 :| [7, 14, 21, 28, 35])), 
+                (fmap (+10) $ 0 :| [7, 14, 21, 28, 35]) 0), 
             ("18-TET", Tuning "Wide Fourths" "Six-String Guitar"
-                (0 :| [8, 16, 24, 32, 40])),
+                (0 :| [8, 16, 24, 32, 40]) 0),
             ("19-TET", Tuning "Standard Tuning" "Six-String Guitar"
-                (fmap (+11) $ 0 :| [8, 16, 24, 30, 38])),
+                (fmap (+11) $ 0 :| [8, 16, 24, 30, 38]) 0),
             ("22-TET", Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
-                (fmap (+13) $ 0 :| [9, 18, 27, 35, 44])),
+                (fmap (+13) $ 0 :| [9, 18, 27, 35, 44]) 0),
             ("24-TET", Tuning "Standard Tuning" "Six-String Guitar" 
-                (fmap (+14) $ 0 :| [10, 20, 30, 38, 48])),
+                (fmap (+14) $ 0 :| [10, 20, 30, 38, 48]) 0),
             ("24-TET", Tuning "Drop D" "Six-String Guitar" 
-                (fmap (+12) $ 0 :| [14, 24, 34, 42, 52])),
+                (fmap (+12) $ 0 :| [14, 24, 34, 42, 52]) 0),
             ("Bohlen Pierce", Tuning "Bohlen's Tuning" "Six String Guitar"
-                (0 :| [3,6,9,13,16])) -- A1 C E G A C
+                (0 :| [3,6,9,13,16]) 0) -- A1 C E G A C
         ]
     , _scales = toMap $ fromList 
         [
