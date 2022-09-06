@@ -42,7 +42,8 @@ $(deriveJSON defaultOptions ''Temperament)
 data Tuning = Tuning {
     tuningName :: T.Text,
     instrument :: T.Text,
-    stringTunings :: NonEmpty Int
+    stringTunings :: NonEmpty Int,
+    skipFrets :: Int
 }
     deriving(Eq)
 
@@ -53,7 +54,8 @@ instance Default Tuning where
     def = Tuning {
         tuningName = "",
         instrument = "",
-        stringTunings = 0 :| []
+        stringTunings = 0 :| [],
+        skipFrets = 0
     }
 
 $(deriveJSON defaultOptions ''Tuning)
