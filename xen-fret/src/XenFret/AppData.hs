@@ -39,54 +39,54 @@ defaultAppData = AppData {
       _temperaments = 
         [
             Temperament "11-TET" 11 (2 % 1) 
-                  (Just [
+                  [NotationSystem "" [
                       "Q","Q#","R","R#","S",
                       "S#","T","T#","U","U#","P"
-                    ]),
+                    ]],
             Temperament "12-TET" 12 (2 % 1)
-                  (Just [
+                  [NotationSystem "" [
                       "A","A#","B","C","C#","D",
                       "D#","E","F","F#","G","G#"
-                    ]),
+                    ]],
             Temperament "13-TET" 13 (2 % 1) 
-                  (Just [
+                  [NotationSystem "" [
                        "J","J#","K","L","L#","M","M#",
                        "N","O","O#","P","Q","Q#"
-                    ]),
+                    ]],
             Temperament "14-TET" 14 (2 % 1) 
-                  (Just [
+                  [NotationSystem "" [
                      "A","^A","B","^B","C","^C","D","^D","E","^E",
                      "F","^F","G","^G"
-                  ]),
+                  ]],
             Temperament "15-TET" 15 (2 % 1) 
-                  (Just [
+                  [NotationSystem "" [
                     "α","β\\","β","χ\\","χ","δ\\","δ",
                     "ε\\","ε","φ\\","φ","γ\\","γ","η\\",
                     "η"
-                  ]),
+                  ]],
             Temperament "16-TET" 16 (2 % 1) 
-                  (Just [
+                  [NotationSystem "Standard" [
                       "A","B#","B","Bb","C#","C","D#","D",
                       "E#","E","Eb","F#","F","G#","G","A#"
-                  ]),
+                  ]],
             Temperament "17-TET" 17 (2 % 1) 
-                  (Just [
+                  [NotationSystem "Standard" [
                     "A","Bb","A#","B","C","Db","C#","D",
                     "Eb","D#","E","F","Gb","F#","G","Ab",
                     "G#"
-                  ]),
+                  ]],
             Temperament "18-TET" 18 (2 % 1) 
-                  (Just [
+                  [NotationSystem "" [
                         "A","Bb","A#","B","C","Db","C#","D",
                         "Eb","D#","E","F","Gb","F#","G",
                         "Hb","G#","H"
-                  ]),
+                  ]],
             Temperament "19-TET" 19 (2 % 1) 
-                  (Just [
+                  [NotationSystem "Standard" [
                       "A","A#","Bb","B","B#","C",
                       "C#","Db","D","D#","Eb","E",
                       "E#","F","F#","Gb","G","G#","Ab"                  
-                  ]),
+                  ]],
             Temperament "22-TET" 22 (2 % 1) 
                   {- (Just [
                     "A","A#","Bb","B","B#",
@@ -95,7 +95,7 @@ defaultAppData = AppData {
                     "F","F#","Gb","G","G#",
                     "Gx","Ab"
                   ]) -}
-                  (Just [
+                  [NotationSystem "Sagittal" [
                     "A",
                     "A" <> sagittal5CommaUp,
                     "A" <> sagittalSharp5CDown,
@@ -118,17 +118,17 @@ defaultAppData = AppData {
                     "G" <> sagittal5CommaUp,
                     "G" <> sagittalSharp5CDown,
                     "G" <> sagittalSharp
-                  ]),
+                  ]],
             Temperament "24-TET" 24 (2 % 1) 
-                  Nothing,
+                  [],
             Temperament "31-TET" 24 (2 % 1) 
-                  Nothing,
+                  [],
             Temperament "41-TET" 41 (2 % 1)
-                  Nothing,
+                  [],
             Temperament "Bohlen Pierce" 13 (3 % 1) 
-                  (Just [
+                  [NotationSystem "Standard" [
                     "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
-                  ])
+                  ]]
         ]
     , _tunings = toMap $ fromList 
         [
