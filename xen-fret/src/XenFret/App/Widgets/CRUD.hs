@@ -25,7 +25,8 @@ import Control.Monad.Fix
 import Data.Default
 import Control.Monad.IO.Class
 
--- | Generic widget for a CRUD page that updates a collection contained in AppData.
+-- | Generic widget for a CRUD page that updates a collection contained in AppData
+-- depending on a temperament.
 crudPage :: (Named a, Default a, Eq a, Show a, MonadWidget t m, Prerender t m) =>
     FilePath
  -> T.Text
@@ -34,16 +35,13 @@ crudPage :: (Named a, Default a, Eq a, Show a, MonadWidget t m, Prerender t m) =
  -> m ()
 crudPage appDir entityName form optic = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    -- let currentEntities = getEntities optic appData
 
     newEntityClick <- button $ "New " <> entityName
 
     addedEntity <- switch . current <$> prerender (pure never) (performEvent $ newEntitySubmitted <&> \case
-        Nothing -> pure appData -- sample $ current dynUpdatedData
+        Nothing -> pure appData
         Just (temperament, entity) -> do
             toast $ "Added new " <> entityName
-            -- appData <- sample $ current dynUpdatedData
-            -- currentEntities <- getEntitiesFor (temperamentName temperament) appData
             pure $ addEntity (optic (temperamentName temperament)) appData entity)
 
     let updatedEntities = leftmost [addedEntity, removedEntity, editedEntity]
@@ -51,23 +49,17 @@ crudPage appDir entityName form optic = mdo
     dynUpdatedData <- holdDyn appData
         updatedEntities
 
-    let getName = \temperament -> dynUpdatedData <&> (\x ->
+    let getName currentName = \temperament -> dynUpdatedData <&> (\x ->
          let ts = _temperaments x
              n = find ((== temperament) . temperamentName) ts
              ents = maybe [] (\y -> getEntitiesFor (temperamentName y) optic x) n
-         in fmap name ents)
+             curr = currentName
+         in filter ((/= curr) . Just) $ fmap name ents)
 
     let dynEntities = dynUpdatedData <&> getEntitiesMap optic
 
-    -- Dynamic check for whether or not a scale's name already exists in the list of entities for a given temperament.
-    -- let isNewName initialName = dynEntities <&> \entities temperament name ->
-    --       let names = fmap scaleName (fromMaybe [] $ Map.lookup (temperamentName temperament) entities) in
-    --         if name `elem` names && (Just name /= initialName)
-    --             then Failure $ "There is already a " <> entityName <> " with this name." :| []
-    --                 else Success name
-
     newEntitySubmitted <- validatedModal newEntityClick $ \_ ->
-        form appData (head $ _temperaments appData) getName def
+        form appData (head $ _temperaments appData) (getName Nothing) def
 
     persistAppData dynUpdatedData
         (appDir <> "/app_data.json")
@@ -99,7 +91,7 @@ crudPage appDir entityName form optic = mdo
     completeEditDialog <- validatedModal editEvents $ \(temperament, entity) -> do
         res <- form appData
             (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
-            getName entity
+            (getName (Just $ name entity)) entity
         pure $ fmap (\(x, y) -> (x, entity, y)) <$> res
 
     let editSubmitted = mapMaybe id completeEditDialog
@@ -139,3 +131,4 @@ getEntities optic appData = mconcat $ _temperaments appData <&> \temperament ->
 getEntitiesMap :: (T.Text -> Lens' AppData [a]) -> AppData -> Map.Map T.Text [a]
 getEntitiesMap optic appData = Map.fromList $ _temperaments appData <&> \temperament ->
     (temperamentName temperament, appData ^. optic (temperamentName temperament))
+
