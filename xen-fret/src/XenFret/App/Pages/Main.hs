@@ -47,7 +47,7 @@ mainPage appDir = do
                   "Scale Diagram" -> scaleSelectForm x y
                   "Chord Diagram" -> chordSelectForm x y
 
-            let selectForm = \x y -> join <$> widgetHold 
+            let selectForm = \x y -> join <$> widgetHold
                   ((getSelectForm x y) initialTab)
                   (getSelectForm x y <$> updated currentTab)
 
@@ -82,7 +82,7 @@ mainPage appDir = do
 
 scaleSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ _temperaments appData
-    let initialScales = maybe [] id $ 
+    let initialScales = maybe [] id $
             Map.lookup initialTemperament $ _scales appData
 
     let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
@@ -96,7 +96,7 @@ scaleSelectForm appData temperamentDyn = do
 
 chordSelectForm appData temperamentDyn = do
     let initialTemperament = temperamentName $ head $ _temperaments appData
-    let initialChords = maybe [] id $ 
+    let initialChords = maybe [] id $
             Map.lookup initialTemperament $ _chords appData
 
     let loadedChords = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
@@ -116,7 +116,7 @@ diagramOptionsWidget selectForm appData = do
         selectTemperament appData initialTemperament
 
     let initialTunings = maybe [] id $ Map.lookup (temperamentName initialTemperament) $ _tunings appData
-    
+
     let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
             Map.lookup (temperamentName temperament) $ _tunings appData)
@@ -131,7 +131,7 @@ diagramOptionsWidget selectForm appData = do
             groupedTunings
             (head initialTunings)
 
-    scaleDyn <- elClass "div" "row" 
+    scaleDyn <- elClass "div" "row"
         (selectForm appData temperamentDyn)
 
     (keyDyn, offsetDyn) <- elAttr "div" ("class" =: "row" <> "style" =: "margin-bottom: 0px;") $ do
@@ -214,10 +214,10 @@ fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
                             offset frets verticalSpacing horizontalSpacing
 
 
-                    let diagram = board 
+                    let diagram = board
                             (maybe "" show scale) scalePeriod key
                                 (changeScale fretboard key (fromJust scale))
-                                ((T.unpack <$>) <$> (noteNames =<< temperament))
+                                (safeHead $ (T.unpack <$>) . noteNames <$> (notationSystems =<< maybe [] pure temperament))
                                 style
                     case xy of
                         X x -> do
@@ -228,3 +228,6 @@ fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
                             elDynHtml' "div" (constDyn $ T.pack $
                                 format (Y y) diagram)
                             pure $ Just $ format (Y y) diagram
+
+safeHead (x:xs) = Just x
+safeHead [] = Nothing

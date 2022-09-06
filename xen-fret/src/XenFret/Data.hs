@@ -11,11 +11,28 @@ import Data.Ratio
 class Named a where
     name :: a -> T.Text
 
+data NotationSystem = NotationSystem {
+    notationName :: T.Text,
+    noteNames :: [T.Text]
+}
+    deriving(Eq)
+
+instance Show NotationSystem where
+    show = T.unpack . notationName
+
+instance Default NotationSystem where
+    def = NotationSystem {
+        notationName = "",
+        noteNames = []
+    }
+
+$(deriveJSON defaultOptions ''NotationSystem)
+
 data Temperament = Temperament {
     temperamentName :: T.Text, 
     divisions :: Int,
     period :: Rational,
-    noteNames :: Maybe [T.Text]
+    notationSystems :: [NotationSystem]
 }
     deriving(Eq)
 
@@ -31,7 +48,7 @@ instance Default Temperament where
         temperamentName = "",
         divisions = 12,
         period = 2 % 1,
-        noteNames = Nothing
+        notationSystems = []
     }
 
 instance Show Temperament where
@@ -92,18 +109,3 @@ instance Default Chord where
     def = Chord "" (0 :| [])
 
 $(deriveJSON defaultOptions ''Chord)
-
-data NotationSystem = NotationSystem {
-    notationName :: T.Text,
-    notes :: [T.Text]
-}
-    deriving(Eq)
-
-instance Show NotationSystem where
-    show = T.unpack . notationName
-
-instance Default NotationSystem where
-    def = NotationSystem {
-        notationName = "",
-        notes = []
-    }

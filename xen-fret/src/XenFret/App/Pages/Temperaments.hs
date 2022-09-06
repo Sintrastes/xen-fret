@@ -171,6 +171,6 @@ temperamentForm isNewName initialValue = do
             formA (temperamentName =. labeledEntryA "Name" nameForm) <*>
             liftFormA (form (divisions =. labeledEntry "Divisions" nonNegativeIntEntry)) <*>
             liftFormA (form (period =. labeledEntry "Period" rationalEntry)) <*>
-            pure Nothing
+            pure []
 
     initFormA formContents initialValue
