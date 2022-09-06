@@ -22,6 +22,7 @@ library
       XenFret.App.Widgets.Github,
       XenFret.App.Widgets.Fretboard,
       XenFret.App.Widgets.CRUD,
+      XenFret.App.Widgets.ColorPicker,
       XenFret.Data,
       XenFret.AppData,
       XenFret.Util,
