@@ -121,6 +121,8 @@ defaultAppData = AppData {
                   ]),
             Temperament "24-TET" 24 (2 % 1) 
                   Nothing,
+            Temperament "31-TET" 24 (2 % 1) 
+                  Nothing,
             Temperament "41-TET" 41 (2 % 1)
                   Nothing,
             Temperament "Bohlen Pierce" 13 (3 % 1) 
