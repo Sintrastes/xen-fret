@@ -34,16 +34,18 @@ handleParseErrs :: Maybe Int
     -> Maybe [Int]
     -> Maybe Int
     -> Maybe Int
-    -> Either String (Int, Int, NonEmpty Int, XorY)
-handleParseErrs period frets tuning x y
+    -> Maybe Int
+    -> Either String (Int, Int, NonEmpty Int, Int, XorY)
+handleParseErrs period frets tuning skipFrets x y
   -- Valid format
   | Just period' <- period
   , Just frets' <- frets
   , Just tuning' <- NE.nonEmpty =<< tuning
   , isJust x `xor` isJust y
+  , Just skipFrets' <- skipFrets
   = case (x,y) of
-       (Just x',_) -> Right (period',frets',tuning',X x')
-       (_,Just y') -> Right (period',frets',tuning',Y y')
+       (Just x',_) -> Right (period',frets',tuning', skipFrets', X x')
+       (_,Just y') -> Right (period',frets',tuning', skipFrets', Y y')
        _           -> Left "Must have either x or y specified."
   -- Errors, invalid format
   |  otherwise
