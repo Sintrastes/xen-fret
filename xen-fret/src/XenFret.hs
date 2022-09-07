@@ -13,12 +13,10 @@ import Control.Monad
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 import XenFret.Util
-import Data.List.NonEmpty (NonEmpty ((:|)), toList)
-import qualified Data.List.NonEmpty as NonEmpty
-import XenFret.Data
+import Data.List.NonEmpty (toList)
+import XenFret.Data ( displayNote, Scale(Scale, scaleIntervals) )
 import Data.Ratio
 import Data.Maybe
-import Debug.Trace
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]

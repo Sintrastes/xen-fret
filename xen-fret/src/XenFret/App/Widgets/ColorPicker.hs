@@ -6,12 +6,15 @@ import Data.Functor
 import Data.Text (Text)
 import Control.Monad.IO.Class
 import Control.Concurrent (threadDelay)
+import Data.Aeson.TH
 
 data Color = Color {
     r :: Int,
     g :: Int,
     b :: Int
 }
+
+$(deriveJSON defaultOptions ''Color)
 
 colorPicker :: (MonadWidget t m, _) => Color -> m (Dynamic t Color)
 colorPicker initialColor = do

@@ -9,11 +9,15 @@ import Data.MultiMap
 import Data.List.NonEmpty  hiding(fromList)
 import Data.Ratio
 import XenFret.Sagittal
+    ( sagittal5CommaUp, sagittalSharp, sagittalSharp5CDown )
 import Control.Lens.TH
+import XenFret.App.Widgets.ColorPicker (Color(..))
+import Data.Tree.Lens (root)
 
 data PreferenceData = PreferenceData {
     useDarkMode :: Bool,
-    noteNameSize :: Double
+    noteNameSize :: Double,
+    rootNoteColor :: Color
 }
 
 $(deriveJSON defaultOptions ''PreferenceData)
@@ -372,5 +376,6 @@ defaultAppData = AppData {
 defaultPreferences :: PreferenceData
 defaultPreferences = PreferenceData {
     useDarkMode = False,
-    noteNameSize = 1.0
+    noteNameSize = 1.0,
+    rootNoteColor = Color 51 92 255
 }
