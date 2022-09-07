@@ -37,12 +37,16 @@ preferencePage appDir = do
 
         divider
 
-    (_, fontSizeClick) <- prefRow $ do
+    (fontSizeDyn, _) <- prefRow $ do
         prefHeader "Note Font Size"
 
         el "p" $ text "Set the font size used for displaying note names."
 
+        res <- positiveIntEntry (noteNameSize currentPrefs)
+
         divider
+
+        pure res
 
     (_, rootColorClick) <- prefRow $ do
         prefHeader "Root Note Color"
