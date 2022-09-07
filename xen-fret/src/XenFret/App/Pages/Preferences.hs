@@ -53,7 +53,7 @@ preferencePage appDir = do
 
     modal rootColorClick $ do
         modalHeader "Root Note Color"
-        colorPicker (rootNoteColor currentPrefs)
+        colorPicker "root-color" (rootNoteColor currentPrefs)
 
     (_, dotSizeClick) <- prefRow $ do
         prefHeader "Note Dot Size"
@@ -71,7 +71,7 @@ preferencePage appDir = do
 
     modal fretColorClick $ do
         modalHeader "Fretboard Color"
-        colorPicker (fretboardColor currentPrefs)
+        colorPicker "fretboard-color" (fretboardColor currentPrefs)
 
     (_, fretStyleClick) <- prefRow $ do
         prefHeader "Fret Style"
