@@ -36,28 +36,28 @@ preferencePage appDir = do
 
         divider
 
-    prefRow $ do
+    (_, fontSizeClick) <- prefRow $ do
         prefHeader "Note Font Size"
 
         el "p" $ text "Set the font size used for displaying note names."
 
         divider
 
-    prefRow $ do
+    (_, rootColorClick) <- prefRow $ do
         prefHeader "Root Note Color"
 
         el "p" $ text "Set the color used to display root notes of scales."
 
         divider
 
-    prefRow $ do
+    (_, dotSizeClick) <- prefRow $ do
         prefHeader "Note Dot Size"
 
         el "p" $ text "Set the size used for note dots used in the diagram."
 
         divider
 
-    prefRow $ do
+    (_, fretColorClick) <- prefRow $ do
         prefHeader "Fretboard Color"
 
         el "p" $ text "Set the background color used for fretboards"
