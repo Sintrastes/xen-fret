@@ -16,6 +16,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Fix
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text.Lazy (fromStrict)
+import XenFret.App.Widgets.ColorPicker
 
 preferencePage :: _ => FilePath -> m ()
 preferencePage appDir = do
@@ -63,6 +64,10 @@ preferencePage appDir = do
         el "p" $ text "Set the background color used for fretboards"
 
         divider
+
+    modal fretColorClick $ do
+        modalHeader "Fretboard Color"
+        colorPicker (fretboardColor currentPrefs)
 
     (_, fretStyleClick) <- prefRow $ do
         prefHeader "Fret Style"
