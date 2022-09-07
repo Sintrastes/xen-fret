@@ -16,11 +16,12 @@ data Color = Color {
 
 $(deriveJSON defaultOptions ''Color)
 
-colorPicker :: (MonadWidget t m, _) => Color -> m (Dynamic t Color)
-colorPicker initialColor = do
-    elAttr "div" ("id" =: "picker") blank
+colorPicker :: (MonadWidget t m, _) => Text -> Color -> m (Dynamic t Color)
+colorPicker ident initialColor = do
+    elAttr "div" ("id" =: ("picker-" <> ident)) blank
 
-    el "script" $ text "var colorPicker = iro.ColorPicker(\"#picker\", { layout: [{component: iro.ui.Box}, {component: iro.ui.Slider, options: {sliderType: 'hue'}}] });"
+    el "script" $ text $ 
+        "var colorPicker = iro.ColorPicker(\"#picker-" <> ident <> "\", { layout: [{component: iro.ui.Box}, {component: iro.ui.Slider, options: {sliderType: 'hue'}}] });"
 
     onClick <- button "test"
 
