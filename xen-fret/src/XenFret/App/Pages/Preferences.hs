@@ -23,10 +23,12 @@ preferencePage appDir = mdo
     initialAppData <- loadAppData (appDir <> "/app_data.json")
     let initialPrefs = _preferences initialAppData
 
-    let dynUpdatedPrefs = pure initialPrefs
-
-    let dynAppData = dynUpdatedPrefs <&> \updatedPrefs ->
-            initialAppData { _preferences = updatedPrefs }
+    -- Note: This will take a different approach from other pages,
+    --  as there are multiple data types to modify.
+    let prefUpdatesDyn = fontSizeDyn <&> \fontSize appData -> 
+            appData { _preferences = (_preferences appData) { noteNameSize = fontSize } }
+          
+    let dynAppData = prefUpdatesDyn <*> pure initialAppData
 
     (_, clickImport) <- prefRow $ do
         prefHeader "Import Data"
