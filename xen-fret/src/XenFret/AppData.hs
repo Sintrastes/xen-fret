@@ -14,10 +14,31 @@ import Control.Lens.TH
 import XenFret.App.Widgets.ColorPicker (Color(..))
 import Data.Tree.Lens (root)
 
+data LineStyle = 
+      Solid
+    | Dashed
+
+$(deriveJSON defaultOptions ''LineStyle)
+
 data PreferenceData = PreferenceData {
     useDarkMode :: Bool,
     noteNameSize :: Double,
-    rootNoteColor :: Color
+    dotSize :: Double,
+    rootNoteColor :: Color,
+    fretboardColor :: Color,
+    fretStyle :: LineStyle,
+    fretThickness :: Double
+}
+
+defaultPreferences :: PreferenceData
+defaultPreferences = PreferenceData {
+    useDarkMode = False,
+    noteNameSize = 1.0,
+    dotSize = 1.0,
+    rootNoteColor = Color 51 92 255,
+    fretboardColor = Color 255 255 255,
+    fretStyle = Solid,
+    fretThickness = 1.0
 }
 
 $(deriveJSON defaultOptions ''PreferenceData)
@@ -371,11 +392,4 @@ defaultAppData = AppData {
             ("12-TET", Chord "MinMaj 7th" (3 :| [4, 4, 1]))
         ]
     , _preferences = defaultPreferences
-}
-
-defaultPreferences :: PreferenceData
-defaultPreferences = PreferenceData {
-    useDarkMode = False,
-    noteNameSize = 1.0,
-    rootNoteColor = Color 51 92 255
 }

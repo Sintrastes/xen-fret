@@ -64,6 +64,20 @@ preferencePage appDir = do
 
         divider
 
+    (_, fretStyleClick) <- prefRow $ do
+        prefHeader "Fret Style"
+
+        el "p" $ text "Choose the style in which to display frets."
+
+        divider
+
+    (_, fretThicknessClick) <- prefRow $ do
+        prefHeader "Fret Style"
+
+        el "p" $ text "Choose the thickness in which to draw frets."
+
+        divider
+
     _ <- prerender (pure never) $ performEvent $ clickExport <&> \_ -> do
         -- appData <- liftIO $ loadAppData (appDir <> "/app_data.json")
 
