@@ -51,6 +51,10 @@ preferencePage appDir = do
 
         divider
 
+    modal rootColorClick $ do
+        modalHeader "Root Note Color"
+        colorPicker (rootNoteColor currentPrefs)
+
     (_, dotSizeClick) <- prefRow $ do
         prefHeader "Note Dot Size"
 
