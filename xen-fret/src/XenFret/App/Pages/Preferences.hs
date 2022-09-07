@@ -19,9 +19,14 @@ import Data.Text.Lazy (fromStrict)
 import XenFret.App.Widgets.ColorPicker
 
 preferencePage :: _ => FilePath -> m ()
-preferencePage appDir = do
-    currentAppData <- loadAppData (appDir <> "/app_data.json")
-    let currentPrefs = _preferences currentAppData
+preferencePage appDir = mdo
+    initialAppData <- loadAppData (appDir <> "/app_data.json")
+    let initialPrefs = _preferences initialAppData
+
+    let dynUpdatedPrefs = pure initialPrefs
+
+    let dynAppData = dynUpdatedPrefs <&> \updatedPrefs ->
+            initialAppData { _preferences = updatedPrefs }
 
     (_, clickImport) <- prefRow $ do
         prefHeader "Import Data"
@@ -42,7 +47,7 @@ preferencePage appDir = do
 
         el "p" $ text "Set the font size used for displaying note names."
 
-        res <- positiveIntEntry (noteNameSize currentPrefs)
+        res <- positiveIntEntry (noteNameSize initialPrefs)
 
         divider
 
@@ -57,14 +62,14 @@ preferencePage appDir = do
 
     modal rootColorClick $ do
         modalHeader "Root Note Color"
-        colorPicker "root-color" (rootNoteColor currentPrefs)
+        colorPicker "root-color" (rootNoteColor initialPrefs)
 
     (_, dotSizeClick) <- prefRow $ do
         prefHeader "Note Dot Size"
 
         el "p" $ text "Set the size used for note dots used in the diagram."
 
-        res <- positiveDoubleEntry (dotSize currentPrefs)
+        res <- positiveDoubleEntry (dotSize initialPrefs)
 
         divider
 
@@ -79,7 +84,7 @@ preferencePage appDir = do
 
     modal fretColorClick $ do
         modalHeader "Fretboard Color"
-        colorPicker "fretboard-color" (fretboardColor currentPrefs)
+        colorPicker "fretboard-color" (fretboardColor initialPrefs)
 
     (_, fretStyleClick) <- prefRow $ do
         prefHeader "Fret Style"
@@ -98,7 +103,7 @@ preferencePage appDir = do
     _ <- prerender (pure never) $ performEvent $ clickExport <&> \_ -> do
         -- appData <- liftIO $ loadAppData (appDir <> "/app_data.json")
 
-        liftJSM $ jsg3 ("download" :: T.Text) (decodeUtf8 $ toStrict $ encode currentAppData)
+        liftJSM $ jsg3 ("download" :: T.Text) (decodeUtf8 $ toStrict $ encode initialAppData)
             ("xen_fret_data.json" :: T.Text)
             ("text/json" :: T.Text)
 
@@ -109,6 +114,9 @@ preferencePage appDir = do
                 contents <- textFromJSString <$> valToStr firstArg
                 let Just appData = decode (TL.encodeUtf8 $ fromStrict contents) :: Maybe AppData
                 liftIO $ encodeFile (appDir <> "/app_data.json") appData)
+
+    persistAppData dynAppData
+        (appDir <> "/app_data.json")
 
     blank
 
