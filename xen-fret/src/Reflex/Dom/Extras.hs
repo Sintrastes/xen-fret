@@ -214,6 +214,20 @@ positiveIntEntry initialValue =
         "step" =: "1" <>
         "min" =: "1"
 
+positiveDoubleEntry :: _ => Double -> m (Dynamic t Double)
+positiveDoubleEntry initialValue =
+    fmap (read @Double . T.unpack) . _inputElement_value <$> inputElement (
+        def & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes
+            .~ attrs
+            & inputElementConfig_initialValue
+            .~ T.pack (show initialValue))
+  where
+    attrs = "class" =: "p-form-text p-form-no-validate" <>
+        "type" =: "number" <>
+        "step" =: "1" <>
+        "min" =: "1"
+
 nonNegativeIntEntry :: _ => Int -> m (Dynamic t Int)
 nonNegativeIntEntry initialValue =
     fmap (read @Int . T.unpack) . _inputElement_value <$> inputElement (
