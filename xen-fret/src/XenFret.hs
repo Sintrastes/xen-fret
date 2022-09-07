@@ -1,12 +1,10 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module XenFret (
-    makeFret,
-    changeScale,
     repeatingNotes,
     board,
-    transpose,
-    Fretboard(),
+    getNotes,
+    Fretboard(..),
     FretboardStyle(..)
 ) where
 
@@ -18,6 +16,9 @@ import XenFret.Util
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import qualified Data.List.NonEmpty as NonEmpty
 import XenFret.Data
+import Data.Ratio
+import Data.Maybe
+import Debug.Trace
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]
@@ -30,77 +31,28 @@ repeatingNotes (Scale _ xs) =
   where
     periodSize = sum xs
 
-data Str = Str {
-    -- | Non-negative integer,
-    --    describes the relative tuning of strings 
-    pitch :: Int,
-    -- | Non-negative integers, a list of marked scale
-    --   positions on the string.
-    notes :: [Int]
+newtype Fretboard = Fretboard {
+    fretboardStrings :: [Int]
 }
 
--- | Make a string with no notes
-mkStr :: Int -> Str
-mkStr n = Str { pitch = n, notes = [] }
+-- | Given a scale, a fretboard, and a skip fretting value,
+-- return a list of the note positions on each of the strings
+-- of the passed fretboard.
+getNotes :: Scale -> Fretboard -> Int -> Int -> [[Int]]
+getNotes scale (Fretboard stringTunings) key skipFretting = stringTunings <&> \stringPitch ->
+    mapMaybe fromRatio
+        $ filterOutInc (< 0)
+        $ fmap (\x -> x - (stringPitch % n)) 
+        $ fmap (\x -> x + (key % n))
+        $ fmap (% n) 
+        $ repeatingNotes scale
+    where 
+      n = skipFretting + 1
 
-transposeStr :: p -> Str -> Str
-transposeStr n (Str pitch notes) = Str pitch (fmap (+ 1) notes)
-
-data Fretboard = Fretboard {
-    -- | Non-empty list of strings in a fretboard 
-    fretboardStrings :: NonEmpty Str,
-    -- | The number of steps to a period in a fretboard.
-    fretboardPeriod :: Int
-}
-
-transpose :: Int -> Fretboard -> Fretboard
-transpose n (Fretboard strings period) = Fretboard
-    (fmap (transposeStr n) strings)
-    period
-
--- | Validates the preconditions of and creates a fretboard.
-makeFret :: NonEmpty Int -- Tuning of the fretboard, must be non-empty, non-zero.
-         -> Int  -- Period, must be a positive number.
-         -> Either [String] Fretboard
-makeFret tuning period
-    | period >= 1 && not (null tuning) && not (any (< 0) tuning)
-        = Right $ Fretboard (NonEmpty.map mkStr tuning) period
-    | otherwise
-        = Left $ collectErrList [
-            (null tuning     , "Tuning is empty -- no strings specified"),
-            (period < 1      , "Period must be a positive number"),
-            (any (<0) tuning , "No strings can have a non-positive tuning")]
-
--- | Change the scale of a fretboard
-changeScale :: Fretboard -> Int -> Scale -> Fretboard
-changeScale f@(Fretboard strs period) key s@(Scale _ intervals) =
-    Fretboard
-        (go (fretboardStrings $ applyFirst f key s) key 1)
-        period
-  where
-    go :: NonEmpty Str -> Int -> Int -> NonEmpty Str
-    go fb key n
-        | n < length fb
-            = go (notes str1 # map (\x -> x + pitch (head (toList fb)) - pitch (toList fb !! n))
-                    # filterOutInc (< 0)
-                    # (\x -> fb & set (element n) Str { notes = x, pitch = pitch (toList fb !! n)}))
-                 key
-                 (n + 1)
-        | otherwise = fb
-      where str1 = NonEmpty.head fb
-
--- | Applies the scale to the first string
-applyFirst :: Fretboard -> Int -> Scale -> Fretboard
-applyFirst (Fretboard (s :| ss) period) key (Scale name intervals)
-    | period == sum intervals
-        = Fretboard (
-          Str {
-            notes = filterOutInc (< 0) $ (+ ((key - pitch s) `mod` period)) <$> repeatingNotes (Scale name intervals),
-            pitch = pitch s
-          } :| ss)
-          period
-    | otherwise = error $ "Periods do not match. Period was: " <> show period <> " but sum was " 
-        <> show (sum intervals) <> "for scale: " <> show name
+fromRatio :: Ratio Int -> Maybe Int
+fromRatio x
+    | denominator x == 1 = Just $ numerator x
+    | otherwise = Nothing
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)
@@ -139,15 +91,16 @@ data FretboardStyle = FretboardStyle {
 }
 
 -- | Create a fretboard diagram
-board :: 
+board ::
      String
   -> Int
+  -> Scale
   -> Int
   -> Fretboard
   -> Maybe [String]
   -> FretboardStyle
   -> Diagram B
-board scaleName scalePeriod scaleRoot fretboard optNoteNames FretboardStyle{..} = frame 0.005 $
+board scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle{..} = frame 0.005 $
         (alignL (baselineText scaleLabelFormatted # scale 0.075) <> strutY 0.12)
             ===
             (translateY (-0.12) (alignT noteMarkers) |||
@@ -169,23 +122,31 @@ board scaleName scalePeriod scaleRoot fretboard optNoteNames FretboardStyle{..} 
     scaleLabelFormatted =  case optNoteNames of
         Nothing        -> scaleName
         Just _ -> let ?noteNames = optNoteNames in
-            displayNote scaleRoot ++ " " ++ scaleName
-    strings    = fretboardStrings fretboard
-    nStr       = length strings
+            displayNote key ++ " " ++ scaleName
+    strings = fretboardStrings fretboard
+    lowestNote = head strings
+    notes    = getNotes scale' fretboard key skipFrets
+    
     dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
-    positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions (toList $ fmap pitch strings)
-    unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)) . notes)
-            (toList strings)
+    positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions strings
+    unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)))
+            notes
+    
+    nStr       = length strings
     nStr'      = fromIntegral nStr :: Double -- Type cast
-    firstString :| _ = strings
-    lowestNote = pitch firstString
 
+    -- Note: This could probably be generalized to find the degree of
+    --  a note as well.
+    -- Note: This will need to be fixed to account for
+    --  skip fretting.
     markRoot :: Int -> Int -> (Int, Bool)
     markRoot stringPitch x
-        | (stringPitch + x) `mod` scalePeriod == scaleRoot `mod` scalePeriod
+        | (stringPitch + x) `mod` scalePeriod == key `mod` scalePeriod
             = (x, True)
         | otherwise
             = (x, False)
+
+    scalePeriod = sum (scaleIntervals scale')
 
     stringMarkers :: Diagram B
     stringMarkers =
@@ -225,7 +186,7 @@ board scaleName scalePeriod scaleRoot fretboard optNoteNames FretboardStyle{..} 
       | displayMarkersOnFrets = (strutY (0.5 * vs) ===)
       | otherwise = id
 
-    stringPitches = toList $ pitch <$> fretboardStrings fretboard
+    stringPitches = fretboardStrings fretboard
 
 
 -- | An empty fretboard diagram.
@@ -272,4 +233,3 @@ emptyBoard nFrets vs hs nStr offset =
     -- Type casts
     nFrets' = fromIntegral nFrets :: Double
     nStr'   = fromIntegral nStr :: Double
-

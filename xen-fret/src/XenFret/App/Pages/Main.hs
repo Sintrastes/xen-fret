@@ -196,38 +196,31 @@ fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
   in
-    case handleParseErrs (divisions <$> temperament) (Just frets) (NE.toList . stringTunings <$> tuning) (Just xSize) Nothing of
+    case handleParseErrs (divisions <$> temperament) (Just frets) (NE.toList . stringTunings <$> tuning) (skipFrets <$> tuning) (Just xSize) Nothing of
         Left err -> do
             el "p" $ text $ T.pack err
             pure Nothing
-        Right (period, frets, tuning, xy) -> do
-            let _fretboard = makeFret tuning period
-            case handleScaleFretboardErrs _fretboard [maybe (Left ["No scales defined"]) Right scale] of
-                Left err -> do
-                    el "p" $ text $ T.pack $ concatErrors err
-                    pure Nothing
-                Right (fretboard, _) -> elAttr "div" ("style" =: "text-align: center;") $ do
-                    let Just scalePeriod = sum . scaleIntervals <$> scale
-                    let Just (scaleRoot NE.:| _) = scaleIntervals <$> scale
+        Right (period, frets, tuning, skipFrets, xy) -> do
+            elAttr "div" ("style" =: "text-align: center;") $ do
+                let Just scalePeriod = sum . scaleIntervals <$> scale
+                let Just scale' = scale
 
-                    let style = FretboardStyle displayMarkersOnFrets
-                            offset frets verticalSpacing horizontalSpacing
+                let style = FretboardStyle displayMarkersOnFrets
+                        offset frets verticalSpacing horizontalSpacing
 
-
-                    let diagram = board
-                            (maybe "" show scale) scalePeriod key
-                                (changeScale fretboard key (fromJust scale))
-                                (safeHead $ (T.unpack <$>) . noteNames <$> (notationSystems =<< maybe [] pure temperament))
-                                style
-                    case xy of
-                        X x -> do
-                            elDynHtml' "div" (constDyn $ T.pack $
-                                format (X x) diagram)
-                            pure $ Just $ format (X x) diagram
-                        Y y -> do
-                            elDynHtml' "div" (constDyn $ T.pack $
-                                format (Y y) diagram)
-                            pure $ Just $ format (Y y) diagram
+                let diagram = board
+                        (maybe "" show scale) key scale' skipFrets (Fretboard $ NE.toList tuning)
+                            (safeHead $ (T.unpack <$>) . noteNames <$> (notationSystems =<< maybe [] pure temperament))
+                            style
+                case xy of
+                    X x -> do
+                        elDynHtml' "div" (constDyn $ T.pack $
+                            format (X x) diagram)
+                        pure $ Just $ format (X x) diagram
+                    Y y -> do
+                        elDynHtml' "div" (constDyn $ T.pack $
+                            format (Y y) diagram)
+                        pure $ Just $ format (Y y) diagram
 
 safeHead (x:xs) = Just x
 safeHead [] = Nothing

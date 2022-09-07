@@ -112,6 +112,8 @@ app = do
 
     currentPage <- holdDyn Home navEvents
 
+    colorPicker (Color 0 0 0)
+
     _ <- dyn $ currentPage <&> \case
         Home -> mainPage appDir
         Temperaments -> temperamentPage appDir
