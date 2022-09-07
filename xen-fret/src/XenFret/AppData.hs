@@ -22,7 +22,7 @@ $(deriveJSON defaultOptions ''LineStyle)
 
 data PreferenceData = PreferenceData {
     useDarkMode :: Bool,
-    noteNameSize :: Double,
+    noteNameSize :: Int,
     dotSize :: Double,
     rootNoteColor :: Color,
     fretboardColor :: Color,
@@ -33,7 +33,7 @@ data PreferenceData = PreferenceData {
 defaultPreferences :: PreferenceData
 defaultPreferences = PreferenceData {
     useDarkMode = False,
-    noteNameSize = 1.0,
+    noteNameSize = 12,
     dotSize = 1.0,
     rootNoteColor = Color 51 92 255,
     fretboardColor = Color 255 255 255,

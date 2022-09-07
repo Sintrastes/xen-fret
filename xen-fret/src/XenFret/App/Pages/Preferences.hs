@@ -64,7 +64,11 @@ preferencePage appDir = do
 
         el "p" $ text "Set the size used for note dots used in the diagram."
 
+        res <- positiveDoubleEntry (dotSize currentPrefs)
+
         divider
+
+        pure res
 
     (_, fretColorClick) <- prefRow $ do
         prefHeader "Fretboard Color"
