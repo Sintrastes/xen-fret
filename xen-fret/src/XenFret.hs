@@ -60,14 +60,14 @@ frettingDots :: Bool
   -> Double    -- Horizontal spacing
   -> [(Int, Bool)]     -- List of fret locations, all Ints should be non-zero.
   -> Diagram B -- A diagram of the dots.
-frettingDots displayMarkersOnFrets offset vs hs =
+frettingDots displayMarkersOnFrets offset vs _ =
     foldr (atop . frettingDot displayMarkersOnFrets offset vs) mempty
   . fmap (\(x,y) -> (x - offset, y))
   . filterOutInc (\(x, _) -> x < offset)
 
 -- | Create a diagram of a single dot
 frettingDot :: Bool -> Int -> Double -> (Int, Bool) -> Diagram B
-frettingDot _ 0 vs (0, _) = circle 0.03 # lwL 0.007
+frettingDot _ 0 _ (0, _) = circle 0.03 # lwL 0.007
 frettingDot displayMarkersOnFrets _ vs (n, colored) =
     translateY offset $ circle (0.03 * 0.8)
         # fc color
