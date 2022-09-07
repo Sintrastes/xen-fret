@@ -14,6 +14,7 @@ import Language.Javascript.JSaddle (eval, liftJSM)
 import Data.Validation
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
+import Text.Read
 
 type ErrorMessage = T.Text
 
@@ -214,9 +215,9 @@ positiveIntEntry initialValue =
         "step" =: "1" <>
         "min" =: "1"
 
-positiveDoubleEntry :: _ => Double -> m (Dynamic t Double)
+positiveDoubleEntry :: _ => Double -> m (Dynamic t (Validation (NonEmpty ErrorMessage) Double))
 positiveDoubleEntry initialValue =
-    fmap (read @Double . T.unpack) . _inputElement_value <$> inputElement (
+    fmap (validateDouble . T.unpack) . _inputElement_value <$> inputElement (
         def & inputElementConfig_elementConfig
             . elementConfig_initialAttributes
             .~ attrs
@@ -227,6 +228,9 @@ positiveDoubleEntry initialValue =
         "type" =: "number" <>
         "step" =: "1" <>
         "min" =: "1"
+
+    validateDouble x = maybe (Failure $ "Could not parse decimal number" :| []) Success $ 
+        readMaybe @Double x 
 
 nonNegativeIntEntry :: _ => Int -> m (Dynamic t Int)
 nonNegativeIntEntry initialValue =
