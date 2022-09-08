@@ -161,7 +161,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
                         hcat'
                             (with & sep .~ hs)
                             (stringNoteNames <&> \note ->
-                                    text note # bold # scale 0.06
+                                    text note # bold # scale (baseFontSize * fontSize)
                                         <> strutY 0.15)
     noteMarkers :: Diagram B
     noteMarkers = offsetMarkers $ case optNoteNames of
@@ -175,7 +175,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
                     (with & sep .~ vs)
                     (take (nFrets + 1) $
                         offsetNoteNames <&> \note ->
-                            text note # bold # scale (0.06 * 0.055 * fontSize)
+                            text note # bold # scale (baseFontSize * fontSize)
                                  <> strutX 0.15)
 
     fontSize = fromIntegral $ noteNameSize prefs
@@ -190,6 +190,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
 
     stringPitches = fretboardStrings fretboard
 
+baseFontSize = 0.0033
 
 -- | An empty fretboard diagram.
 emptyBoard :: Int    -- Number of frets to display on board.
