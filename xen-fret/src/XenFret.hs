@@ -161,7 +161,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
                         hcat'
                             (with & sep .~ hs)
                             (stringNoteNames <&> \note ->
-                                    text note # bold # scale (baseFontSize * fontSize)
+                                    text note # bold # scale (baseFontSize * noteFontSize)
                                         <> strutY 0.15)
     noteMarkers :: Diagram B
     noteMarkers = offsetMarkers $ case optNoteNames of
@@ -175,10 +175,10 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
                     (with & sep .~ vs)
                     (take (nFrets + 1) $
                         offsetNoteNames <&> \note ->
-                            text note # bold # scale (baseFontSize * fontSize)
+                            text note # bold # scale (baseFontSize * noteFontSize)
                                  <> strutX 0.15)
 
-    fontSize = fromIntegral $ noteNameSize prefs
+    noteFontSize = fromIntegral $ noteNameSize prefs
 
     offsetMarkers
       | offset == 0 =
