@@ -115,7 +115,7 @@ loadAppData :: (MonadSample t m, Prerender t m, MonadIO m) => FilePath -> m AppD
 
 loadAppData dataFile = do
     loadedData :: AppData <- liftFrontend defaultAppData $
-        catch (fromJust <$> decodeFileStrict dataFile)
+        catch (maybe defaultAppData id <$> decodeFileStrict dataFile)
             (\(_ :: SomeException) -> return defaultAppData)
     pure loadedData
 
