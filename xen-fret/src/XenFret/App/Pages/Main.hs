@@ -55,11 +55,11 @@ mainPage appDir = do
                 diagramOptionsWidget selectForm appData
 
         diagramUpdated <- elClass "div" "main-pane-right" $ do
-            fretboardDisplayWidget dynArgs
+            fretboardDisplayWidget appData dynArgs
 
         mobileSaveEvent <- modalWidget' "top: 2.5%;" viewDiagramEvent $ do
             res <- button "Save"
-            fretboardDisplayWidget dynArgs
+            fretboardDisplayWidget appData dynArgs
             pure res
 
         diagramDyn <- holdDyn Nothing
@@ -187,7 +187,7 @@ diagramOptionsWidget selectForm appData = do
         tuningDyn <*>
         displayMarkersOnFretsDyn)
 
-fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
+fretboardDisplayWidget appData dynArgs = dyn $ dynArgs <&>
     \(frets, xSize, scale,
       temperament, verticalScaling,
       horizontalScaling, key, offset,
@@ -208,7 +208,7 @@ fretboardDisplayWidget dynArgs = dyn $ dynArgs <&>
                 let style = FretboardStyle displayMarkersOnFrets
                         offset frets verticalSpacing horizontalSpacing
 
-                let diagram = board
+                let diagram = board (_preferences appData)
                         (maybe "" show scale) key scale' skipFrets (Fretboard $ NE.toList tuning)
                             (safeHead $ (T.unpack <$>) . noteNames <$> (notationSystems =<< maybe [] pure temperament))
                             style
