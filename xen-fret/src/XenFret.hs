@@ -17,6 +17,7 @@ import Data.List.NonEmpty (toList)
 import XenFret.Data ( displayNote, Scale(Scale, scaleIntervals) )
 import Data.Ratio
 import Data.Maybe
+import XenFret.AppData (PreferenceData (noteNameSize))
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]
@@ -90,7 +91,8 @@ data FretboardStyle = FretboardStyle {
 
 -- | Create a fretboard diagram
 board ::
-     String
+     PreferenceData
+  -> String
   -> Int
   -> Scale
   -> Int
@@ -98,7 +100,7 @@ board ::
   -> Maybe [String]
   -> FretboardStyle
   -> Diagram B
-board scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle{..} = frame 0.005 $
+board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle{..} = frame 0.005 $
         (alignL (baselineText scaleLabelFormatted # scale 0.075) <> strutY 0.12)
             ===
             (translateY (-0.12) (alignT noteMarkers) |||
@@ -173,8 +175,10 @@ board scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle{..} =
                     (with & sep .~ vs)
                     (take (nFrets + 1) $
                         offsetNoteNames <&> \note ->
-                            text note # bold # scale 0.06
+                            text note # bold # scale (0.06 * 0.055 * fontSize)
                                  <> strutX 0.15)
+
+    fontSize = fromIntegral $ noteNameSize prefs
 
     offsetMarkers
       | offset == 0 =
