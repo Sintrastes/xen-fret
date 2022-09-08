@@ -64,3 +64,9 @@ function importFile(callback) {
 
     input.click();
 }
+
+function bindColorPicker(colorPicker, onUpdate) {
+    colorPicker.on('color:change', function(color) {
+        onUpdate(color.hexString);
+    });
+}
