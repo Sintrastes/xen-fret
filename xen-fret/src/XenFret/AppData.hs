@@ -13,12 +13,18 @@ import XenFret.Sagittal
 import Control.Lens.TH
 import XenFret.App.Widgets.ColorPicker (Color(..))
 import Data.Tree.Lens (root)
+import Control.Lens.Internal.Fold (NonEmptyDList(NonEmptyDList))
+import qualified Data.Map as Map
 
 data LineStyle = 
       Solid
     | Dashed
 
 $(deriveJSON defaultOptions ''LineStyle)
+
+type TemperamentName = String
+type InstrumentName = String
+type TuningName = String
 
 data PreferenceData = PreferenceData {
     useDarkMode :: Bool,
@@ -27,7 +33,10 @@ data PreferenceData = PreferenceData {
     rootNoteColor :: Color,
     fretboardColor :: Color,
     fretStyle :: LineStyle,
-    fretThickness :: Double
+    fretThickness :: Double,
+    defaultTemperament :: Maybe TemperamentName,
+    defaultInstrument :: Maybe InstrumentName,
+    defaultTuning :: Map (TemperamentName, InstrumentName) TuningName
 }
 
 defaultPreferences :: PreferenceData
@@ -38,7 +47,10 @@ defaultPreferences = PreferenceData {
     rootNoteColor = Color 51 92 255,
     fretboardColor = Color 255 255 255,
     fretStyle = Solid,
-    fretThickness = 1.0
+    fretThickness = 1.0,
+    defaultTemperament = Nothing,
+    defaultInstrument = Nothing,
+    defaultTuning = Map.fromList []
 }
 
 $(deriveJSON defaultOptions ''PreferenceData)
