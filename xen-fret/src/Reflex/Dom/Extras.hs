@@ -229,8 +229,8 @@ positiveDoubleEntry initialValue =
         "step" =: "1" <>
         "min" =: "1"
 
-    validateDouble x = maybe (Failure $ "Could not parse decimal number" :| []) Success $ 
-        readMaybe @Double x 
+    validateDouble x = maybe (Failure $ "Could not parse decimal number" :| []) Success $
+        readMaybe @Double x
 
 nonNegativeIntEntry :: _ => Int -> m (Dynamic t Int)
 nonNegativeIntEntry initialValue =
@@ -563,7 +563,7 @@ validatedModal :: (Reflex t, MonadFix m, PostBuild t m, MonadHold t m, MonadWidg
 validatedModal onClick contents = mdo
     (res, onCancel, onSubmit) <- elDynAttr "div" modalAttrs $ el "section" $ do
         res <- elClass "div" "modal-content" $
-            join <$> widgetHold (pure $ pure $ Failure $ "Uninitialized" :| []) 
+            join <$> widgetHold (pure $ pure $ Failure $ "Uninitialized" :| [])
                 (fmap contents onClick)
 
         let okAttrs = "class" =: "modal-close waves-effect waves-green btn-flat" <>
@@ -625,7 +625,7 @@ validatedModal onClick contents = mdo
 
     pure $ leftmost
       [
-        Just <$> (fmapMaybe id $ tag lastSuccessfulRes onSuccessfulSubmit)
+        Just <$> fmapMaybe id (tag lastSuccessfulRes onSuccessfulSubmit)
       , Nothing <$ onCancel
       ]
 
@@ -670,15 +670,15 @@ multiSelect options initialValue = do
 
 tabSwitcher :: (PostBuild t m, MonadFix m, MonadHold t m, DomBuilder t m) => [String] -> String -> m (Dynamic t String)
 tabSwitcher tabLabels initialTab = mdo
-    currentlySelected <- holdDyn initialTab 
+    currentlySelected <- holdDyn initialTab
         (leftmost clickedEvents)
 
     clickedEvents <- elAttr "div" ("class" =: "row" <> "style" =: "padding: 0;") $
-        elAttr "div" ("class" =: "col s12" <> "style" =: "padding: 0;") $ 
+        elAttr "div" ("class" =: "col s12" <> "style" =: "padding: 0;") $
             elClass "ul" "tabs z-depth-1" $ do
                 forM tabLabels $ \tab -> do
                     elAttr "li" ("class" =: "tab col s6" <> "style" =: "position: relative;") $ do
-                        switchHold never =<< (dyn $ currentlySelected <&> \currentTab ->
+                        switchHold never =<< dyn (currentlySelected <&> \currentTab ->
                             if tab == currentTab
                                 then do
                                     clickEvent <- domEvent Click . fst <$> elClass' "a" "active"
