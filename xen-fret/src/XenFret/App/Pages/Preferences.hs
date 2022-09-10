@@ -102,6 +102,27 @@ preferencePage appDir = mdo
 
         divider
 
+    prefRow $ do
+        prefHeader "Default Temperament"
+
+        el "p" $ text "Set the default temperament to use when creating diagrams."
+
+        divider
+
+    prefRow $ do
+        prefHeader "Default Instrument"
+
+        el "p" $ text "Set the default instrument to use when creating diagrams."
+
+        divider
+
+    prefRow $ do
+        prefHeader "Default Tuning"
+
+        el "p" $ text "Set the default tuning used per instrument."
+
+        divider
+
     _ <- prerender (pure never) $ performEvent $ clickExport <&> \_ -> do
         -- appData <- liftIO $ loadAppData (appDir <> "/app_data.json")
 
