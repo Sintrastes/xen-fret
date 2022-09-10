@@ -17,7 +17,7 @@ import Data.List.NonEmpty (toList)
 import XenFret.Data ( displayNote, Scale(Scale, scaleIntervals) )
 import Data.Ratio
 import Data.Maybe
-import XenFret.AppData (PreferenceData (noteNameSize, rootNoteColor))
+import XenFret.AppData (PreferenceData (noteNameSize, rootNoteColor, fretboardColor))
 import XenFret.App.Widgets.ColorPicker (Color, toColour)
 
 -- | Generate an infinite list of the notes of the scale, from 0.
@@ -121,7 +121,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
   where
     vs = verticalSpacing
     hs = horizontalSpacing
-    emptyboard = emptyBoard nFrets vs hs nStr offset
+    emptyboard = emptyBoard boardColor nFrets vs hs nStr offset
     scaleLabelFormatted =  case optNoteNames of
         Nothing        -> scaleName
         Just _ -> let ?noteNames = optNoteNames in
@@ -135,7 +135,8 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
     unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)))
             notes
 
-    rootColor = rootNoteColor prefs
+    rootColor  = rootNoteColor prefs
+    boardColor = fretboardColor prefs
 
     nStr       = length strings
     nStr'      = fromIntegral nStr :: Double -- Type cast
@@ -198,13 +199,15 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
 baseFontSize = 0.0033
 
 -- | An empty fretboard diagram.
-emptyBoard :: Int    -- Number of frets to display on board.
+emptyBoard :: 
+     Color
+  -> Int    -- Number of frets to display on board.
   -> Double -- Vertical spacing
   -> Double -- Horizontal spacing
   -> Int    -- Number of strings
   -> Int    -- Offset
   -> Diagram B
-emptyBoard nFrets vs hs nStr offset =
+emptyBoard boardColor nFrets vs hs nStr offset =
       nut
         `atop` fretMarkers
         -- The strings translated to their proper poisitons
