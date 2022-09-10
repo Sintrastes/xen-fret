@@ -3,6 +3,10 @@
     color: var(--input-focus-color);
 }
 
+.tabs .tab a:hover, .tabs .tab a.active {
+    color: var(--input-focus-color);
+}
+
 @font-face {
     font-family: "BravuraText";
     src: url(https://sintrastes.github.io/demos/xen_fret/Bravura.woff);

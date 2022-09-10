@@ -683,7 +683,7 @@ tabSwitcher tabLabels initialTab = mdo
                                 then do
                                     clickEvent <- domEvent Click . fst <$> elClass' "a" "active"
                                         (text $ T.pack tab)
-                                    elAttr "div" ("style" =: "position:absolute;z-index: 100;height: 3px; bottom: 0;left: 0;width: 100%;background-color: coral;") blank
+                                    elAttr "div" ("style" =: "position:absolute;z-index: 100;height: 3px; bottom: 0;left: 0;width: 100%;background-color: var(--input-focus-color);") blank
                                     pure $ clickEvent $> tab
                                 else do
                                     clickEvent <- domEvent Click . fst <$> el' "a"
