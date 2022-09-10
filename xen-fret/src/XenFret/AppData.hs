@@ -58,12 +58,6 @@ $(deriveJSON defaultOptions ''PreferenceData)
 data AppData = AppData {
     -- | Get the list of temperaments
     _temperaments :: [Temperament],
-    -- | Get the tunings associated with a temperament.
-    _tunings :: Map T.Text [Tuning],
-    -- | Get the scales associated with a temperament.
-    _scales  :: Map T.Text [Scale],
-    -- | Get the chords associated with a temperament
-    _chords :: Map T.Text [Chord],
     -- | Get the current preferences for the app.
     _preferences :: PreferenceData
 }
@@ -76,108 +70,386 @@ defaultAppData :: AppData
 defaultAppData = AppData {
       _temperaments = 
         [
-            Temperament "11-TET" 11 (2 % 1) 
-                  [NotationSystem "" [
+            Temperament {
+                temperamentName = "11-TET" 
+              , divisions = 11
+              , period = 2 % 1
+              , notationSystems = 
+                  [
+                    NotationSystem "" [
                       "Q","Q#","R","R#","S",
                       "S#","T","T#","U","U#","P"
-                    ]],
-            Temperament "12-TET" 12 (2 % 1)
-                  [NotationSystem "" [
+                    ]
+                  ]
+              , chords = 
+                  [
+                    Chord "Major" (4 :| [3, 4])
+                  , Chord "Minor" (3 :| [4, 4])
+                  ]
+              , scales = 
+                  [
+                    Scale "Orgone[7]"
+                        (1 :| [2, 1, 2, 1, 2, 2])
+                  , Scale "Machine[5]"
+                        (2 :| [2, 2, 2, 3])
+                  , Scale "Machine[6]"
+                        (2 :| [2, 2, 2, 2, 1])
+                  , Scale "Joan heptatonic"
+                        (1 :| [1, 1, 3, 1, 1, 3])
+                  , Scale "Joan pentatonic"
+                        (1 :| [4, 1, 4, 1])
+                  ]
+              , tunings = 
+                  [
+                    Tuning "Wide Fourths Tuning" "Six-String Guitar" 
+                        (0 :| [5, 10, 15, 20, 25]) 0
+                  , Tuning "Major Thirds Tuning" "Six-String Guitar" 
+                        (0 :| [4, 8, 12, 16, 20]) 0
+                  , Tuning "Wide Fourths Tuning" "Four-String Bass Guitar" 
+                        (0 :| [5, 10, 15]) 0
+                  , Tuning "Major Thirds Tuning" "Four-String Bass Guitar" 
+                        (0 :| [4, 8, 120]) 0
+                  ]
+            },
+            Temperament {
+              temperamentName = "12-TET" 
+            , divisions = 12
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "" [
                       "A","A#","B","C","C#","D",
                       "D#","E","F","F#","G","G#"
-                    ]],
-            Temperament "13-TET" 13 (2 % 1) 
-                  [NotationSystem "" [
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "13-TET"
+            , divisions = 13
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "" [
                        "J","J#","K","L","L#","M","M#",
                        "N","O","O#","P","Q","Q#"
-                    ]],
-            Temperament "14-TET" 14 (2 % 1) 
-                  [NotationSystem "" [
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings =
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "14-TET"
+            , divisions = 14
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "" [
                      "A","^A","B","^B","C","^C","D","^D","E","^E",
                      "F","^F","G","^G"
-                  ]],
-            Temperament "15-TET" 15 (2 % 1) 
-                  [NotationSystem "" [
-                    "α","β\\","β","χ\\","χ","δ\\","δ",
-                    "ε\\","ε","φ\\","φ","γ\\","γ","η\\",
-                    "η"
-                  ]],
-            Temperament "16-TET" 16 (2 % 1) 
-                  [NotationSystem "Standard" [
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings =
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "15-TET" 
+            , divisions = 15
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "" [
+                      "α","β\\","β","χ\\","χ","δ\\","δ",
+                      "ε\\","ε","φ\\","φ","γ\\","γ","η\\",
+                      "η"
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings =
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "16-TET" 
+            , divisions = 16
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "Standard" [
                       "A","B#","B","Bb","C#","C","D#","D",
                       "E#","E","Eb","F#","F","G#","G","A#"
-                  ]],
-            Temperament "17-TET" 17 (2 % 1) 
-                  [NotationSystem "Standard" [
-                    "A","Bb","A#","B","C","Db","C#","D",
-                    "Eb","D#","E","F","Gb","F#","G","Ab",
-                    "G#"
-                  ]],
-            Temperament "18-TET" 18 (2 % 1) 
-                  [NotationSystem "" [
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings =
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "17-TET" 
+            , divisions = 17
+            , period = 2 % 1
+            , notationSystems = 
+                  [
+                    NotationSystem "Standard" [
+                      "A","Bb","A#","B","C","Db","C#","D",
+                      "Eb","D#","E","F","Gb","F#","G","Ab",
+                      "G#"
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+                        
+                  ]
+            },
+            Temperament { 
+              temperamentName = "18-TET" 
+            , divisions = 18
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "" [
                         "A","Bb","A#","B","C","Db","C#","D",
                         "Eb","D#","E","F","Gb","F#","G",
                         "Hb","G#","H"
-                  ]],
-            Temperament "19-TET" 19 (2 % 1) 
-                  [NotationSystem "Standard" [
+                    ]
+                  ]
+            , chords = 
+                  [ 
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "19-TET" 
+            , divisions = 19
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "Standard" [
                       "A","A#","Bb","B","B#","C",
                       "C#","Db","D","D#","Eb","E",
                       "E#","F","F#","Gb","G","G#","Ab"                  
-                  ]],
-            Temperament "22-TET" 22 (2 % 1) 
-                  {- (Just [
-                    "A","A#","Bb","B","B#",
-                    "Cb","C","C#","Db","D",
-                    "D#","Eb","E","E#","Fb",
-                    "F","F#","Gb","G","G#",
-                    "Gx","Ab"
-                  ]) -}
-                  [NotationSystem "Sagittal" [
-                    "A",
-                    "A" <> sagittal5CommaUp,
-                    "A" <> sagittalSharp5CDown,
-                    "A" <> sagittalSharp,
-                    "B",
-                    "C",
-                    "C" <> sagittal5CommaUp,
-                    "C" <> sagittalSharp5CDown,
-                    "C" <> sagittalSharp,
-                    "D",
-                    "D" <> sagittal5CommaUp,
-                    "D" <> sagittalSharp5CDown,
-                    "D" <> sagittalSharp,
-                    "E",
-                    "F",
-                    "F" <> sagittal5CommaUp,
-                    "F" <> sagittalSharp5CDown,
-                    "F" <> sagittalSharp,
-                    "G",
-                    "G" <> sagittal5CommaUp,
-                    "G" <> sagittalSharp5CDown,
-                    "G" <> sagittalSharp
-                  ]],
-            Temperament "24-TET" 24 (2 % 1) 
-                  [],
-            Temperament "31-TET" 24 (2 % 1) 
-                  [],
-            Temperament "41-TET" 41 (2 % 1)
-                  [],
-            Temperament "Bohlen Pierce" 13 (3 % 1) 
-                  [NotationSystem "Standard" [
-                    "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
-                  ]]
+                    ]
+                  ]
+            , chords = 
+                  [
+                    
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "22-TET" 
+            , divisions = 22
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+                    NotationSystem "Sagittal" [
+                      "A",
+                      "A" <> sagittal5CommaUp,
+                      "A" <> sagittalSharp5CDown,
+                      "A" <> sagittalSharp,
+                      "B",
+                      "C",
+                      "C" <> sagittal5CommaUp,
+                      "C" <> sagittalSharp5CDown,
+                      "C" <> sagittalSharp,
+                      "D",
+                      "D" <> sagittal5CommaUp,
+                      "D" <> sagittalSharp5CDown,
+                      "D" <> sagittalSharp,
+                      "E",
+                      "F",
+                      "F" <> sagittal5CommaUp,
+                      "F" <> sagittalSharp5CDown,
+                      "F" <> sagittalSharp,
+                      "G",
+                      "G" <> sagittal5CommaUp,
+                      "G" <> sagittalSharp5CDown,
+                      "G" <> sagittalSharp
+                    ]
+                  , NotationSystem "Standard (Meantone)" [
+                      "A","A#","Bb","B","B#",
+                      "Cb","C","C#","Db","D",
+                      "D#","Eb","E","E#","Fb",
+                      "F","F#","Gb","G","G#",
+                      "Gx","Ab"
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "24-TET" 
+            , divisions = 24
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+                        
+                  ]
+            },
+            Temperament {
+              temperamentName = "31-TET" 
+            , divisions = 31
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ] 
+            },
+            Temperament {
+              temperamentName = "41-TET" 
+            , divisions = 41
+            , period = (2 % 1) 
+            , notationSystems = 
+                  [
+
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ]
+            },
+            Temperament {
+              temperamentName = "Bohlen Pierce" 
+            , divisions = 13
+            , period = 3 % 1
+            , notationSystems = 
+                  [
+                    NotationSystem "Standard" [
+                      "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
+                    ]
+                  ]
+            , chords = 
+                  [
+
+                  ]
+            , scales = 
+                  [
+
+                  ]
+            , tunings = 
+                  [
+
+                  ]
+            }
         ]
+    , _preferences = defaultPreferences
+}
+{-
     , _tunings = toMap $ fromList 
         [
-            ("11-TET", Tuning "Wide Fourths Tuning" "Six-String Guitar" 
-                (0 :| [5, 10, 15, 20, 25]) 0),
-            ("11-TET", Tuning "Major Thirds Tuning" "Six-String Guitar" 
-                (0 :| [4, 8, 12, 16, 20]) 0),
-            ("11-TET", Tuning "Wide Fourths Tuning" "Four-String Bass Guitar" 
-                (0 :| [5, 10, 15]) 0),
-            ("11-TET", Tuning "Major Thirds Tuning" "Four-String Bass Guitar" 
-                (0 :| [4, 8, 120]) 0),
             ("12-TET", Tuning "Standard Tuning" "Mandolin"
                 (fmap (+10) $ 0 :| [7, 14, 21]) 0),
             ("12-TET", Tuning "Standard Tuning" "Ukulele"
@@ -231,16 +503,6 @@ defaultAppData = AppData {
         ]
     , _scales = toMap $ fromList 
         [
-            ("11-TET", Scale "Orgone[7]"
-                (1 :| [2, 1, 2, 1, 2, 2]))
-          , ("11-TET", Scale "Machine[5]"
-                (2 :| [2, 2, 2, 3]))
-          , ("11-TET", Scale "Machine[6]"
-                (2 :| [2, 2, 2, 2, 1]))
-          , ("11-TET", Scale "Joan heptatonic"
-                (1 :| [1, 1, 3, 1, 1, 3]))
-          , ("11-TET", Scale "Joan pentatonic"
-                (1 :| [4, 1, 4, 1]))
           , ("12-TET", Scale "Ionian (Major)" 
                 (2 :| [2, 1, 2, 2, 2, 1]))
           , ("12-TET", Scale "Mixolydian" 
@@ -394,8 +656,6 @@ defaultAppData = AppData {
         ]
     , _chords = toMap $ fromList 
         [
-            ("11-TET", Chord "Major" (4 :| [3, 4])),
-            ("11-TET", Chord "Minor" (3 :| [4, 4])),
             ("12-TET", Chord "Major" (4 :| [3, 5])),
             ("12-TET", Chord "Minor" (3 :| [4, 5])),
             ("12-TET", Chord "Major 7th" (4 :| [3, 4, 1])),
@@ -403,5 +663,5 @@ defaultAppData = AppData {
             ("12-TET", Chord "Minor 7th" (3 :| [4, 3, 2])),
             ("12-TET", Chord "MinMaj 7th" (3 :| [4, 4, 1]))
         ]
-    , _preferences = defaultPreferences
 }
+-}
