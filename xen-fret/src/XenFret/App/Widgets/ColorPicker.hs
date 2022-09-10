@@ -14,12 +14,20 @@ import Numeric (showIntAtBase, showHex, readHex)
 import Data.Char (intToDigit)
 import Text.ParserCombinators.ReadP
 import Data.Maybe (fromJust)
+import qualified Diagrams as Diagrams
+import Diagrams.Prelude (Colour(..), RGB (RGB), toSRGB24, sRGB24)
+import Data.Word (Word8)
 
 data Color = Color {
     r :: Int,
     g :: Int,
     b :: Int
 }
+
+toColour (Color r g b) = sRGB24 
+    (fromIntegral r :: Word8) 
+    (fromIntegral g :: Word8) 
+    (fromIntegral b :: Word8)
 
 color2hex :: Color -> String
 color2hex (Color r g b) = "#" <> showHex2 r <> showHex2 g <> showHex2 b

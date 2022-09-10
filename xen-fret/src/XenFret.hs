@@ -8,16 +8,17 @@ module XenFret (
     FretboardStyle(..)
 ) where
 
-import Diagrams.Attributes
+import Diagrams.Attributes hiding (Color)
 import Control.Monad
-import Diagrams.Prelude
+import Diagrams.Prelude hiding (Color)
 import Diagrams.Backend.SVG
 import XenFret.Util
 import Data.List.NonEmpty (toList)
 import XenFret.Data ( displayNote, Scale(Scale, scaleIntervals) )
 import Data.Ratio
 import Data.Maybe
-import XenFret.AppData (PreferenceData (noteNameSize))
+import XenFret.AppData (PreferenceData (noteNameSize, rootNoteColor))
+import XenFret.App.Widgets.ColorPicker (Color, toColour)
 
 -- | Generate an infinite list of the notes of the scale, from 0.
 repeatingNotes :: Scale -> [Int]
@@ -41,11 +42,11 @@ getNotes :: Scale -> Fretboard -> Int -> Int -> [[Int]]
 getNotes scale (Fretboard stringTunings) key skipFretting = stringTunings <&> \stringPitch ->
     mapMaybe fromRatio
         $ filterOutInc (< 0)
-        $ fmap (\x -> x - (stringPitch % n)) 
+        $ fmap (\x -> x - (stringPitch % n))
         $ fmap (\x -> x + (key % n))
-        $ fmap (% n) 
+        $ fmap (% n)
         $ repeatingNotes scale
-    where 
+    where
       n = skipFretting + 1
 
 fromRatio :: Ratio Int -> Maybe Int
@@ -55,28 +56,30 @@ fromRatio x
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)
-frettingDots :: Bool
+frettingDots :: 
+     Color
+  -> Bool
   -> Int
   -> Double    -- Vertical spacing
   -> Double    -- Horizontal spacing
   -> [(Int, Bool)]     -- List of fret locations, all Ints should be non-zero.
   -> Diagram B -- A diagram of the dots.
-frettingDots displayMarkersOnFrets offset vs _ =
-    foldr (atop . frettingDot displayMarkersOnFrets offset vs) mempty
+frettingDots rootColor displayMarkersOnFrets offset vs _ =
+    foldr (atop . frettingDot rootColor displayMarkersOnFrets offset vs) mempty
   . fmap (\(x,y) -> (x - offset, y))
   . filterOutInc (\(x, _) -> x < offset)
 
 -- | Create a diagram of a single dot
-frettingDot :: Bool -> Int -> Double -> (Int, Bool) -> Diagram B
-frettingDot _ 0 _ (0, _) = circle 0.03 # lwL 0.007
-frettingDot displayMarkersOnFrets _ vs (n, colored) =
+frettingDot :: Color -> Bool -> Int -> Double -> (Int, Bool) -> Diagram B
+frettingDot _ _ 0 _ (0, _) = circle 0.03 # lwL 0.007
+frettingDot rootColor displayMarkersOnFrets _ vs (n, colored) =
     translateY offset $ circle (0.03 * 0.8)
         # fc color
         # lwL 0.007
         # translateY (-n'*vs)
   where
     n'     = fromIntegral n  :: Double
-    color  = if colored then blue else black
+    color  = if colored then toColour rootColor else black
     offset = if displayMarkersOnFrets
         then 0.0
         else 0.5 * vs
@@ -126,12 +129,14 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
     strings = fretboardStrings fretboard
     lowestNote = head strings
     notes    = getNotes scale' fretboard key skipFrets
-    
-    dots       = fmap (frettingDots displayMarkersOnFrets offset vs hs) positions
+
+    dots       = fmap (frettingDots rootColor displayMarkersOnFrets offset vs hs) positions
     positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions strings
     unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)))
             notes
-    
+
+    rootColor = rootNoteColor prefs
+
     nStr       = length strings
     nStr'      = fromIntegral nStr :: Double -- Type cast
 
@@ -236,3 +241,4 @@ emptyBoard nFrets vs hs nStr offset =
     -- Type casts
     nFrets' = fromIntegral nFrets :: Double
     nStr'   = fromIntegral nStr :: Double
+
