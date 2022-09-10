@@ -28,34 +28,6 @@ instance Default NotationSystem where
 
 $(deriveJSON defaultOptions ''NotationSystem)
 
-data Temperament = Temperament {
-    temperamentName :: T.Text, 
-    divisions :: Int,
-    period :: Rational,
-    notationSystems :: [NotationSystem]
-}
-    deriving(Eq)
-
-type NoteNames = Maybe [String]
-
-displayNote :: (?noteNames :: NoteNames) => Int -> String
-displayNote note = 
-    let noteNames = maybe (fmap show [(0 :: Int)..]) cycle ?noteNames 
-     in noteNames !! note
-
-instance Default Temperament where
-    def = Temperament {
-        temperamentName = "",
-        divisions = 12,
-        period = 2 % 1,
-        notationSystems = []
-    }
-
-instance Show Temperament where
-    show = T.unpack . temperamentName
-
-$(deriveJSON defaultOptions ''Temperament)
-
 data Tuning = Tuning {
     tuningName :: T.Text,
     instrument :: T.Text,
@@ -109,3 +81,34 @@ instance Default Chord where
     def = Chord "" (0 :| [])
 
 $(deriveJSON defaultOptions ''Chord)
+
+data Temperament = Temperament {
+    temperamentName :: T.Text, 
+    divisions :: Int,
+    period :: Rational,
+    notationSystems :: [NotationSystem],
+    tunings :: [Tuning],
+    scales  :: [Scale],
+    chords :: [Chord]
+}
+    deriving(Eq)
+
+type NoteNames = Maybe [String]
+
+displayNote :: (?noteNames :: NoteNames) => Int -> String
+displayNote note = 
+    let noteNames = maybe (fmap show [(0 :: Int)..]) cycle ?noteNames 
+     in noteNames !! note
+
+instance Default Temperament where
+    def = Temperament {
+        temperamentName = "",
+        divisions = 12,
+        period = 2 % 1,
+        notationSystems = []
+    }
+
+instance Show Temperament where
+    show = T.unpack . temperamentName
+
+$(deriveJSON defaultOptions ''Temperament)
