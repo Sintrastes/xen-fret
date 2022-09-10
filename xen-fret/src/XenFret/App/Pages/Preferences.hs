@@ -27,6 +27,10 @@ preferencePage appDir = mdo
         (rootNoteColor $ _preferences initialAppData)
         rootNoteColorSet
 
+    fretboardColorDyn <- holdDyn 
+        (fretboardColor $ _preferences initialAppData)
+        fretboardColorSet
+
     -- Note: This will take a different approach from other pages,
     --  as there are multiple data types to modify.
     let prefUpdatesDyn = foldr1 (\x y -> do { x' <- x; y' <- y; pure $ x' . y' }) 
@@ -35,6 +39,8 @@ preferencePage appDir = mdo
                 appData { _preferences = (_preferences appData) { noteNameSize = fontSize } }
           , rootNoteColorDyn <&> \rootNoteColor appData ->
                 appData { _preferences = (_preferences appData) { rootNoteColor = rootNoteColor }}
+          , fretboardColorDyn <&> \fretboardColor appData ->
+                appData { _preferences = (_preferences appData) { fretboardColor = fretboardColor }}
           ]
 
     let dynAppData = prefUpdatesDyn <*> pure initialAppData
