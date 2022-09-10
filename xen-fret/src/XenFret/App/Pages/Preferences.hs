@@ -25,9 +25,9 @@ preferencePage appDir = mdo
 
     -- Note: This will take a different approach from other pages,
     --  as there are multiple data types to modify.
-    let prefUpdatesDyn = fontSizeDyn <&> \fontSize appData -> 
+    let prefUpdatesDyn = fontSizeDyn <&> \fontSize appData ->
             appData { _preferences = (_preferences appData) { noteNameSize = fontSize } }
-          
+
     let dynAppData = prefUpdatesDyn <*> pure initialAppData
 
     (_, clickImport) <- prefRow $ do
@@ -62,9 +62,9 @@ preferencePage appDir = mdo
 
         divider
 
-    modal rootColorClick $ do
+    rootNoteColorSet <- mapMaybe id <$> modal rootColorClick (do
         modalHeader "Root Note Color"
-        colorPicker "root-color" (rootNoteColor initialPrefs)
+        colorPicker "root-color" (rootNoteColor initialPrefs))
 
     (_, dotSizeClick) <- prefRow $ do
         prefHeader "Note Dot Size"
@@ -84,9 +84,9 @@ preferencePage appDir = mdo
 
         divider
 
-    modal fretColorClick $ do
+    fretboardColorSet <- mapMaybe id <$> modal fretColorClick (do
         modalHeader "Fretboard Color"
-        colorPicker "fretboard-color" (fretboardColor initialPrefs)
+        colorPicker "fretboard-color" (fretboardColor initialPrefs))
 
     (_, fretStyleClick) <- prefRow $ do
         prefHeader "Fret Style"
@@ -158,7 +158,7 @@ checkboxPref header description initialValue = do
         elClass "div" "col s10" $ do
             prefHeader header
             elClass "p" "unselectable" $ text description
-        elAttr "div" ("class" =: "col s2 valign-wrapper" <> "style" =: "height: 7.5em;") $ 
+        elAttr "div" ("class" =: "col s2 valign-wrapper" <> "style" =: "height: 7.5em;") $
             checkbox "" initialValue
 
     divider
@@ -171,7 +171,7 @@ multiSelectPref header description values initialValue = do
         elClass "div" "col s10" $ do
             prefHeader header
             elClass "p" "unselectable" $ text description
-        elAttr "div" ("class" =: "col s2 valign-wrapper" <> "style" =: "height: 7.5em;") $ 
+        elAttr "div" ("class" =: "col s2 valign-wrapper" <> "style" =: "height: 7.5em;") $
             multiSelect values initialValue
 
     divider
@@ -183,7 +183,7 @@ radioPref header description values initialValue = do
     (_, onClick) <- prefRow $ elClass "div" "col s10" $ do
         prefHeader header
         elClass "p" "unselectable" $ text description
-    
+
     modalDismissEvent <- modal onClick $ do
         el "h5" $ text header
         radioGroup header values initialValue
@@ -192,5 +192,5 @@ radioPref header description values initialValue = do
 
     let submitPrefEvent = mapMaybe id modalDismissEvent
 
-    holdDyn initialValue 
+    holdDyn initialValue
         submitPrefEvent
