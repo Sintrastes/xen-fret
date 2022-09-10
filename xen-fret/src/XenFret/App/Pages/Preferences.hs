@@ -23,10 +23,19 @@ preferencePage appDir = mdo
     initialAppData <- loadAppData (appDir <> "/app_data.json")
     let initialPrefs = _preferences initialAppData
 
+    rootNoteColorDyn <- holdDyn 
+        (rootNoteColor $ _preferences initialAppData)
+        rootNoteColorSet
+
     -- Note: This will take a different approach from other pages,
     --  as there are multiple data types to modify.
-    let prefUpdatesDyn = fontSizeDyn <&> \fontSize appData ->
-            appData { _preferences = (_preferences appData) { noteNameSize = fontSize } }
+    let prefUpdatesDyn = foldr1 (\x y -> do { x' <- x; y' <- y; pure $ x' . y' }) 
+          [
+            fontSizeDyn <&> \fontSize appData ->
+                appData { _preferences = (_preferences appData) { noteNameSize = fontSize } }
+          , rootNoteColorDyn <&> \rootNoteColor appData ->
+                appData { _preferences = (_preferences appData) { rootNoteColor = rootNoteColor }}
+          ]
 
     let dynAppData = prefUpdatesDyn <*> pure initialAppData
 
