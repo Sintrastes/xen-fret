@@ -108,13 +108,11 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
             ===
             (translateY (-0.12) (alignT noteMarkers) |||
                 (alignL stringMarkers === alignL (
-                    emptyboard
-                        `atop`
-                        -- The dots, translated to their proper positions on the fretboard
-                       let translatedDots = zipWith translateX (map (* hs) [0..nStr'])
-                            (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)
-                        in foldl1 atop
-                            translatedDots)
+                    -- The dots, translated to their proper positions on the fretboard
+                    let translatedDots = zipWith translateX (map (* hs) [0..nStr'])
+                         (map (translateX (-0.5 * (nStr' - 1) * hs)) dots)
+                    in foldl1 atop translatedDots
+                        `atop` emptyboard)
                 )
         )
 
@@ -210,12 +208,13 @@ emptyBoard ::
   -> Int    -- Offset
   -> Diagram B
 emptyBoard boardColor fretStyle' nFrets vs hs nStr offset =
-      nut
+      (nut
         `atop` fretMarkers
         -- The strings translated to their proper poisitons
         `atop` strings
             # translateX (-width/2)
-            # translateY (-len/2)
+            # translateY (-len/2))
+                # bg (toColour boardColor)
     -- The fretboard extends out 1/2 of a vs past the last fret, hence:
   where
     nut = if offset == 0
