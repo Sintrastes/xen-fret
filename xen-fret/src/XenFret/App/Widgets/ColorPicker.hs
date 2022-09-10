@@ -10,6 +10,10 @@ import Data.Aeson.TH
 import qualified Data.Text as T
 import Control.Lens ((^.))
 import Reflex.Dom.Extras (liftFrontend, liftFrontend')
+import Numeric (showIntAtBase, showHex, readHex)
+import Data.Char (intToDigit)
+import Text.ParserCombinators.ReadP
+import Data.Maybe (fromJust)
 
 data Color = Color {
     r :: Int,
@@ -18,10 +22,22 @@ data Color = Color {
 }
 
 color2hex :: Color -> String
-color2hex (Color r g b) = undefined
+color2hex (Color r g b) = "#" <> showHex2 r <> showHex2 g <> showHex2 b
+
+showHex2 :: Int -> String
+showHex2 x = let
+    hex = showHex x ""
+  in if length hex < 2
+        then "0" <> hex
+        else hex
 
 hex2color :: String -> Maybe Color
-hex2color = undefined
+hex2color [_, r1, r2, g1, g2, b1, b2] = let
+    r = fst $ head $ readHex [r1, r2]
+    g = fst $ head $ readHex [g1, g2]
+    b = fst $ head $ readHex [b1, b2]
+  in Just $ Color r g b
+hex2color _ = Nothing
 
 $(deriveJSON defaultOptions ''Color)
 
@@ -30,16 +46,20 @@ colorPicker ident initialColor = do
     postBuild <- delay 0.1 =<< getPostBuild
     (colorUpdate, onUpdateColor) <- newTriggerEvent
 
-    elAttr "div" ("id" =: ("picker-" <> ident)) $ do
+    _ <- elAttr "div" ("id" =: ("picker-" <> ident)) $ do
         performEvent $ postBuild <&> \_ ->
             liftJSM $ do
-                colorPicker <- eval ("iro.ColorPicker(\"#picker-" <> ident <> "\", { layout: [{component: iro.ui.Box}, {component: iro.ui.Slider, options: {sliderType: 'hue'}}] });" :: T.Text)
-                liftJSM $ jsg2 ("bindColorPicker" :: T.Text) colorPicker
-                    (fun $ \_ this args -> do
-                        let firstArg = args !! 0
+                picker <- eval ("iro.ColorPicker(\"#picker-" <> ident <> "\", { layout: " <> 
+                            "[{component: iro.ui.Box}, " <>
+                            "{component: iro.ui.Slider, options: {sliderType: 'hue'}}]" <>
+                       "});" :: T.Text)
+                _ <- liftJSM $ jsg2 ("bindColorPicker" :: T.Text) picker
+                    (fun $ \_ _ args -> do
+                        let firstArg = head args
                         hexString <- textFromJSString <$> valToStr firstArg
-                        -- onUpdateColor $ hex2color hexString
+                        liftIO $ onUpdateColor $ fromJust $ hex2color $ T.unpack hexString
                         liftIO $ putStrLn $ T.unpack hexString)
                 pure ()
 
-    pure $ pure initialColor
+    holdDyn initialColor
+        colorUpdate 
