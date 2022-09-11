@@ -749,6 +749,38 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "30-TET"
+            , _divisions = 30
+            , _period = 2 % 1
+            , _notationSystems =
+                  [
+
+                  ]
+            , _chords = []
+            , _scales = 
+                  [
+                    Scale "Lovecraft[5]"
+                        (7 :| [7, 7, 7, 2])
+                  , Scale "Lovecraft[9]"
+                        (5 :| [2, 5, 2, 5, 2, 5, 2, 2])
+                  , Scale "Sensi[5]"
+                        (8 :| [3, 8, 3, 8])
+                  , Scale "Sensi[8]"
+                        (5 :| [3, 3, 5, 3, 3, 5, 3])
+                  , Scale "Mavila[5]"
+                        (9 :| [4, 9, 4, 4])
+                  , Scale "Mavila[7]"
+                        (5 :| [4, 4, 5, 4, 4, 4])
+                  , Scale "Mavila[9]"
+                        (4 :| [4, 4, 4, 1, 4, 4, 4, 1])
+                  ]
+            , _tunings = 
+                  [
+                    Tuning "Narrow Fourths" "Six String Guitar"
+                        (0 :| [12, 24, 36, 48, 60]) 0
+                  ]
+            },
+            Temperament {
               _temperamentName = "31-TET"
             , _divisions = 31
             , _period = 2 % 1
