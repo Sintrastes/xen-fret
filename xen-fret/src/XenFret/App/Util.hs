@@ -20,6 +20,9 @@ import XenFret.Data
 import XenFret.AppData
 import Data.Maybe
 import Control.Lens
+import Data.List (find)
+import Debug.Trace
+import Data.Monoid (Endo(..))
 
 intervalListEntry :: _ => NonEmpty Int -> m (Dynamic t (Validation (NonEmpty T.Text) (NonEmpty Int)))
 intervalListEntry = validatedTextEntry
@@ -41,14 +44,14 @@ parseIntervalList :: T.Text -> Either (NonEmpty T.Text) (NonEmpty Int)
 parseIntervalList text = do
     let intervals = filter (not . T.null) $ T.splitOn " " text
 
-    parsed <- intervals 
+    parsed <- intervals
         <&> T.unpack
         <&> readMaybe @Int
-        <&> maybe (Left $ "Intervals must be whole numbers" :| []) 
+        <&> maybe (Left $ "Intervals must be whole numbers" :| [])
                 Right
           & sequence
-    
-    maybe (Left $ "List of intervals cannot be empty" :| []) Right $ 
+
+    maybe (Left $ "List of intervals cannot be empty" :| []) Right $
         NE.nonEmpty parsed
 
 validateSumToPeriod :: Reflex t => Dynamic t Int -> Dynamic t (NonEmpty Int -> Either (NonEmpty T.Text) (NonEmpty Int))
@@ -58,7 +61,7 @@ validateSumToPeriod period' = period' <&> (\period intervals ->
         else Left $ ("Intervals did not sum to period (" <> T.pack (show period) <> ")") :| [])
 
 showIntervalList :: NonEmpty Int -> T.Text
-showIntervalList xs = T.intercalate " " $ map (T.pack . show) $ NE.toList xs 
+showIntervalList xs = T.intercalate " " $ map (T.pack . show) $ NE.toList xs
 
 -- | Helper function to add a scale to the given temperament.
 addScale :: Temperament -> Scale -> Map T.Text [Scale] -> Map T.Text [Scale]
@@ -69,7 +72,7 @@ addScale Temperament{..} scale map = case Map.lookup _temperamentName map of
 getScales :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Scale])
 getScales appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ Map.fromList $ (\x -> (_temperamentName x, _scales x)) <$> 
+    return $ Map.fromList $ (\x -> (_temperamentName x, _scales x)) <$>
         _temperaments appData
 
 getTunings :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Tuning])
@@ -91,13 +94,37 @@ chordsMap appData = Map.fromList $ (\x -> (_temperamentName x, _chords x)) <$>
         _temperaments appData
 
 setTunings :: Map T.Text [Tuning] -> [Temperament] -> [Temperament]
-setTunings t appData = undefined
+setTunings t = mconcat (fmap (uncurry setTuningsForTemperament) (Map.toList t))
+
+setTuningsForTemperament :: T.Text -> [Tuning] -> [Temperament] -> [Temperament]
+setTuningsForTemperament name newTunings temperaments = let
+     maybeTemperament = find (\x -> name == _temperamentName x) temperaments
+  in case maybeTemperament of
+        Just temperament -> (\x ->
+            if name == _temperamentName x
+                then temperament { _tunings = newTunings }
+                else x) <$> temperaments
+        Nothing -> temperaments
 
 setChords :: Map T.Text [Chord] -> [Temperament] -> [Temperament]
 setChords c appData = undefined
 
 setScales :: Map T.Text [Scale] -> [Temperament] -> [Temperament]
-setScales s appData = undefined
+setScales s x = trace (show x) $ trace (show $ length s) $ let
+     res = mconcat (fmap (Endo . uncurry setScalesForTemperament) (Map.toList s))
+            `appEndo` x
+  in
+     trace (show $ length x) $ trace (show $ length res) res
+
+setScalesForTemperament :: T.Text -> [Scale] -> [Temperament] -> [Temperament]
+setScalesForTemperament name newScales temperaments = let
+     maybeTemperament = find (\x -> name == _temperamentName x) temperaments
+  in case maybeTemperament of
+        Just temperament -> (\x ->
+            if name == _temperamentName x
+                then temperament { _scales = newScales }
+                else x) <$> temperaments
+        Nothing -> temperaments
 
 pairForms :: (Semigroup e, Reflex t) =>
     Dynamic t (Validation e a)
@@ -159,7 +186,7 @@ loadAppData' :: (MonadSample t m, MonadIO m) => FilePath -> m AppData
 
 
 
-loadAppData' dataFile = liftIO $ catch (fromJust <$> decodeFileStrict dataFile)
+loadAppData' dataFile = liftIO $ catch (maybe defaultAppData id <$> decodeFileStrict dataFile)
     (\(_ :: SomeException) -> return defaultAppData)
 
 
@@ -184,3 +211,7 @@ validateNonEmpty :: T.Text -> Validation (NonEmpty T.Text) T.Text
 validateNonEmpty x
     | x == ""   = Failure ("String must not be empty" :| [])
     | otherwise = Success x
+
+
+
+
