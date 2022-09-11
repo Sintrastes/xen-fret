@@ -630,6 +630,45 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "23-TET"
+            , _divisions = 23
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales =
+                  [
+                    Scale "3L 2s (oneiro-pentatonic)"
+                        (5 :| [4, 5, 5, 4])
+                  , Scale "4L 1s (bug pentatonic)"
+                        (5 :| [5, 5, 5, 3])
+                  , Scale "5L 1s (machinoid)"
+                        (4 :| [4, 4, 4, 4, 3])
+                  , Scale "4L 3s (smitonic)"
+                        (5 :| [1, 5, 1, 5, 1, 5])
+                  , Scale "1L 6s (antiarcheotonic)"
+                        (3 :| [3, 3, 5, 3, 3, 3])
+                  , Scale "2L 5s (mavila, anti-diatonic)"
+                        (3 :| [3, 4, 3, 3, 3, 4])
+                  , Scale "3L 4s (mosh)"
+                        (2 :| [5, 2, 5, 2, 5, 2])
+                  , Scale "5L 3s (oneirotonic)"
+                        (4 :| [1, 4, 4, 1, 4, 4, 1])
+                  , Scale "7L 1s (porcupoid)"
+                        (3 :| [3, 3, 3, 3, 3, 3, 2])
+                  , Scale "7L 2s (mavila superdiatonic)"
+                        (3 :| [3, 3, 1, 3, 3, 3, 3, 1])
+                  , Scale "5L 4s (bug semiquartal)"
+                        (3 :| [2, 3, 2, 3, 2, 3, 2, 3])
+                  , Scale "3L 7s (sephiroid)"
+                        (3 :| [2, 2, 3, 2, 2, 3, 2, 2, 2])
+                  ]
+            , _tunings = 
+                  [
+                        Tuning "Wide Fourths" "Six String Guitar"
+                              (0 :| [10, 20, 30, 40, 50]) 0
+                  ]
+            },
+            Temperament {
               _temperamentName = "31-TET"
             , _divisions = 31
             , _period = 2 % 1
