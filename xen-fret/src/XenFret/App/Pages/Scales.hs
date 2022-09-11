@@ -45,7 +45,7 @@ scalePage appDir = mdo
 
     -- Dynamic check for whether or not a scale's name already exists in the list of scales for a given temperament.
     let isNewName initialName = dynScales <&> \scales temperament name -> 
-          let names = fmap scaleName (fromMaybe [] $ Map.lookup (temperamentName temperament) scales) in
+          let names = fmap scaleName (fromMaybe [] $ Map.lookup (_temperamentName temperament) scales) in
             if name `elem` names && (Just name /= initialName)
                 then Failure $ "There is already a scale with this name." :| []
                     else Success name
@@ -88,7 +88,7 @@ scalePage appDir = mdo
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, scale) -> do
         res <- scaleForm appData
-            (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
+            (fromJust $ find (\x -> _temperamentName x == temperament) $ _temperaments appData)
             (isNewName (Just $ scaleName scale)) scale
         pure $ fmap (\(x,y) -> (x, scale, y)) <$> res
 
@@ -96,14 +96,14 @@ scalePage appDir = mdo
 
     let editedScale = pushAlways (\(temperament, origScale, newScale) -> do
             currentScales <- getScales appDir
-            let scales = currentScales Map.! temperamentName temperament
+            let scales = currentScales Map.! _temperamentName temperament
             let indexOfScale = fromJust $ scales & elemIndex origScale
             let updatedScales = Seq.fromList scales
                     & Seq.update indexOfScale newScale
                     & toList
 
             let updatedMap = Map.insert 
-                    (temperamentName temperament)
+                    (_temperamentName temperament)
                     updatedScales currentScales
 
             pure updatedMap) editSubmitted
@@ -132,7 +132,7 @@ scaleForm appData initialTemperament isValidName initialValue = mdo
     let temperamentUpdated = fmapMaybe validationToMaybe
             (updated temperamentForm)
 
-    let periodDyn = currentTemperament <&> divisions
+    let periodDyn = currentTemperament <&> _divisions
 
     scaleForm <- initFormA (Scale <$>
           formA (scaleName =. labeledEntryA "Name"

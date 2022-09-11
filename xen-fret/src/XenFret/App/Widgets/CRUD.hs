@@ -42,7 +42,7 @@ crudPage appDir entityName form optic = mdo
         Nothing -> pure appData
         Just (temperament, entity) -> do
             toast $ "Added new " <> entityName
-            pure $ addEntity (optic (temperamentName temperament)) appData entity)
+            pure $ addEntity (optic (_temperamentName temperament)) appData entity)
 
     let updatedEntities = leftmost [addedEntity, removedEntity, editedEntity]
 
@@ -51,8 +51,8 @@ crudPage appDir entityName form optic = mdo
 
     let getName currentName = \temperament -> dynUpdatedData <&> (\x ->
          let ts = _temperaments x
-             n = find ((== temperament) . temperamentName) ts
-             ents = maybe [] (\y -> getEntitiesFor (temperamentName y) optic x) n
+             n = find ((== temperament) . _temperamentName) ts
+             ents = maybe [] (\y -> getEntitiesFor (_temperamentName y) optic x) n
              curr = currentName
          in filter ((/= curr) . Just) $ fmap name ents)
 
@@ -90,7 +90,7 @@ crudPage appDir entityName form optic = mdo
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, entity) -> do
         res <- form appData
-            (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
+            (fromJust $ find (\x -> _temperamentName x == temperament) $ _temperaments appData)
             (getName (Just $ name entity)) entity
         pure $ fmap (\(x, y) -> (x, entity, y)) <$> res
 
@@ -99,7 +99,7 @@ crudPage appDir entityName form optic = mdo
     let editedEntity = pushAlways (\(temperament, origEntity, newEntity) -> do
             currentData <- sample $ current dynUpdatedData
 
-            pure $ editEntity (optic $ temperamentName temperament) currentData origEntity newEntity) editSubmitted
+            pure $ editEntity (optic $ _temperamentName temperament) currentData origEntity newEntity) editSubmitted
 
     blank
 
@@ -126,9 +126,9 @@ getEntitiesFor temperament optic appData = appData ^. optic temperament
 
 getEntities :: (T.Text -> Lens' AppData [a]) -> AppData -> [a]
 getEntities optic appData = mconcat $ _temperaments appData <&> \temperament ->
-    appData ^. optic (temperamentName temperament)
+    appData ^. optic (_temperamentName temperament)
 
 getEntitiesMap :: (T.Text -> Lens' AppData [a]) -> AppData -> Map.Map T.Text [a]
 getEntitiesMap optic appData = Map.fromList $ _temperaments appData <&> \temperament ->
-    (temperamentName temperament, appData ^. optic (temperamentName temperament))
+    (_temperamentName temperament, appData ^. optic (_temperamentName temperament))
 

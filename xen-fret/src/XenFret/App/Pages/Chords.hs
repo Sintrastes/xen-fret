@@ -25,6 +25,7 @@ import Data.Foldable
 import XenFret.App.Widgets.CRUD
 import Control.Lens
 import Debug.Trace
+import XenFret.App.Util
 
 -- Helper "Iso" (really not a strict isomorphism)
 --  to help reduce "at"s that return a list.
@@ -32,8 +33,18 @@ reduceMaybe :: Iso' (Maybe [a]) [a]
 reduceMaybe = iso (fromMaybe []) Just
 
 chordPage :: _ => FilePath -> m ()
-chordPage appDir = undefined {- crudPage appDir "chord" chordForm 
-    (\x -> chords . at x . reduceMaybe) -}
+chordPage appDir = crudPage appDir "chord" chordForm
+    (\x -> lens
+      (maybe [] _chords . find (\ t -> _temperamentName t == x) . _temperaments)
+      (\appData newChords ->
+          case find (\t -> _temperamentName t == x) (_temperaments appData) of
+              Just y  -> appData { _temperaments = updateTemperament (_temperaments appData) (y { _chords = newChords }) }
+              Nothing -> appData
+      )
+    )
+
+updateTemperament :: [Temperament] -> Temperament -> [Temperament]
+updateTemperament ts t = (\x -> if _temperamentName x == _temperamentName t then t else x) <$> ts
 
 chordForm :: MonadWidget t m =>
     AppData
@@ -48,9 +59,9 @@ chordForm appData initialTemperament currentChords initialValue = mdo
         delay 0.1 temperamentUpdated
 
     let isValidName = \temperament -> do
-          chords <- currentChords (temperamentName temperament)
+          chords <- currentChords (_temperamentName temperament)
           pure $ trace (show chords) $ \x -> if x `elem` chords
-            then Failure $ "There is already a chord with this name." :| [] 
+            then Failure $ "There is already a chord with this name." :| []
             else Success x
 
     let chordValidation = combineDynValidations
@@ -64,7 +75,7 @@ chordForm appData initialTemperament currentChords initialValue = mdo
     let temperamentUpdated = fmapMaybe validationToMaybe
             (updated temperamentForm)
 
-    let periodDyn = currentTemperament <&> divisions
+    let periodDyn = currentTemperament <&> _divisions
 
     chordForm <- initFormA (Chord <$>
           formA (chordName =. labeledEntryA "Name"

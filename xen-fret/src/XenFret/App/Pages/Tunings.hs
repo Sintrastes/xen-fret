@@ -42,10 +42,10 @@ tuningPage appDir = mdo
         updatedTunings
 
     let isNewName initialName = dynTunings <&> \tunings temperament instrument name ->
-          let names = fmap tuningName (fromMaybe [] $ Map.lookup (temperamentName temperament) tunings) in
+          let names = fmap tuningName (fromMaybe [] $ Map.lookup (_temperamentName temperament) tunings) in
             if name `elem` names && Just name /= initialName
                 then Failure $ ("There is already a " <> instrument <>
-                        " tuning with this name for " <> temperamentName temperament <> ".") :| []
+                        " tuning with this name for " <> _temperamentName temperament <> ".") :| []
                 else Success name
 
     newTuningSubmitted <- validatedModal newTuningEvent $ \_ -> do
@@ -89,7 +89,7 @@ tuningPage appDir = mdo
 
     completeEditDialog <- validatedModal editEvents $ \(temperament, tuning) -> do
         res <- tuningForm appData
-            (fromJust $ find (\x -> temperamentName x == temperament) $ _temperaments appData)
+            (fromJust $ find (\x -> _temperamentName x == temperament) $ _temperaments appData)
             (isNewName $ Just $ tuningName tuning) tuning
         pure $ fmap (\(x,y) -> (x, tuning, y)) <$> res
 
@@ -97,14 +97,14 @@ tuningPage appDir = mdo
 
     let editedTuning = pushAlways (\(temperament, origTuning, newTuning) -> do
             currentTunings <- getTunings appDir
-            let tunings = currentTunings Map.! temperamentName temperament
+            let tunings = currentTunings Map.! _temperamentName temperament
             let indexOfScale = fromJust $ tunings & elemIndex origTuning
             let updatedTunings = Seq.fromList tunings
                     & Seq.update indexOfScale newTuning
                     & toList
 
             let updatedMap = Map.insert 
-                    (temperamentName temperament)
+                    (_temperamentName temperament)
                     updatedTunings currentTunings
 
             pure updatedMap) editSubmitted
@@ -113,9 +113,9 @@ tuningPage appDir = mdo
 
 -- | Helper function to add a tuning to the given temperament.
 addTuning :: Temperament -> Tuning -> Map T.Text [Tuning] -> Map T.Text [Tuning]
-addTuning Temperament{..} tuning map = case Map.lookup temperamentName map of
-  Nothing -> Map.insert temperamentName [tuning] map
-  Just tuns -> Map.insert temperamentName (tuns ++ [tuning]) map
+addTuning Temperament{..} tuning map = case Map.lookup _temperamentName map of
+  Nothing -> Map.insert _temperamentName [tuning] map
+  Just tuns -> Map.insert _temperamentName (tuns ++ [tuning]) map
 
 tuningForm :: MonadWidget t m => AppData
     -> Temperament

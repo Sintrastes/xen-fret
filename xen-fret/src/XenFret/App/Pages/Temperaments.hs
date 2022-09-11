@@ -45,8 +45,8 @@ temperamentPage appDir = mdo
     dynTemperaments <- holdDyn initialTemperaments
         (leftmost [updatedTemperaments, editedTemperaments])
 
-    let isNewName initialName = dynTemperaments <&> \ temperaments name ->
-            let names = fmap temperamentName temperaments in
+    let isNewName initialName = dynTemperaments <&> \temperaments name ->
+            let names = fmap _temperamentName temperaments in
                 if name `elem` names && initialName /= Just name
                     then Failure $ "There is already a temperament with this name." :| []
                     else Success name
@@ -79,14 +79,14 @@ temperamentPage appDir = mdo
             currentScales <- getScales appDir
 
             let updatedTemperaments = filter (/= toDelete) currentTemperaments
-            let updatedTunings = Map.delete (temperamentName toDelete) currentTunings
-            let updatedScales = Map.delete (temperamentName toDelete) currentScales
+            let updatedTunings = Map.delete (_temperamentName toDelete) currentTunings
+            let updatedScales = Map.delete (_temperamentName toDelete) currentScales
 
             pure (updatedTemperaments, updatedTunings, updatedScales))
                 deleteClickedEvent
 
     completeEditDialog <- validatedModal editEvent $ \temperament -> do
-        res <- temperamentForm (isNewName $ Just $ temperamentName temperament) temperament
+        res <- temperamentForm (isNewName $ Just $ _temperamentName temperament) temperament
         pure $ fmap (\x -> (x, temperament)) <$> res
 
     let editSubmitted = mapMaybe id completeEditDialog
@@ -104,8 +104,8 @@ temperamentPage appDir = mdo
                     & Seq.update indexOfTemperament newTemperament
                     & toList
 
-            let oldName = temperamentName oldTemperament
-            let newName = temperamentName newTemperament
+            let oldName = _temperamentName oldTemperament
+            let newName = _temperamentName newTemperament
 
             let hasNewName = newName /= oldName
 
@@ -160,9 +160,9 @@ temperamentForm isNewName initialValue = do
     let nameForm = validatedTextEntryDyn nameValidation id
 
     let formContents = Temperament <$>
-            formA (temperamentName =. labeledEntryA "Name" nameForm) <*>
-            liftFormA (form (divisions =. labeledEntry "Divisions" nonNegativeIntEntry)) <*>
-            liftFormA (form (period =. labeledEntry "Period" rationalEntry)) <*>
+            formA (_temperamentName =. labeledEntryA "Name" nameForm) <*>
+            liftFormA (form (_divisions =. labeledEntry "Divisions" nonNegativeIntEntry)) <*>
+            liftFormA (form (_period =. labeledEntry "Period" rationalEntry)) <*>
             pure [] <*>
             pure [] <*>
             pure [] <*>
