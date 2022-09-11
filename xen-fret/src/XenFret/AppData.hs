@@ -683,8 +683,20 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
-            , _tunings = []
+            , _scales = 
+                  [
+                    Scale "Flattone"
+                        (4 :| [4, 4, 3, 4, 4, 3])
+                  , Scale "Orgone"
+                        (5 :| [5, 2, 5, 2, 5, 2])
+                  , Scale "Lemba"
+                        (5 :| [5, 3, 5, 5, 3])
+                  ]
+            , _tunings = 
+                  [
+                    Tuning "All Fourths" "Six String Guitar"
+                        (0 :| [11, 22, 33, 44, 55]) 0
+                  ]
             },
             Temperament {
               _temperamentName = "27-TET"
@@ -724,6 +736,24 @@ defaultAppData = AppData {
                   [
 
                   ]
+            },
+            Temperament {
+              _temperamentName = "34-TET"
+            , _divisions = 34
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
+              _temperamentName = "36-TET"
+            , _divisions = 36
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
             },
             Temperament {
               _temperamentName = "41-TET"
