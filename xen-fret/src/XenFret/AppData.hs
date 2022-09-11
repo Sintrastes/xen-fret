@@ -713,8 +713,40 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
-            , _tunings = []
+            , _scales = 
+                  [
+                    Scale "Negri [9]"
+                        (3 :| [3, 3, 3, 4, 3, 3, 3, 3])
+                  , Scale "Negri [10]"
+                        (3 :| [3, 3, 3, 3, 3, 3, 3, 3, 1])
+                  , Scale "Diatonic Major [7]"
+                        (5 :| [4, 3, 4, 5, 5, 2])
+                  , Scale "Diatonic Minor [7]"
+                        (5 :| [2, 5, 4, 3, 4, 5])
+                  , Scale "Diatonic Naive Major [7]"
+                        (4 :| [5, 3, 4, 5, 4, 3])
+                  , Scale "Diatonic Naive Minor [7]"
+                        (4 :| [3, 5, 4, 3, 4, 5])
+                  , Scale "Harmonic Minor [7]"
+                        (5 :| [2, 5, 4, 3, 7, 2])
+                  , Scale "Harmonic Major [7]"
+                        (5 :| [4, 3, 4, 3, 7, 2])
+                  , Scale "Diasem (Right-handed)"
+                        (4 :| [1, 4, 4, 3, 4, 1, 4, 3])
+                  , Scale "Diasem (Left-handed)"
+                        (4 :| [4, 1, 4, 3, 4, 1, 4, 3])
+                  , Scale "Oneirotonic [5]"
+                        (6 :| [5, 6, 5, 6])
+                  , Scale "Oneirotonic [8]"
+                        (5 :| [5, 1, 5, 5, 1, 5, 1])
+                  ]
+            , _tunings = 
+                  [
+                    Tuning "Wide Fourths" "Six String Guitar"
+                        (0 :| [12, 24, 36, 48, 69]) 0
+                  , Tuning "Narrow Fourths" "Six String Guitar"
+                        (0 :| [11, 22, 33, 44, 55]) 0
+                  ]
             },
             Temperament {
               _temperamentName = "31-TET"
