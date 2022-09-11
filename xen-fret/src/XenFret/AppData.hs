@@ -474,6 +474,70 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "21-TET"
+            , _divisions = 21
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = 
+                  [
+                    Scale "Antisinatonic (1L 9s)"
+                        (3 :| [2, 2, 2, 2, 2, 2, 2, 2, 2])
+                  , Scale "Machinoid (5L 1s)"
+                        (4 :| [4, 4, 4, 4, 1])
+                  , Scale "p-chro Machinoid (5L 6s)"
+                        (3 :| [1, 1, 3, 1, 3, 1, 3, 1, 3, 1])
+                  , Scale "Manual (4L 1s)"
+                        (5 :| [5, 5, 5, 1])
+                  , Scale "Gramitonic (4L 5s)"
+                        (4 :| [1, 4, 1, 4, 1, 4, 1, 1])
+                  , Scale "Antipentic (3L 2s)"
+                        (5 :| [5, 3, 5, 3])
+                  , Scale "Oneirotonic (5L 3s)"
+                        (3 :| [3, 2, 3, 3, 2, 3, 2])
+                  , Scale "LH Diasem Ionian"
+                        (3 :| [1, 3, 2, 3, 3, 1, 3, 2])
+                  , Scale "LH Diasem Mixo"
+                        (3 :| [1, 3, 2, 3, 1, 3, 2, 3])
+                  , Scale "LH Diasem Dorian"
+                        (1 :| [3, 2, 3, 3, 1, 3, 2, 3])
+                  , Scale "LH Diasem Aeolian"
+                        (3 :| [2, 3, 1, 3, 2, 3, 3, 1])
+                  , Scale "LH Diasem Phrygian"
+                        (2 :| [3, 3, 1, 3, 2, 3, 1, 3])
+                  , Scale "LH Diasem Lydian"
+                        (3 :| [3, 1, 3, 2, 3, 1, 3, 2])
+                  , Scale "LH Diasem Darkened Dorian"
+                        (3 :| [2, 3, 3, 1, 3, 2, 3, 1])
+                  , Scale "LH Diasem Brightened Aeolian"
+                        (1 :| [3, 2, 3, 1, 3, 2, 3, 3])
+                  , Scale "LH Diasem Locrian"
+                        (2 :| [3, 1, 3, 2, 3, 3, 1, 3])
+                  , Scale "RH Diasem Ionian"
+                        (3 :| [1, 3, 2, 3, 1, 3, 3, 2])
+                  , Scale "RH Diasem Mixo"
+                        (1 :| [3, 3, 2, 3, 1, 3, 2, 3])
+                  , Scale "RH Diasem Dorian"
+                        (3 :| [2, 3, 1, 3, 3, 2, 3, 1])
+                  , Scale "RH Diasem Aeolian"
+                        (3 :| [2, 3, 1, 3, 2, 3, 1, 3])
+                  , Scale "RH Diasem Phrygian"
+                        (2 :| [3, 1, 3, 3, 2, 3, 1, 3])
+                  , Scale "RH Diasem Lydian"
+                        (3 :| [1, 3, 3, 2, 3, 1, 3, 2])
+                  , Scale "RH Diasem Darkened Mixo"
+                        (3 :| [3, 2, 3, 1, 3, 2, 3, 1])
+                  , Scale "RH Diasem Brightened Dorian"
+                        (1 :| [3, 2, 3, 1, 3, 3, 2, 3])
+                  , Scale "RH Diasem Locrian"
+                        (2 :| [3, 1, 3, 2, 3, 1, 3, 3])
+                  ]
+            , _tunings = [
+                  Tuning "Standard Tuning" "Six String Guitar"
+                        (0 :| [9, 18, 27, 33, 42]) 0
+            ]
+            },
+            Temperament {
               _temperamentName = "22-TET"
             , _divisions = 22
             , _period = 2 % 1
