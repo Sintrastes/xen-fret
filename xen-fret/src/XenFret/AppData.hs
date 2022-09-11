@@ -762,11 +762,71 @@ defaultAppData = AppData {
                   ]
             , _scales =
                   [
-
+                    Scale "Miracle[5]"
+                        (3 :| [3, 3, 3, 19])
+                  , Scale "Nusecond[5]"
+                        (4 :| [4, 4, 4, 15])
+                  , Scale "Hemithirds[5]"
+                        (5 :| [5, 5, 5, 11])
+                  , Scale "Mothra[5]"
+                        (6 :| [6, 6, 6, 7])
+                  , Scale "Orwell[5]"
+                        (7 :| [7, 7, 7, 3])
+                  , Scale "Squares[5]"
+                        (2 :| [9, 2, 9, 9])
+                  , Scale "Semisept[5]"
+                        (5 :| [7, 5, 7, 7])
+                  , Scale "Meantone[5]"
+                        (8 :| [5, 8, 5, 5])
+                  , Scale "Casablanca[5]"
+                        (11 :| [3, 11, 3, 3])
+                  , Scale "Tritonic[5]"
+                        (14 :| [1, 14, 1, 1])
+                  , Scale "Miracle[6]"
+                        (3 :| [3, 3, 3, 3, 16])
+                  , Scale "Nusecond[6]"
+                        (4 :| [4, 4, 4, 4, 11])
+                  , Scale "Hemithirds[6]"
+                        (5 :| [5, 5, 5, 5, 6])
+                  , Scale "Mothra[6]"
+                        (6 :| [6, 6, 6, 6, 1])
+                  , Scale "Miracle[7]"
+                        (3 :| [3, 3, 3, 3, 3, 13])
+                  , Scale "Nusecond[7]"
+                        (4 :| [4, 4, 4, 4, 4, 7])
+                  , Scale "Hemithirds[7]"
+                        (5 :| [5, 5, 5, 5, 5, 1])
+                  , Scale "Myna[7]"
+                        (1 :| [7, 1, 7, 1, 7, 7])
+                  , Scale "Mohajira[7]"
+                        (5 :| [4, 5, 4, 5, 4, 4])
+                  , Scale "Würschmidt[7]"
+                        (9 :| [1, 9, 1, 9, 1, 1])
+                  , Scale "Meantone[7]"
+                        (3 :| [5, 5, 3, 5, 5, 5])
+                  , Scale "Casablanca[7]"
+                        (8 :| [3, 3, 8, 3, 3, 3])
+                  , Scale "Tritonic[7]"
+                        (13 :| [1, 1, 13, 1, 1, 1])
+                  , Scale "Miracle[8]"
+                        (3 :| [3, 3, 3, 3, 3, 3, 10])
+                  , Scale "Nusecond[8]"
+                        (4 :| [4, 4, 4, 4, 4, 4, 3])
+                  , Scale "Squares[8]"
+                        (2 :| [2, 7, 2, 2, 7, 2, 7])
+                  , Scale "Semisept[8]"
+                        (5 :| [5, 2, 5, 5, 2, 5, 2])
+                  , Scale "Miracle[9]"
+                        (3 :| [3, 3, 3, 3, 3, 3, 3, 7])
+                  , Scale "Orwell[9]"
+                        (4 :| [3, 4, 3, 4, 3, 4, 3, 3])
+                  , Scale "Casablanca[9]"
+                        (5 :| [3, 3, 3, 5, 3, 3, 3, 3])
                   ]
             , _tunings =
                   [
-
+                    Tuning "Standard Tuning" "Six String Guitar"
+                        (0 :| [13, 26, 39, 49, 62]) 0
                   ]
             },
             Temperament {
