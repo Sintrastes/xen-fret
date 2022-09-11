@@ -419,6 +419,61 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "20-TET"
+            , _divisions = 20
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales =
+                  [
+                    Scale "Blackwood Major Decatonic"
+                        (3 :| [1, 3, 1, 3, 1, 3, 1, 3, 1])
+                  , Scale "Blackwood Minor Decatonic"
+                        (1 :| [3, 1, 3, 1, 3, 1, 3, 1, 3])
+                  , Scale "Blackwood Major Pentadecatonic"
+                        (2 :| [1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1])
+                  , Scale "Blackwood Diminished Pentadecatonic"
+                        (1 :| [1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2])
+                  , Scale "Blackwood Minor Pentadecatonic"
+                        (1 :| [2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1])
+                  , Scale "Balzano Nine-tone"
+                        (2 :| [3, 2, 2, 2, 3, 2, 2, 2])
+                  , Scale "Balzano Eleven-tone"
+                        (2 :| [2, 2, 2, 1, 2, 2, 2, 2, 2, 1])
+                  , Scale "Balzano Nine-tone inverse"
+                        (2 :| [2, 2, 3, 2, 2, 2, 3, 2])
+                  , Scale "Balzano Eleven-tone inverse"
+                        (1 :| [2, 2, 2, 2, 2, 1, 2, 2, 2, 2])
+                  , Scale "Octatonic"
+                        (2 :| [3, 2, 3, 2, 3, 2, 3])
+                  , Scale "Diminished"
+                        (3 :| [2, 3, 2, 3, 2, 3, 2])
+                  , Scale "Dodecatonic"
+                        (2 :| [2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1])
+                  , Scale "Major"
+                        (4 :| [3, 1, 4, 3, 4, 1])
+                  , Scale "Minor"
+                        (4 :| [1, 3, 4, 1, 4, 3])
+                  , Scale "Major quasi-equal Heptatonic" 
+                        (3 :| [3, 3, 3, 3, 3, 2])
+                  , Scale "Minor quasi-equal Heptatonic"
+                        (3 :| [2, 3, 3, 3, 3, 3])
+                  , Scale "Rothenberg Generalized Diatonic"
+                        (3 :| [2, 2, 2, 2, 3, 2, 2, 2])
+                  , Scale "Stearns Major"
+                        (3 :| [4, 1, 4, 3, 3, 2])
+                  , Scale "score5"
+                        (7 :| [2, 7, 2, 2])
+                  , Scale "Mavilla[7]"
+                        (5 :| [2, 2, 5, 2, 2, 2])
+                  ]
+            , _tunings =
+                  [
+                        Tuning "Flat Forths" "Six-String Guitar"
+                              (0 :| [8, 16, 24, 32, 40]) 0
+                  ]
+            },
+            Temperament {
               _temperamentName = "22-TET"
             , _divisions = 22
             , _period = 2 % 1
