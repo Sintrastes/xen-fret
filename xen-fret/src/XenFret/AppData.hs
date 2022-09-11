@@ -71,22 +71,22 @@ defaultAppData = AppData {
       _temperaments =
         [
             Temperament {
-                temperamentName = "11-TET"
-              , divisions = 11
-              , period = 2 % 1
-              , notationSystems =
+                _temperamentName = "11-TET"
+              , _divisions = 11
+              , _period = 2 % 1
+              , _notationSystems =
                   [
                     NotationSystem "" [
                       "Q","Q#","R","R#","S",
                       "S#","T","T#","U","U#","P"
                     ]
                   ]
-              , chords =
+              , _chords =
                   [
                     Chord "Major" (4 :| [3, 4])
                   , Chord "Minor" (3 :| [4, 4])
                   ]
-              , scales =
+              , _scales =
                   [
                     Scale "Orgone[7]"
                         (1 :| [2, 1, 2, 1, 2, 2])
@@ -99,7 +99,7 @@ defaultAppData = AppData {
                   , Scale "Joan pentatonic"
                         (1 :| [4, 1, 4, 1])
                   ]
-              , tunings =
+              , _tunings =
                   [
                     Tuning "Wide Fourths Tuning" "Six-String Guitar"
                         (0 :| [5, 10, 15, 20, 25]) 0
@@ -112,17 +112,17 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
-              temperamentName = "12-TET"
-            , divisions = 12
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "12-TET"
+            , _divisions = 12
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "" [
                       "A","A#","B","C","C#","D",
                       "D#","E","F","F#","G","G#"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
                     Chord "Major" (4 :| [3, 5])
                   , Chord "Minor" (3 :| [4, 5])
@@ -131,7 +131,7 @@ defaultAppData = AppData {
                   , Chord "Minor 7th" (3 :| [4, 3, 2])
                   , Chord "MinMaj 7th" (3 :| [4, 4, 1])
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Ionian (Major)"
                         (2 :| [2, 1, 2, 2, 2, 1])
@@ -160,7 +160,7 @@ defaultAppData = AppData {
                   , Scale "Engimatic Scale"
                         (1 :| [3, 2, 2, 2, 1, 1])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Standard Tuning" "Mandolin"
                         (fmap (+10) $ 0 :| [7, 14, 21]) 0
@@ -183,64 +183,64 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
-              temperamentName = "13-TET"
-            , divisions = 13
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "13-TET"
+            , _divisions = 13
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "" [
                        "J","J#","K","L","L#","M","M#",
                        "N","O","O#","P","Q","Q#"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Archeotonic (Ryonian Mode)"
                         (2 :| [2, 2, 2, 2, 2, 1])
                   , Scale "Oneirotonic (Dylathian Mode)"
                         (2 :| [2, 1, 2, 2, 1, 2, 1])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Oneirotonic Tuning" "Six-String Guitar"
                         (3 :| [8, 14, 19, 24, 29]) 0
                   ]
             },
             Temperament {
-              temperamentName = "14-TET"
-            , divisions = 14
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "14-TET"
+            , _divisions = 14
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "" [
                      "A","^A","B","^B","C","^C","D","^D","E","^E",
                      "F","^F","G","^G"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                    Scale "Titanium[9]"
                         (2 :| [1, 2, 1, 2, 1, 2, 1, 2])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Wide Fourths Tuning" "Six-String Guitar"
                         (0 :| [5, 10, 15, 20, 25]) 0
                   ]
             },
             Temperament {
-              temperamentName = "15-TET"
-            , divisions = 15
-            , period = (2 % 1)
-            , notationSystems =
+              _temperamentName = "15-TET"
+            , _divisions = 15
+            , _period = (2 % 1)
+            , _notationSystems =
                   [
                     NotationSystem "" [
                       "α","β\\","β","χ\\","χ","δ\\","δ",
@@ -248,11 +248,11 @@ defaultAppData = AppData {
                       "η"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Augmented[6]"
                         (4 :| [1, 4, 1, 4, 1])
@@ -273,28 +273,28 @@ defaultAppData = AppData {
                   , Scale "Marvel double harmonic major"
                         (1 :| [4,1,3,1,4,1])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "All Fourths Tuning" "Six-String Guitar"
                         (0 :| [5, 10, 15, 20, 25]) 0
                   ]
             },
             Temperament {
-              temperamentName = "16-TET"
-            , divisions = 16
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "16-TET"
+            , _divisions = 16
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "Standard" [
                       "A","B#","B","Bb","C#","C","D#","D",
                       "E#","E","Eb","F#","F","G#","G","A#"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "mavila[7]"
                         (2 :| [2, 2, 3, 2, 2, 3])
@@ -303,7 +303,7 @@ defaultAppData = AppData {
                   , Scale "Magic"
                         (1 :| [4, 1, 4, 1, 4, 1])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Wide Fourths Tuning" "Six-String Guitar"
                         (fmap (+9) $ 0 :| [7, 14, 21, 28, 35]) 0
@@ -316,10 +316,10 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
-              temperamentName = "17-TET"
-            , divisions = 17
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "17-TET"
+            , _divisions = 17
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "Standard" [
                       "A","Bb","A#","B","C","Db","C#","D",
@@ -327,11 +327,11 @@ defaultAppData = AppData {
                       "G#"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Major"
                         (3 :| [3, 3, 1, 3, 3, 1])
@@ -348,7 +348,7 @@ defaultAppData = AppData {
                   , Scale "Shelbyvillean"
                         (3 :| [3, 1, 3, 3, 2, 2])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Standard Tuning" "Six-String Guitar"
                         (fmap (+10) $ 0 :| [7, 14, 21, 27, 34]) 0
@@ -357,10 +357,10 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
-              temperamentName = "18-TET"
-            , divisions = 18
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "18-TET"
+            , _divisions = 18
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "" [
                         "A","Bb","A#","B","C","Db","C#","D",
@@ -368,28 +368,28 @@ defaultAppData = AppData {
                         "Hb","G#","H"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Bicycle"
                         (4 :| [4, 1, 4, 4, 1])
                   , Scale "Mish Heptatonic"
                         (3 :| [2, 3, 2, 3, 3, 2])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Wide Fourths" "Six-String Guitar"
                         (0 :| [8, 16, 24, 32, 40]) 0
                   ]
             },
             Temperament {
-              temperamentName = "19-TET"
-            , divisions = 19
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "19-TET"
+            , _divisions = 19
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "Standard" [
                       "A","A#","Bb","B","B#","C",
@@ -397,11 +397,11 @@ defaultAppData = AppData {
                       "E#","F","F#","Gb","G","G#","Ab"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Ionian (Major)"
                         (3 :| [3, 2, 3, 3, 3, 2])
@@ -412,17 +412,17 @@ defaultAppData = AppData {
                   , Scale "Kleismic[7]"
                         (1 :| [4, 1, 4, 1, 4, 4])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Standard Tuning" "Six-String Guitar"
                         (fmap (+11) $ 0 :| [8, 16, 24, 30, 38]) 0
                   ]
             },
             Temperament {
-              temperamentName = "22-TET"
-            , divisions = 22
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "22-TET"
+            , _divisions = 22
+            , _period = 2 % 1
+            , _notationSystems =
                   [
                     NotationSystem "Sagittal" [
                       "A",
@@ -456,11 +456,11 @@ defaultAppData = AppData {
                       "Gx","Ab"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Superpyth[7] (Major)"
                         (4 :| [4, 1, 4, 4, 4, 1])
@@ -471,25 +471,25 @@ defaultAppData = AppData {
                   , Scale "Pajara[10]"
                         (2 :| [2, 3, 2, 2, 2, 2, 3, 2, 2])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
                         (fmap (+13) $ 0 :| [9, 18, 27, 35, 44]) 0
                   ]
             },
             Temperament {
-              temperamentName = "24-TET"
-            , divisions = 24
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "24-TET"
+            , _divisions = 24
+            , _period = 2 % 1
+            , _notationSystems =
                   [
 
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Ionian (Major)"
                         (4 :| [4, 2, 4, 4, 4, 2])
@@ -502,7 +502,7 @@ defaultAppData = AppData {
                   , Scale "Mohajira[7]"
                         (3 :| [4, 3, 4, 3, 4, 3])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Standard Tuning" "Six-String Guitar"
                         (fmap (+14) $ 0 :| [10, 20, 30, 38, 48]) 0
@@ -511,39 +511,39 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
-              temperamentName = "31-TET"
-            , divisions = 31
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "31-TET"
+            , _divisions = 31
+            , _period = 2 % 1
+            , _notationSystems =
                   [
 
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
 
                   ]
-            , tunings =
+            , _tunings =
                   [
 
                   ]
             },
             Temperament {
-              temperamentName = "41-TET"
-            , divisions = 41
-            , period = 2 % 1
-            , notationSystems =
+              _temperamentName = "41-TET"
+            , _divisions = 41
+            , _period = 2 % 1
+            , _notationSystems =
                   [
 
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Down Lydian"
                         (7 :| [6,7,4,7,6,4])
@@ -574,27 +574,27 @@ defaultAppData = AppData {
                   , Scale "Down Locrian"
                         (2 :| [8, 7, 3, 6, 8, 7])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Standard Tuning" "Kite Guitar"
                         (0 :| [13, 26, 39, 52, 65]) 1
                   ]
             },
             Temperament {
-              temperamentName = "Bohlen Pierce"
-            , divisions = 13
-            , period = 3 % 1
-            , notationSystems =
+              _temperamentName = "Bohlen Pierce"
+            , _divisions = 13
+            , _period = 3 % 1
+            , _notationSystems =
                   [
                     NotationSystem "Standard" [
                       "A","A#","B","C","C#","D","E","F","F#","G","H","H#","J"
                     ]
                   ]
-            , chords =
+            , _chords =
                   [
 
                   ]
-            , scales =
+            , _scales =
                   [
                     Scale "Lambda"
                         (2 :| [1, 1, 2, 1, 2, 1, 2, 1])
@@ -619,7 +619,7 @@ defaultAppData = AppData {
                   , Scale "Walker II"
                         (2 :| [1,2,1,2,1,1,2,1])
                   ]
-            , tunings =
+            , _tunings =
                   [
                     Tuning "Bohlen's Tuning" "Six String Guitar"
                         (0 :| [3,6,9,13,16]) 0

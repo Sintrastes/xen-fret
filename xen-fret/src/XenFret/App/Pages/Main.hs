@@ -81,13 +81,13 @@ mainPage appDir = do
         blank
 
 scaleSelectForm appData temperamentDyn = do
-    let initialTemperament = temperamentName $ head $ _temperaments appData
+    let initialTemperament = _temperamentName $ head $ _temperaments appData
     let initialScales = maybe [] id $
             Map.lookup initialTemperament $ scalesMap appData
 
     let loadedScales = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ scalesMap appData)
+            Map.lookup (_temperamentName temperament) $ scalesMap appData)
 
     selectMaterial "Scale"
         "No Scales Defined"
@@ -95,13 +95,13 @@ scaleSelectForm appData temperamentDyn = do
         (headMay initialScales)
 
 chordSelectForm appData temperamentDyn = do
-    let initialTemperament = temperamentName $ head $ _temperaments appData
+    let initialTemperament = _temperamentName $ head $ _temperaments appData
     let initialChords = maybe [] id $
             Map.lookup initialTemperament $ chordsMap appData
 
     let loadedChords = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ chordsMap appData)
+            Map.lookup (_temperamentName temperament) $ chordsMap appData)
 
     -- Convert to scale, as that is the format the
     -- diagram display widget understands
@@ -115,11 +115,11 @@ diagramOptionsWidget selectForm appData = do
     temperamentDyn <- elClass "div" "row" $
         selectTemperament appData initialTemperament
 
-    let initialTunings = maybe [] id $ Map.lookup (temperamentName initialTemperament) $ tuningsMap appData
+    let initialTunings = maybe [] id $ Map.lookup (_temperamentName initialTemperament) $ tuningsMap appData
 
     let loadedTunings = temperamentDyn <&> (\temperamentMay -> maybe [] id $ do
             temperament <- temperamentMay
-            Map.lookup (temperamentName temperament) $ tuningsMap appData)
+            Map.lookup (_temperamentName temperament) $ tuningsMap appData)
 
     let groupedTunings = loadedTunings <&> (\tunings ->
             let groupings = groupBy (\x y -> instrument x == instrument y) tunings
@@ -196,7 +196,7 @@ fretboardDisplayWidget appData dynArgs = dyn $ dynArgs <&>
     verticalSpacing   = (int2Double verticalScaling / 200.0) * baseVerticalSpacing
     horizontalSpacing = (int2Double horizontalScaling / 200.0) * baseHorizontalSpacing
   in
-    case handleParseErrs (divisions <$> temperament) (Just frets) (NE.toList . stringTunings <$> tuning) (skipFrets <$> tuning) (Just xSize) Nothing of
+    case handleParseErrs (_divisions <$> temperament) (Just frets) (NE.toList . stringTunings <$> tuning) (skipFrets <$> tuning) (Just xSize) Nothing of
         Left err -> do
             el "p" $ text $ T.pack err
             pure Nothing
@@ -210,7 +210,7 @@ fretboardDisplayWidget appData dynArgs = dyn $ dynArgs <&>
 
                 let diagram = board (_preferences appData)
                         (maybe "" show scale) key scale' skipFrets (Fretboard $ NE.toList tuning)
-                            (safeHead $ (T.unpack <$>) . noteNames <$> (notationSystems =<< maybe [] pure temperament))
+                            (safeHead $ (T.unpack <$>) . noteNames <$> (_notationSystems =<< maybe [] pure temperament))
                             style
                 case xy of
                     X x -> do

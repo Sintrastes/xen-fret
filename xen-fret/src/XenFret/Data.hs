@@ -7,6 +7,7 @@ import Data.Default
 import Data.Aeson.TH
 import Data.List.NonEmpty hiding((!!), cycle)
 import Data.Ratio
+import Control.Lens.TH
 
 class Named a where
     name :: a -> T.Text
@@ -83,15 +84,17 @@ instance Default Chord where
 $(deriveJSON defaultOptions ''Chord)
 
 data Temperament = Temperament {
-    temperamentName :: T.Text, 
-    divisions :: Int,
-    period :: Rational,
-    notationSystems :: [NotationSystem],
-    tunings :: [Tuning],
-    scales  :: [Scale],
-    chords :: [Chord]
+    _temperamentName :: T.Text, 
+    _divisions :: Int,
+    _period :: Rational,
+    _notationSystems :: [NotationSystem],
+    _tunings :: [Tuning],
+    _scales  :: [Scale],
+    _chords :: [Chord]
 }
     deriving(Eq)
+
+$(makeLenses ''Temperament)
 
 type NoteNames = Maybe [String]
 
@@ -102,13 +105,13 @@ displayNote note =
 
 instance Default Temperament where
     def = Temperament {
-        temperamentName = "",
-        divisions = 12,
-        period = 2 % 1,
-        notationSystems = []
+        _temperamentName = "",
+        _divisions = 12,
+        _period = 2 % 1,
+        _notationSystems = []
     }
 
 instance Show Temperament where
-    show = T.unpack . temperamentName
+    show = T.unpack . _temperamentName
 
 $(deriveJSON defaultOptions ''Temperament)

@@ -19,6 +19,7 @@ import Control.Monad.IO.Class
 import XenFret.Data
 import XenFret.AppData
 import Data.Maybe
+import Control.Lens
 
 intervalListEntry :: _ => NonEmpty Int -> m (Dynamic t (Validation (NonEmpty T.Text) (NonEmpty Int)))
 intervalListEntry = validatedTextEntry
@@ -61,32 +62,32 @@ showIntervalList xs = T.intercalate " " $ map (T.pack . show) $ NE.toList xs
 
 -- | Helper function to add a scale to the given temperament.
 addScale :: Temperament -> Scale -> Map T.Text [Scale] -> Map T.Text [Scale]
-addScale Temperament{..} scale map = case Map.lookup temperamentName map of
-  Nothing -> Map.insert temperamentName [scale] map
-  Just scls -> Map.insert temperamentName (scls ++ [scale]) map
+addScale Temperament{..} scale map = case Map.lookup _temperamentName map of
+  Nothing -> Map.insert _temperamentName [scale] map
+  Just scls -> Map.insert _temperamentName (scls ++ [scale]) map
 
 getScales :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Scale])
 getScales appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ Map.fromList $ (\x -> (temperamentName x, scales x)) <$> 
+    return $ Map.fromList $ (\x -> (_temperamentName x, _scales x)) <$> 
         _temperaments appData
 
 getTunings :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Tuning])
 getTunings appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ Map.fromList $ (\x -> (temperamentName x, tunings x)) <$>
+    return $ Map.fromList $ (\x -> (_temperamentName x, _tunings x)) <$>
         _temperaments appData
 
 scalesMap :: AppData -> Map T.Text [Scale]
-scalesMap appData = Map.fromList $ (\x -> (temperamentName x, scales x)) <$>
+scalesMap appData = Map.fromList $ (\x -> (_temperamentName x, _scales x)) <$>
         _temperaments appData
 
 tuningsMap :: AppData -> Map T.Text [Tuning]
-tuningsMap appData = Map.fromList $ (\x -> (temperamentName x, tunings x)) <$>
+tuningsMap appData = Map.fromList $ (\x -> (_temperamentName x, _tunings x)) <$>
         _temperaments appData
 
 chordsMap :: AppData -> Map T.Text [Chord]
-chordsMap appData = Map.fromList $ (\x -> (temperamentName x, chords x)) <$>
+chordsMap appData = Map.fromList $ (\x -> (_temperamentName x, _chords x)) <$>
         _temperaments appData
 
 setTunings :: Map T.Text [Tuning] -> [Temperament] -> [Temperament]
@@ -106,6 +107,9 @@ pairForms x y = do
     x' <- x
     y' <- y
     pure $ (,) <$> x' <*> y'
+
+suchThat :: (a -> Bool) -> Lens' [a] (Maybe a)
+suchThat = undefined
 
 validationToMaybe = \case
     Success x -> Just x
