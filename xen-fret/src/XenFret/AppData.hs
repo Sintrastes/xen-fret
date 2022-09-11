@@ -351,8 +351,20 @@ defaultAppData = AppData {
                   [
                     Scale "Major"
                         (3 :| [3, 3, 1, 3, 3, 1])
-                  , Scale "Maqamic[7]"
+                  , Scale "Maqamic[7] (bish mode)"
+                        (2 :| [3, 2, 3, 2, 3, 2])
+                  , Scale "Maqamic[7] (dril mode)"
                         (3 :| [2, 3, 2, 3, 2, 2])
+                  , Scale "Maqamic[7] (fish mode)"
+                        (2 :| [3, 2, 3, 2, 2, 3])
+                  , Scale "Maqamic[7] (gil mode)"
+                        (3 :| [2, 3, 2, 2, 3, 2])
+                  , Scale "Maqamic[7] (jwl mode)"
+                        (2 :| [3, 2, 2, 3, 2, 3])
+                  , Scale "Maqamic[7] (kleeth mode)"
+                        (3 :| [2, 2, 3, 2, 3, 2])
+                  , Scale "Maqamic[7] (led mode)"
+                        (2 :| [2, 3, 2, 3, 2, 3])
                   , Scale "Maqamic[10]"
                         (2 :| [2, 2, 1, 2, 2, 1, 2, 2, 1])
                   , Scale "Lovecraft[9]"
