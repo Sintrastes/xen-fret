@@ -405,12 +405,38 @@ defaultAppData = AppData {
                   [
                     Scale "Ionian (Major)"
                         (3 :| [3, 2, 3, 3, 3, 2])
+                  , Scale "Sensi[5]"
+                        (5 :| [5, 2, 5, 2])
                   , Scale "Sensi[8]"
                         (2 :| [3, 2, 2, 3, 2, 2, 3])
                   , Scale "Negri[9]"
                         (2 :| [2, 2, 2, 3, 2, 2, 2, 2])
+                  , Scale "Negri[10]"
+                        (2 :| [2, 2, 2, 2, 2, 2, 2, 2, 1])
                   , Scale "Kleismic[7]"
                         (1 :| [4, 1, 4, 1, 4, 4])
+                  , Scale "Semaphore[5]"
+                        (4 :| [4, 4, 4, 3])
+                  , Scale "Semaphore[9]"
+                        (3 :| [3, 1, 3, 1, 3, 1, 3, 1])
+                  , Scale "Magic[7]"
+                        (5 :| [1, 5, 1, 5, 1, 1])
+                  , Scale "Magic[10]"
+                        (4 :| [1, 1, 4, 1, 1, 4, 1, 1, 1])
+                  , Scale "Marvel hexatonic"
+                        (4 :| [2, 5, 2, 4, 2])
+                  , Scale "deutone[6]"
+                        (4 :| [3, 3, 3, 3, 3])
+                  , Scale "deutone[7]"
+                        (3 :| [3, 3, 3, 3, 3, 1])
+                  , Scale "kleismic[7]"
+                        (4 :| [4, 1, 4, 1, 4, 1])
+                  , Scale "liese[5]"
+                        (8 :| [1, 8, 1, 1])
+                  , Scale "liese[7]"
+                        (7 :| [1, 1, 7, 1, 1, 1])
+                  , Scale "liese[9]"
+                        (6 :| [1, 1, 1, 6, 1, 1, 1, 1])
                   ]
             , _tunings =
                   [
