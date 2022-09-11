@@ -25,7 +25,7 @@ import Data.Foldable
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    let initialTunings = _tunings appData
+    initialTunings <- getTunings (appDir <> "/app_data.json")
 
     newTuningEvent <- button "New Tuning"
 
@@ -52,7 +52,7 @@ tuningPage appDir = mdo
         tuningForm appData (head $ _temperaments appData) (isNewName Nothing) def
 
     let dynAppData = dynTunings <&> \t ->
-           appData { _tunings = t }
+           appData { _temperaments = setTunings t (_temperaments appData) }
 
     persistAppData dynAppData
        (appDir <> "/app_data.json")
