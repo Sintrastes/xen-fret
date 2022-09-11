@@ -28,8 +28,8 @@ temperamentPage :: _ => FilePath -> m ()
 temperamentPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
     let initialTemperaments = _temperaments appData
-    let initialScales = _scales appData
-    let initialTunings = _tunings appData
+    let initialScales = scalesMap appData
+    let initialTunings = tuningsMap appData
 
     newTemperamentEvent <- button "New Temperament"
 
@@ -137,16 +137,8 @@ temperamentPage appDir = mdo
     dynScales <- holdDyn initialScales
         (leftmost [updatedScales, editedScales])
 
-    let dynData = (,,) <$>
-            dynTemperaments <*>
-            dynTunings <*>
-            dynScales
-
-    let dynAppData = dynData <&> \(temperaments, tunings, scales) -> appData {
-        _temperaments = temperaments,
-        _tunings = tunings,
-        _scales = scales
-    }
+    let dynAppData = dynTemperaments <&> \temperaments -> 
+            appData { _temperaments = temperaments }
 
     persistAppData dynAppData
         (appDir <> "/app_data.json")
@@ -171,6 +163,9 @@ temperamentForm isNewName initialValue = do
             formA (temperamentName =. labeledEntryA "Name" nameForm) <*>
             liftFormA (form (divisions =. labeledEntry "Divisions" nonNegativeIntEntry)) <*>
             liftFormA (form (period =. labeledEntry "Period" rationalEntry)) <*>
+            pure [] <*>
+            pure [] <*>
+            pure [] <*>
             pure []
 
     initFormA formContents initialValue

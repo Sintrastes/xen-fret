@@ -32,8 +32,8 @@ reduceMaybe :: Iso' (Maybe [a]) [a]
 reduceMaybe = iso (fromMaybe []) Just
 
 chordPage :: _ => FilePath -> m ()
-chordPage appDir = crudPage appDir "chord" chordForm 
-    (\x -> chords . at x . reduceMaybe)
+chordPage appDir = undefined {- crudPage appDir "chord" chordForm 
+    (\x -> chords . at x . reduceMaybe) -}
 
 chordForm :: MonadWidget t m =>
     AppData

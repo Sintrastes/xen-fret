@@ -68,12 +68,35 @@ addScale Temperament{..} scale map = case Map.lookup temperamentName map of
 getScales :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Scale])
 getScales appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ _scales appData
+    return $ Map.fromList $ (\x -> (temperamentName x, scales x)) <$> 
+        _temperaments appData
 
 getTunings :: (MonadSample t m, MonadIO m) => FilePath -> m (Map T.Text [Tuning])
 getTunings appDir = do
     appData <- loadAppData' (appDir <> "/app_data.json")
-    return $ _tunings appData
+    return $ Map.fromList $ (\x -> (temperamentName x, tunings x)) <$>
+        _temperaments appData
+
+scalesMap :: AppData -> Map T.Text [Scale]
+scalesMap appData = Map.fromList $ (\x -> (temperamentName x, scales x)) <$>
+        _temperaments appData
+
+tuningsMap :: AppData -> Map T.Text [Tuning]
+tuningsMap appData = Map.fromList $ (\x -> (temperamentName x, tunings x)) <$>
+        _temperaments appData
+
+chordsMap :: AppData -> Map T.Text [Chord]
+chordsMap appData = Map.fromList $ (\x -> (temperamentName x, chords x)) <$>
+        _temperaments appData
+
+setTunings :: Map T.Text [Tuning] -> [Temperament] -> [Temperament]
+setTunings t appData = undefined
+
+setChords :: Map T.Text [Chord] -> [Temperament] -> [Temperament]
+setChords c appData = undefined
+
+setScales :: Map T.Text [Scale] -> [Temperament] -> [Temperament]
+setScales s appData = undefined
 
 pairForms :: (Semigroup e, Reflex t) =>
     Dynamic t (Validation e a)
