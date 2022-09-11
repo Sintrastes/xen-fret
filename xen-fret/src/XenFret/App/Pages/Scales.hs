@@ -27,7 +27,7 @@ import XenFret.App.Widgets.Fretboard
 scalePage :: _ => FilePath -> m ()
 scalePage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    currentScales <- getScales (appDir <> "/app_data.json")
+    let currentScales = scalesMap appData
 
     newScaleClick <- button "New Scale"
 

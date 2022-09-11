@@ -25,7 +25,7 @@ import Data.Foldable
 tuningPage :: _ => FilePath -> m ()
 tuningPage appDir = mdo
     appData <- loadAppData (appDir <> "/app_data.json")
-    initialTunings <- getTunings (appDir <> "/app_data.json")
+    let initialTunings = tuningsMap appData
 
     newTuningEvent <- button "New Tuning"
 
