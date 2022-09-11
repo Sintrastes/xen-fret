@@ -353,6 +353,12 @@ defaultAppData = AppData {
                         (3 :| [3, 3, 1, 3, 3, 1])
                   , Scale "Maqamic[7]"
                         (3 :| [2, 3, 2, 3, 2, 2])
+                  , Scale "Maqamic[10]"
+                        (2 :| [2, 2, 1, 2, 2, 1, 2, 2, 1])
+                  , Scale "Lovecraft[9]"
+                        (3 :| [1, 3, 1, 3, 1, 3, 1, 1])
+                  , Scale "Squares[5]"
+                        (5 :| [5, 1, 5, 1])
                   , Scale "Squares[8]"
                         (1 :| [1, 4, 1, 4, 1, 4])
                   , Scale "Hydra"
@@ -363,6 +369,22 @@ defaultAppData = AppData {
                         (2 :| [3, 3, 1, 3, 3, 2])
                   , Scale "Shelbyvillean"
                         (3 :| [3, 1, 3, 3, 2, 2])
+                  , Scale "Otonal 17"
+                        (3 :| [2, 3, 2, 2, 2, 3])
+                  , Scale "Bleu[8]"
+                        (3 :| [2, 2, 2, 2, 2, 2, 2])
+                  , Scale "Bleu[9]"
+                        (1 :| [2, 2, 2, 2, 2, 2, 2, 2])
+                  , Scale "Machine[5]"
+                        (5 :| [3, 3, 3, 3])
+                  , Scale "Machine[6]"
+                        (2 :| [3, 3, 3, 3, 3])
+                  , Scale "Machine[11]"
+                        (2 :| [2, 1, 2, 1, 2, 1, 2, 1, 2, 1])
+                  , Scale "Huxley[5]"
+                        (1 :| [4, 4, 4, 4])
+                  , Scale "Huxley[9]"
+                        (1 :| [1, 3, 1, 3, 1, 3, 1, 3])
                   ]
             , _tunings =
                   [
