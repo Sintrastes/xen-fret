@@ -669,6 +669,42 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "25-TET"
+            , _divisions = 25
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
+              _temperamentName = "26-TET"
+            , _divisions = 26
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
+              _temperamentName = "27-TET"
+            , _divisions = 27
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
+              _temperamentName = "28-TET"
+            , _divisions = 28
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
               _temperamentName = "31-TET"
             , _divisions = 31
             , _period = 2 % 1
