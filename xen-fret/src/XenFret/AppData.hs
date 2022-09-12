@@ -272,6 +272,24 @@ defaultAppData = AppData {
                         (2 :| [1, 2, 1, 2, 1, 2, 1, 2, 1])
                   , Scale "Marvel double harmonic major"
                         (1 :| [4,1,3,1,4,1])
+                  , Scale "Ptolemy diatonic, \"just\" major"
+                        (3 :| [2, 1, 3, 2, 3, 1])
+                  , Scale "Ptolemy diatonic, natural minor"
+                        (3 :| [1, 2, 3, 1, 3, 2])
+                  , Scale "tetrachordal major, Sa grama"
+                        (3 :| [2, 1, 3, 3, 2, 1])
+                  , Scale "tetrachordal minor"
+                        (3 :| [1, 2, 3, 1, 2, 3])
+                  , Scale "Porcupine bright major #7"
+                        (3 :| [2, 2, 2, 2, 3, 1])
+                  , Scale "Porcupine bright major #6 #7"
+                        (3 :| [2, 2, 2, 3, 2, 1])
+                  , Scale "Porcupine bright minor #2"
+                        (3 :| [1, 3, 2, 2, 2, 2])
+                  , Scale "Porcupine dark minor #2"
+                        (3 :| [1, 2, 3, 2, 2, 2])
+                  , Scale "Porcupine bright harmonic 11th"
+                        (3 :| [2, 2, 2, 2, 1, 3])
                   ]
             , _tunings =
                   [
