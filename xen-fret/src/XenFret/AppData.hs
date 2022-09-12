@@ -697,12 +697,63 @@ defaultAppData = AppData {
                   ]
             , _chords =
                   [
-
+                    Chord "Major"
+                        (0 :| [7, 6, 9])
+                  , Chord "Minor"
+                        (0 :| [6, 7, 9])
+                  , Chord "SuperMajor"
+                        (0 :| [8, 5, 9])
+                  , Chord "SubMinor"
+                        (0 :| [5, 8, 9])
+                  , Chord "Magical"
+                        (0 :| [5, 7, 9])
+                  , Chord "Tiny"
+                        (0 :| [5, 5, 11])
+                  , Chord "Giant"
+                        (0 :| [8, 7, 6])
+                  , Chord "Minor Seventh"
+                        (0 :| [6, 7, 6, 3])
+                  , Chord "Super Seventh"
+                        (0 :| [8, 5, 8, 1])
+                  , Chord "Sub Seventh"
+                        (0 :| [5, 8, 5, 4])
+                  , Chord "Magical Seventh"
+                        (0 :| [5, 7, 6, 4])
+                  , Chord "Major Super seventh"
+                        (0 :| [8, 5, 8, 1])
+                  , Chord "Minor Sub Seventh"
+                        (0 :| [5, 8, 5, 4])
+                  , Chord "Super Minor Seventh"
+                        (0 :| [8, 5, 6, 3])
+                  , Chord "Sub Major Seventh"
+                        (0 :| [5, 8, 6, 3])
+                  , Chord "Super Sub Seventh"
+                        (0 :| [8, 5, 5, 4])
+                  , Chord "Harmonic Seventh"
+                        (0 :| [7, 6, 5, 4])
+                  , Chord "Tiny seventh"
+                        (0 :| [5, 5, 5, 7])
+                  , Chord "Giant Sixth"
+                        (0 :| [8, 7, 5, 1])
+                  , Chord "Harmonic Minor Sixth"
+                        (0 :| [6, 7, 5, 4])
                   ]
             , _scales =
                   [
                     Scale "Superpyth[7] (Major)"
                         (4 :| [4, 1, 4, 4, 4, 1])
+                  , Scale "Superpyth[7] (Dorian)"
+                        (4 :| [1, 4, 4, 4, 1, 4])
+                  , Scale "Superpyth[7] (Phrygian)"
+                        (1 :| [4, 4, 4, 1, 4, 4])
+                  , Scale "Superpyth[7] (Lydian)"
+                        (4 :| [4, 4, 1, 4, 4, 1])
+                  , Scale "Superpyth[7] (Mixolydian)"
+                        (4 :| [4, 1, 4, 4, 1, 4])
+                  , Scale "Superpyth[7] (Minor)"
+                        (4 :| [1, 4, 4, 1, 4, 4])
+                  , Scale "Superpyth[7] (Locrian)"
+                        (1 :| [4, 4, 1, 4, 4, 4])
                   , Scale "Astrology[6]"
                         (4 :| [3, 4, 4, 3, 4])
                   , Scale "Porcupine[7]"
@@ -712,7 +763,7 @@ defaultAppData = AppData {
                   ]
             , _tunings =
                   [
-                    Tuning "Standard Tuning (22-TET)" "Six-String Guitar"
+                    Tuning "Standard Tuning" "Six-String Guitar"
                         (fmap (+13) $ 0 :| [9, 18, 27, 35, 44]) 0
                   ]
             },
