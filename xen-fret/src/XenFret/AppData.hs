@@ -227,7 +227,17 @@ defaultAppData = AppData {
                   ]
             , _scales =
                   [
-                   Scale "Titanium[9]"
+                    Scale "Titanium[9]"
+                        (2 :| [1, 2, 1, 2, 1, 2, 1, 2])
+                  , Scale "antipentic"
+                        (4 :| [1, 4, 1, 4])
+                  , Scale "Manual"
+                        (3 :| [3, 2, 3, 3])
+                  , Scale "Citric"
+                        (3 :| [1, 3, 3, 1, 3])
+                  , Scale "Ekic"
+                        (2 :| [2, 1, 2, 2, 2, 1, 2])
+                  , Scale "Semiquartal"
                         (2 :| [1, 2, 1, 2, 1, 2, 1, 2])
                   ]
             , _tunings =
