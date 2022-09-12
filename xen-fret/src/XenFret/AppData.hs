@@ -442,10 +442,26 @@ defaultAppData = AppData {
                   ]
             , _scales =
                   [
-                    Scale "Bicycle"
+                    Scale "Antipentic"
+                        (4 :| [4, 3, 4, 3])
+                  , Scale "Bicycle"
                         (4 :| [4, 1, 4, 4, 1])
+                  , Scale "Mavila[5]"
+                        (2 :| [6, 2, 6, 2])
+                  , Scale "Malic[6]"
+                        (2 :| [5, 2, 2, 5, 2])
                   , Scale "Mish Heptatonic"
                         (3 :| [2, 3, 2, 3, 3, 2])
+                  , Scale "Smitonic"
+                        (3 :| [2, 3, 2, 3, 3, 2])
+                  , Scale "Oneirotonic"
+                        (3 :| [1, 3, 3, 1, 3, 3, 1])
+                  , Scale "Antiekic"
+                        (2 :| [2, 3, 2, 2, 2, 3, 2])
+                  , Scale "Tcherepnin"
+                        (4 :| [1, 1, 4, 1, 1, 4, 1, 1])
+                  , Scale "Taric"
+                        (2 :| [2, 1, 2, 2, 2, 2, 1, 2, 2])
                   ]
             , _tunings =
                   [
