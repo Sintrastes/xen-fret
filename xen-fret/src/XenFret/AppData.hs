@@ -754,6 +754,30 @@ defaultAppData = AppData {
                         (4 :| [1, 4, 4, 1, 4, 4])
                   , Scale "Superpyth[7] (Locrian)"
                         (1 :| [4, 4, 1, 4, 4, 4])
+                  , Scale "Maqam Bayati"
+                        (3 :| [2, 4, 4, 1, 4, 4])
+                  , Scale "Maqam Jiharkah"
+                        (4 :| [4, 1, 4, 4, 2, 3])
+                  , Scale "Maqam Husayni 'Ushayran"
+                        (3 :| [2, 4, 3, 2, 4, 4])
+                  , Scale "Maqam Saba"
+                        (3 :| [2, 4, 4, 1, 4, 2, 2])
+                  , Scale "Maqam Rast"
+                        (4 :| [2, 3, 4, 4, 2, 3])
+                  , Scale "Syntonic Major"
+                        (4 :| [3,2,4,3,4,2])
+                  , Scale "Syntonic Dorian"
+                        (3 :| [2,4,3,4,2,4])
+                  , Scale "Syntonic Phrygian"
+                        (2 :| [4,3,4,2,4,3])
+                  , Scale "Syntonic Lydian"
+                        (4 :| [3,4,2,4,3,2])
+                  , Scale "Syntonic Mixolydian"
+                        (3 :| [4,2,4,3,2,4])
+                  , Scale "Syntonic Minor"
+                        (4 :| [2,4,3,2,4,3])
+                  , Scale "Syntonic Locrian"
+                        (2 :| [4,3,2,4,3,4])
                   , Scale "Astrology[6]"
                         (4 :| [3, 4, 4, 3, 4])
                   , Scale "Porcupine[7]"
