@@ -778,12 +778,59 @@ defaultAppData = AppData {
                         (4 :| [2,4,3,2,4,3])
                   , Scale "Syntonic Locrian"
                         (2 :| [4,3,2,4,3,4])
+                  , Scale "Superpyth Blues"
+                        (5 :| [4, 1, 3, 5, 4])
                   , Scale "Astrology[6]"
                         (4 :| [3, 4, 4, 3, 4])
                   , Scale "Porcupine[7]"
                         (3 :| [3, 3, 4, 3, 3, 3])
+                  , Scale "Porcupine[8]"
+                        (33333331)
+                  , Scale "Orwell[5]"
+                        (55255)
+                  , Scale "Orwell[9]"
+                        (232323232)
+                  , Scale "Magic[7]"
+                        (1616161)
+                  , Scale "Magic[10]"
+                        (5115115111)
                   , Scale "Pajara[10]"
                         (2 :| [2, 3, 2, 2, 2, 2, 3, 2, 2])
+                  , Scale "Hedgehog[6]"
+                        (353353)
+                  , Scale "Hedgehog[8]"
+                        ( 33323332)
+                  , Scale "Astrology[6]"
+                        (434434)
+                  , Scale "Astrology[10]"
+                        (3131331313)
+                  , Scale "Doublewide[6]"
+                        (551551)
+                  , Scale "Doublewide[10]"
+                        (4141141411)
+                  -- 11-EDO inclusions
+                  , Scale ("Machine[6]")
+                        (fmap (*2) $ 2 :| [2, 2, 2, 2, 1])
+                  , Scale "Orgone[7] (Nerevarine)"
+                        (fmap (*2) $ 2 :| [2, 1, 2, 1, 2, 1])
+                  , Scale "Orgone[7] (Vivecan)"
+                        (fmap (*2) $ 2 :| [1, 2, 2, 1, 2, 1])
+                  , Scale "Orgone[7] (Lorkhanic)"
+                        (fmap (*2) $ 2 :| [1, 2, 1, 2, 2, 1])
+                  , Scale "Orgone[7] (Sothic)"
+                        (fmap (*2) $ 2 :| [1, 2, 1, 2, 1, 2])
+                  , Scale "Orgone[7] (Kagrenacan)"
+                        (fmap (*2) $ 1 :| [2, 2, 1, 2, 1, 2])
+                  , Scale "Orgone[7] (Almalexian)"
+                        (fmap (*2) $ 1 :| [2, 1, 2, 2, 1, 2])
+                  , Scale "Orgone[7] (Dagothic)"
+                        (fmap (*2) $ 1 :| [2, 1, 2, 1, 2, 2])
+                  , Scale "Joan Pentatonic"
+                        (fmap (*2) $ 1 :| [4, 1, 4, 1])
+                  , Scale "Joan Heptatonic"
+                        (fmap (*2) $ 1 :| [1, 1, 3, 1, 1, 3])
+                  , Scale "Joan Nonatonic"
+                        (fmap (*2) $ 1 :| [1, 1, 2, 1, 1, 1, 2, 1])
                   ]
             , _tunings =
                   [
