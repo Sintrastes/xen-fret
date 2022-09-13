@@ -780,36 +780,38 @@ defaultAppData = AppData {
                         (2 :| [4,3,2,4,3,4])
                   , Scale "Superpyth Blues"
                         (5 :| [4, 1, 3, 5, 4])
+                  , Scale "Bright Minor Blues"
+                        (6 :| [3, 1, 3, 6, 3])
                   , Scale "Astrology[6]"
                         (4 :| [3, 4, 4, 3, 4])
                   , Scale "Porcupine[7]"
                         (3 :| [3, 3, 4, 3, 3, 3])
                   , Scale "Porcupine[8]"
-                        (33333331)
+                        (3 :| [3, 3, 3, 3, 3, 3, 1])
                   , Scale "Orwell[5]"
-                        (55255)
+                        (5 :| [5, 2, 5, 5])
                   , Scale "Orwell[9]"
-                        (232323232)
+                        (2 :| [3, 2, 3, 2, 3, 2, 3, 2])
                   , Scale "Magic[7]"
-                        (1616161)
+                        (1 :| [6, 1, 6, 1, 6, 1])
                   , Scale "Magic[10]"
-                        (5115115111)
+                        (5 :| [1, 1, 5, 1, 1, 5, 1, 1, 1])
                   , Scale "Pajara[10]"
                         (2 :| [2, 3, 2, 2, 2, 2, 3, 2, 2])
                   , Scale "Hedgehog[6]"
-                        (353353)
+                        (3 :| [5, 3, 3, 5, 3])
                   , Scale "Hedgehog[8]"
-                        ( 33323332)
+                        (3 :| [3, 3, 2, 3, 3, 3, 2])
                   , Scale "Astrology[6]"
-                        (434434)
+                        (4 :| [3, 4, 4, 3, 4])
                   , Scale "Astrology[10]"
-                        (3131331313)
+                        (3 :| [1, 3, 1, 3, 3, 1, 3, 1, 3])
                   , Scale "Doublewide[6]"
-                        (551551)
+                        (5 :| [5, 1, 5, 5, 1])
                   , Scale "Doublewide[10]"
-                        (4141141411)
+                        (4 :| [1, 4, 1, 1, 4, 1, 4, 1, 1])
                   -- 11-EDO inclusions
-                  , Scale ("Machine[6]")
+                  , Scale "Machine[6]"
                         (fmap (*2) $ 2 :| [2, 2, 2, 2, 1])
                   , Scale "Orgone[7] (Nerevarine)"
                         (fmap (*2) $ 2 :| [2, 1, 2, 1, 2, 1])
