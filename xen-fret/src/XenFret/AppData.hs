@@ -849,39 +849,6 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
-              _temperamentName = "24-TET"
-            , _divisions = 24
-            , _period = 2 % 1
-            , _notationSystems =
-                  [
-
-                  ]
-            , _chords =
-                  [
-
-                  ]
-            , _scales =
-                  [
-                    Scale "Ionian (Major)"
-                        (4 :| [4, 2, 4, 4, 4, 2])
-                  , Scale "Anchihoye: Ethiopia"
-                        (2 :| [8, 3, 6, 5])
-                  , Scale "Enharmonic Phrygian"
-                        (8 :| [1, 1, 8, 4, 1, 1])
-                  , Scale "Maqam Rast"
-                        (4 :| [3, 3, 4, 4, 3, 3])
-                  , Scale "Mohajira[7]"
-                        (3 :| [4, 3, 4, 3, 4, 3])
-                  ]
-            , _tunings =
-                  [
-                    Tuning "Standard Tuning" "Six-String Guitar"
-                        (fmap (+14) $ 0 :| [10, 20, 30, 38, 48]) 0
-                  , Tuning "Drop D" "Six-String Guitar"
-                        (fmap (+12) $ 0 :| [14, 24, 34, 42, 52]) 0
-                  ]
-            },
-            Temperament {
               _temperamentName = "23-TET"
             , _divisions = 23
             , _period = 2 % 1
@@ -918,6 +885,39 @@ defaultAppData = AppData {
                   [
                         Tuning "Wide Fourths" "Six String Guitar"
                               (0 :| [10, 20, 30, 40, 50]) 0
+                  ]
+            },
+            Temperament {
+              _temperamentName = "24-TET"
+            , _divisions = 24
+            , _period = 2 % 1
+            , _notationSystems =
+                  [
+
+                  ]
+            , _chords =
+                  [
+
+                  ]
+            , _scales =
+                  [
+                    Scale "Ionian (Major)"
+                        (4 :| [4, 2, 4, 4, 4, 2])
+                  , Scale "Anchihoye: Ethiopia"
+                        (2 :| [8, 3, 6, 5])
+                  , Scale "Enharmonic Phrygian"
+                        (8 :| [1, 1, 8, 4, 1, 1])
+                  , Scale "Maqam Rast"
+                        (4 :| [3, 3, 4, 4, 3, 3])
+                  , Scale "Mohajira[7]"
+                        (3 :| [4, 3, 4, 3, 4, 3])
+                  ]
+            , _tunings =
+                  [
+                    Tuning "Standard Tuning" "Six-String Guitar"
+                        (fmap (+14) $ 0 :| [10, 20, 30, 38, 48]) 0
+                  , Tuning "Drop D" "Six-String Guitar"
+                        (fmap (+12) $ 0 :| [14, 24, 34, 42, 52]) 0
                   ]
             },
             Temperament {
