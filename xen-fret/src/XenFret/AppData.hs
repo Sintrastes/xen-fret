@@ -1238,7 +1238,28 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
+            , _scales = [
+                  Scale "Tetracot[5]"
+                        (5 :| [5,5,5,14])
+                , Scale "Tetracot[6]"
+                        (5 :| [5,5,5,5,9])
+                , Scale "Tetracot[7]"
+                        (5 :| [5,5,5,5,5,4])
+                , Scale "Immunity[5]"
+                        (7 :| [7,7,7,6])
+                , Scale "Immunity[9]"
+                        (1 :| [6,1,6,1,6,1,6,6])
+                , Scale "Hanson[7]"
+                        (2 :| [7,2,7,2,7,7])
+                , Scale "Petrtri[5]"
+                        (5 :| [8,5,8,8])
+                , Scale "Petrtri[8]"
+                        (5 :| [5,3,5,5,3,5,3])
+                , Scale "Mabila[5]"
+                        (11 :| [4,11,4,4])
+                , Scale "Mabila[7]"
+                        (7 :| [4,4,7,4,4,4])
+            ]
             , _tunings = []
             },
             Temperament {
@@ -1292,8 +1313,16 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
-            , _tunings = []
+            , _scales = [
+                  Scale "Pentatonic"
+                        (6 :| [6,9,6,9])
+                , Scale "Lydian"
+                        (6 :| [6,6,3,6,6,3])
+            ]
+            , _tunings = [
+                  Tuning "Standard Tuning" "Six String Guitar"
+                        (0 :| [15, 30, 45, 57, 72]) 0
+            ]
             },
             Temperament {
               _temperamentName = "41-TET"
