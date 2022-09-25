@@ -8,6 +8,11 @@ import Data.List
 -- | Utility fnction to generate the intervals of a 
 -- moment of symetry scale of a given period, generator,
 -- and number of notes.
+--
+-- For example, mosIntervals 22 13 7 will give the
+-- intervals of superpyth[7] in 22-EDO, and mosIntervals 12 7 7 
+-- will give the intervals of the standard diatonic scale in 12-TET.
+--
 mosIntervals :: Int -> Int -> Int -> NonEmpty Int
 mosIntervals period generator notes = let
       absNotes = sort $ take notes $
