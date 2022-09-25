@@ -1068,8 +1068,28 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
-            , _tunings = []
+            , _scales = [
+                  Scale "Nicetone"
+                        (5 :| [4, 3, 5, 4, 5, 3])
+                , Scale "Porcupine[7]"
+                        (4 :| [4, 4, 4, 4, 4, 5])
+                , Scale "Porcupine[8]"
+                        (4 :| [4, 4, 4, 4, 4, 4, 1])
+                , Scale "Negri[9]"
+                        (3 :| [3, 3, 3, 3, 3, 3, 3, 5])
+                , Scale "Negri[10]"
+                        (3 :| [3, 3, 3, 3, 3, 3, 3, 3, 2])
+                , Scale "Semaphore[5]"
+                        (5 :| [6, 6, 6, 6])
+                , Scale "Semaphore[9]"
+                        (5 :| [5, 1, 5, 1, 5, 1, 5, 1])
+                , Scale "Leapfrog[7]"
+                        (5 :| [5, 5, 2, 5, 5, 2])
+            ]
+            , _tunings = [
+                  Tuning "Standard Tuning" "Six String Guitar"
+                        (0 :| [12, 24, 36, 46, 58]) 0
+            ]
             },
             Temperament {
               _temperamentName = "30-TET"
