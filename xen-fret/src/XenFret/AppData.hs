@@ -991,7 +991,34 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
+            , _scales = [
+                  Scale "Tetracot[6]"
+                        (4 :| [4,4,4,4,7])
+                , Scale "Tetractot[7]"
+                        (4 :| [4,4,4,4,4,3])
+                , Scale "Machine[5]"
+                        (5 :| [5,5,5,7])
+                , Scale "Machine[6]"
+                        (5 :| [5,5,5,5,2])
+                , Scale "Myna[7]"
+                        (1 :| [6,1,6,1,6,6])
+                , Scale "Beatles[7]"
+                        (5 :| [3,5,3,5,3,3])
+                , Scale "Beatles[10]"
+                        (2 :| [3,3,2,3,3,2,3,3,3])
+                , Scale "Sensi[5]"
+                        (3 :| [7,3,7,7])
+                , Scale "Sensi[8]"
+                        (3 :| [3,4,3,3,4,3,4])
+                , Scale "Superpyth[7]"
+                        (1 :| [5,5,1,5,5,5])
+                , Scale "Fervor[5]"
+                        (12 :| [1,12,1,1])
+                , Scale "Fervor[7]"
+                        (11 :| [1,1,11,1,1,1])
+                , Scale "Fervor[9]"
+                        (10 :| [1,1,1,10,1,1,1,1])
+            ]
             , _tunings = []
             },
             Temperament {
