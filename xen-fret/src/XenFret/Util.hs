@@ -4,6 +4,7 @@ import Diagrams.Prelude ((#))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import Data.List
+import Control.Monad
 
 -- | Utility fnction to generate the intervals of a 
 -- moment of symetry scale of a given period, generator,
@@ -29,8 +30,18 @@ mosIntervals period generator notes = let
 --
 -- There are probably faster ways to figure this out, but this is
 -- a naive approach straight from the definition.
+--
 isMOS :: NonEmpty Int -> Bool
-isMOS = undefined 
+isMOS intervals = all twoSizes 
+    (fmap intervalsOfSize [1 .. length intervals - 1])
+  where
+    intervalsOfSize n = fmap (\x -> 
+        sum $ take n $ 
+            drop x $ 
+            join $ 
+            repeat $ NE.toList intervals) 
+        [0 .. length intervals - 1]
+    twoSizes xs = length (nub xs) <= 2 
 
 -- | Get a list of moment of symmetry scales for a given
 -- period and generator.
