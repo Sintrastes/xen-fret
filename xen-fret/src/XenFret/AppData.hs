@@ -1185,6 +1185,51 @@ defaultAppData = AppData {
             , _tunings = []
             },
             Temperament {
+              _temperamentName = "35-TET"
+            , _divisions = 35
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = [
+                  Scale "Secund[9]"
+                        (4 :| [4,4,4,4,4,4,4,3])
+                , Scale "Ripple[10]"
+                        (3 :| [3,3,3,3,3,3,3,3,8])
+                , Scale "Baldy[5]"
+                        (6 :| [6,6,6,11])
+                , Scale "Baldy[6]"
+                        (6 :| [6,6,6,6,5])
+                , Scale "Baldy[11]"
+                        (1 :| [5,1,5,1,5,1,5,1,5,5])
+                , Scale "Orwell[5]"
+                        (8 :| [8,8,8,3])
+                , Scale "Orwell[9]"
+                        (5 :| [3,5,3,5,3,5,3,3])
+                , Scale "Myna[7]"
+                        (1 :| [8,1,8,1,8,8])
+                , Scale "Myna[11]"
+                        (1 :| [1,7,1,1,7,1,1,7,1,7])
+                , Scale "Muggles[7]"
+                        (9 :| [2,9,2,9,2,2])
+                , Scale "Muggles[10]"
+                        (7 :| [2,2,7,2,2,7,2,2,2])
+                , Scale "Roman[5]"
+                        (1 :| [11,1,11,11])
+                , Scale "Roman[8]"
+                        (1 :| [1,10,1,1,10,1,10])
+                , Scale "Sensi[5]"
+                        (4 :| [9,4,9,9])
+                , Scale "Sensi[8]"
+                        (4 :| [4,5,4,4,5,4,5])
+                , Scale "Sensi[11]"
+                        (4 :| [4,4,1,4,4,4,1,4,4,1])
+            ]
+            , _tunings = [
+                  Tuning "Wide Fourths" "Six String Guitar"
+                        (0 :| [15, 30, 45, 60, 75)
+            ]
+            },
+            Temperament {
               _temperamentName = "36-TET"
             , _divisions = 36
             , _period = 2 % 1

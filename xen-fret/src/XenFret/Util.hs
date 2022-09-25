@@ -19,11 +19,26 @@ mosIntervals period generator notes = let
       absNotes = sort $ take notes $
           (`mod` period) . (* generator) <$> [0..]
 
-      scaleIntervals = zipWith (-) (tail absNotes) absNotes
+      scaleIntervals = filter (/= 0) $
+          zipWith (-) (tail absNotes) absNotes
 
       lastInterval = period - sum scaleIntervals
-  in 
+  in
       NE.fromList $ scaleIntervals ++ [lastInterval]
+
+-- | get the L/s classification of an MOS scale.
+mosClass :: NonEmpty Int -> String
+mosClass scale = if length intervalClasses == 2
+    then show numLargest ++ "L " ++ show numSmallest ++ "s"
+    else show numSmallest ++ "-EDO"
+  where
+    intervalClasses = sort $ nub $ NE.toList scale
+
+    smallest = head intervalClasses
+    largest = intervalClasses !! 1
+
+    numLargest = length $ filter (== largest) $ NE.toList scale
+    numSmallest = length $ filter (== smallest) $ NE.toList scale
 
 -- | Helper function to determine whether or not a scale is a 
 --  moment of symmetry scale by the definition.
@@ -32,17 +47,17 @@ mosIntervals period generator notes = let
 -- a naive approach straight from the definition.
 --
 isMOS :: NonEmpty Int -> Bool
-isMOS intervals = all twoSizes 
-    (intervalsOfSize <$> [1 .. length intervals - 1])
+isMOS intervals = all twoSizes
+    (intervalsOfSize intervals <$> [1 .. length intervals - 1])
   where
-    intervalsOfSize n = fmap (\x -> 
-        sum $ take n $ 
-            drop x $ 
-            join $ 
-            repeat $ NE.toList intervals) 
-        [0 .. length intervals - 1]
-    
-    twoSizes xs = length (nub xs) <= 2 
+    twoSizes xs = length (nub xs) <= 2
+
+intervalsOfSize intervals n = fmap (\x ->
+    sum $ take n $
+        drop x $
+        join $
+        repeat $ NE.toList intervals)
+    [0 .. length intervals - 1]
 
 -- | Get a list of moment of symmetry scales for a given
 -- period and generator.
@@ -52,7 +67,13 @@ isMOS intervals = all twoSizes
 --  non-MOS scales.
 --
 mosScales :: Int -> Int -> [NonEmpty Int]
-mosScales = undefined
+mosScales period generator = filter isMOS $
+    fmap (mosIntervals period generator) [2 .. period - 2]
+
+-- | Get a list of all MOS scales (for each possible generator)
+-- for a given period.
+allMosScales :: Int -> [NonEmpty Int]
+allMosScales period = nub $ join $ mosScales period <$> [1 .. period - 1]
 
 xor :: Bool -> Bool -> Bool
 xor True False = True
