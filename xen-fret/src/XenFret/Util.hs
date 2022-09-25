@@ -1,6 +1,23 @@
 module XenFret.Util where
 
 import Diagrams.Prelude ((#))
+import Data.List.NonEmpty (NonEmpty(..))
+import qualified Data.List.NonEmpty as NE
+import Data.List
+
+-- | Utility fnction to generate the intervals of a 
+-- moment of symetry scale of a given period, generator,
+-- and number of notes.
+mosIntervals :: Int -> Int -> Int -> NonEmpty Int
+mosIntervals period generator notes = let
+      absNotes = sort $ take notes $
+          (`mod` period) . (* generator) <$> [0..]
+
+      scaleIntervals = zipWith (-) (tail absNotes) absNotes
+
+      lastInterval = period - sum scaleIntervals
+  in 
+      NE.fromList $ scaleIntervals ++ [lastInterval]
 
 xor :: Bool -> Bool -> Bool
 xor True False = True

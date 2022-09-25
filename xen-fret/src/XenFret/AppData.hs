@@ -840,10 +840,12 @@ defaultAppData = AppData {
                         (fmap (+13) $ 0 :| [9, 18, 27, 35, 44]) 0
                   , Tuning "Drop D" "Six-String Guitar"
                         (fmap (+13) $ 0 :| [5, 18, 27, 35, 44]) 0
+                  , Tuning "All Fourths Tuning" "Six-String Guitar"
+                        (fmap (+13) $ 0 :| [9, 18, 27, 36, 45]) 0
                   , Tuning "Narrow Fourths Tuning" "Six-String Guitar"
                         (fmap (+13) $ 0 :| [8, 16, 24, 32, 40]) 0
                   , Tuning "Wide Fourths Tuning" "Six-String Guitar"
-                        (fmap (+13) $ 0 :| [9, 18, 27, 36, 45]) 0
+                        (fmap (+13) $ 0 :| [10, 20, 30, 40, 50]) 0
                   ]
             },
             Temperament {
