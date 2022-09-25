@@ -1431,6 +1431,16 @@ defaultAppData = AppData {
                         (2 :| [1,2,1,2,1,2,1,1])
                   , Scale "Walker II"
                         (2 :| [1,2,1,2,1,1,2,1])
+                  , Scale "Sirius[6]"
+                        (2 :| [2,2,2,2,3])
+                  , Scale "Sirius[7]"
+                        (2 :| [2,2,2,2,2,1])
+                  , Scale "Canopus[7]"
+                        (3 :| [1,3,1,3,1,1])
+                  , Scale "Arcturus[5]"
+                        (5 :| [1,5,1,1])
+                  , Scale "Arcturus[7]"
+                        (4 :| [1,1,4,1,1,1])
                   ]
             , _tunings =
                   [
