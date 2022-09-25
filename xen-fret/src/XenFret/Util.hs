@@ -33,7 +33,7 @@ mosIntervals period generator notes = let
 --
 isMOS :: NonEmpty Int -> Bool
 isMOS intervals = all twoSizes 
-    (fmap intervalsOfSize [1 .. length intervals - 1])
+    (intervalsOfSize <$> [1 .. length intervals - 1])
   where
     intervalsOfSize n = fmap (\x -> 
         sum $ take n $ 
@@ -41,6 +41,7 @@ isMOS intervals = all twoSizes
             join $ 
             repeat $ NE.toList intervals) 
         [0 .. length intervals - 1]
+    
     twoSizes xs = length (nub xs) <= 2 
 
 -- | Get a list of moment of symmetry scales for a given
