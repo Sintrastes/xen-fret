@@ -926,7 +926,42 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
+            , _scales = [
+                  Scale "Bleu[8]"
+                        (3 :| [3,3,3,3,3,3,4])
+                , Scale "Bleu[9]"
+                        (3 :| [3,3,3,3,3,3,3,1])
+                , Scale "Luna[6]"
+                        (4 :| [4,4,4,4,5])
+                , Scale "Luna[7]"
+                        (4 :| [4,4,4,4,4,1]) 
+                , Scale "Gariberttet[5]"
+                        (6 :| [6,6,6,1])
+                , Scale "Gariberttet[9]"
+                        (5 :| [1,5,1,5,1,5,1,1])
+                , Scale "Sixix[7]"
+                        (3 :| [4,3,4,3,4,4])
+                , Scale "Magic[7]"
+                        (7 :| [1,7,1,7,1,1])
+                , Scale "Magic[10]"
+                        (6 :| [1,1,6,1,1,6,1,1,1])
+                , Scale "Antipentic (3L 2s)"
+                        (2 :| [7,2,7,7])
+                , Scale "Checkertonic (3L 5s)"
+                        (2 :| [2,5,2,2,5,2,5])
+                , Scale "Pelogic[5]"
+                        (8 :| [3,8,3,3])
+                , Scale "Pelogic[7]"
+                        (5 :| [3,3,5,3,3,3])
+                , Scale "Pelogic[9]"
+                        (2 :| [3,3,3,2,3,3,3,3])
+                , Scale "Triton[5]"
+                        (11 :| [1,11,1,1])
+                , Scale "Triton[7]"
+                        (10 :| [1,1,10,1,1,1])
+                , Scale "Triton[9]"
+                        (9 :| [1,1,1,9,1,1,1,1])
+            ]
             , _tunings = []
             },
             Temperament {
