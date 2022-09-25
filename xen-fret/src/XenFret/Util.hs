@@ -24,6 +24,24 @@ mosIntervals period generator notes = let
   in 
       NE.fromList $ scaleIntervals ++ [lastInterval]
 
+-- | Helper function to determine whether or not a scale is a 
+--  moment of symmetry scale by the definition.
+--
+-- There are probably faster ways to figure this out, but this is
+-- a naive approach straight from the definition.
+isMOS :: NonEmpty Int -> Bool
+isMOS = undefined 
+
+-- | Get a list of moment of symmetry scales for a given
+-- period and generator.
+--
+-- Works by continually generating new scales with
+--  chains of the given generator, and filtering out
+--  non-MOS scales.
+--
+mosScales :: Int -> Int -> [NonEmpty Int]
+mosScales = undefined
+
 xor :: Bool -> Bool -> Bool
 xor True False = True
 xor False True = True
