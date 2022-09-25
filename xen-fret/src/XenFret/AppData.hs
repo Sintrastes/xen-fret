@@ -1215,8 +1215,22 @@ defaultAppData = AppData {
             , _period = 2 % 1
             , _notationSystems = []
             , _chords = []
-            , _scales = []
-            , _tunings = []
+            , _scales = [
+                  Scale "1L 4s" (6 :| [6,6,6,9])
+                , Scale "4L 1s" (7 :| [7,7,7,5])
+                , Scale "3L 2s" (3 :| [9,3,9,9])
+                , Scale "4L 1s" (5 :| [7,7,7,7])
+                , Scale "1L 5s" (5 :| [5,5,5,5,8])
+                , Scale "5L 1s" (6 :| [6,6,6,6,3])
+                , Scale "5L 2s" (5 :| [5,5,4,5,5,4])
+                , Scale "4L 3s" (6 :| [6,3,6,3,6,3])
+                , Scale "3L 5s" (3 :| [3,6,3,3,6,3,6])
+                , Scale "5L 3s" (6 :| [6,1,6,6,1,6,1])
+            ]
+            , _tunings = [
+                  Tuning "All Fourths" "Six String Guitar" 
+                        (0 :| [14, 28, 42, 56, 70]) 0
+            ]
             },
             Temperament {
               _temperamentName = "34-TET"
