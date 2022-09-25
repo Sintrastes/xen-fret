@@ -1063,6 +1063,15 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "29-TET"
+            , _divisions = 29
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
               _temperamentName = "30-TET"
             , _divisions = 30
             , _period = 2 % 1
@@ -1176,6 +1185,40 @@ defaultAppData = AppData {
                   ]
             },
             Temperament {
+              _temperamentName = "32-TET"
+            , _divisions = 32
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = [
+                  Scale "blackdye"
+                        (1 :| [5, 2, 5, 1, 5, 2, 5, 1, 5])
+                , Scale "Sixix[7]"
+                        (4 :| [5,4,5,4,5,5])
+                , Scale "Pajara[5]"
+                        (6 :| [6,7,6,7])
+                , Scale "Pajara[7]"
+                        (6 :| [6,6,1,6,6,1])
+                , Scale "Pentic"
+                        (4 :| [4,10,4,10])
+                , Scale "Antidiatonic"
+                        (4 :| [4,4,6,4,4,6])
+            ]
+            , _tunings = [
+                  Tuning "Wide Fourths" "Six String Guitar"
+                        (0 :| [14, 28, 42, 56, 70]) 0
+            ]
+            },
+            Temperament {
+              _temperamentName = "33-TET"
+            , _divisions = 33
+            , _period = 2 % 1
+            , _notationSystems = []
+            , _chords = []
+            , _scales = []
+            , _tunings = []
+            },
+            Temperament {
               _temperamentName = "34-TET"
             , _divisions = 34
             , _period = 2 % 1
@@ -1226,7 +1269,7 @@ defaultAppData = AppData {
             ]
             , _tunings = [
                   Tuning "Wide Fourths" "Six String Guitar"
-                        (0 :| [15, 30, 45, 60, 75)
+                        (0 :| [15, 30, 45, 60, 75]) 0
             ]
             },
             Temperament {
