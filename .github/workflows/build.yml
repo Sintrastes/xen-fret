@@ -19,11 +19,11 @@ jobs:
       run: |
         nix-build --show-trace -A ghcjs.frontend -o result
         tar -cvzf xen-fret-js-frontend.tar.gz result/*
-    # - name: Build native app with nix
-    #   run: |
-    #     nix-build -A ghc.frontend -o result-native
-    #     ls result-native
-    #     tar -cvzf xen-fret-x86_64-linux.tar.gz result-native/*
+    - name: Build native app with nix
+      run: |
+        nix-build -A ghc.frontend -o result-native
+        ls result-native
+        tar -cvzf xen-fret-x86_64-linux.tar.gz result-native/*
     # - name: Build Android app with nix
     #   run: |
     #     nix-build -A android.frontend -o result-android
