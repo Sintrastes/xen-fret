@@ -29,11 +29,11 @@ jobs:
     #     nix-build -A android.frontend -o result-android
     #     ls result-android
     #     cp result-android/android-app-debug.apk ./xen-fret-android-app.apk
-    # - name: Archive native app
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: x86_64-linux-frontend
-    #     path: xen-fret-x86_64-linux.tar.gz
+    - name: Archive native app
+      uses: actions/upload-artifact@v2
+      with:
+        name: x86_64-linux-frontend
+        path: xen-fret-x86_64-linux.tar.gz
     - name: Archive webapp
       uses: actions/upload-artifact@v2
       with:
