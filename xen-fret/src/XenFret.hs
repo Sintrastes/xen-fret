@@ -51,10 +51,10 @@ getNotes :: Scale -> Fretboard -> Int -> Int -> [[Note Int]]
 getNotes scale (Fretboard stringTunings) key skipFretting = stringTunings <&> \stringPitch ->
     mapMaybe (notePitch fromRatio)
         $ filterOutInc (\x -> _notePitch x < 0)
-        $ fmap 
-          ((over notePitch (\x -> x - (stringPitch % n)) 
-            . over notePitch (\x -> x + (key % n))) 
-            . over notePitch (% n)) 
+        $ fmap
+          ((over notePitch (\x -> x - (stringPitch % n))
+            . over notePitch (\x -> x + (key % n)))
+            . over notePitch (% n))
           (zipWith Note scaleDegrees (repeatingNotes scale))
     where
       n = skipFretting + 1
@@ -76,23 +76,30 @@ frettingDots ::
   -> Int
   -> Double    -- Vertical spacing
   -> Double    -- Horizontal spacing
-  -> [(Int, Bool)]     -- List of fret locations, all Ints should be non-zero.
+  -> [Note Int]     -- List of fret locations, all Ints should be non-zero.
   -> Diagram B -- A diagram of the dots.
 frettingDots rootColor displayMarkersOnFrets offset vs _ =
     foldr (atop . frettingDot rootColor displayMarkersOnFrets offset vs) mempty
-  . fmap (\(x,y) -> (x - offset, y))
-  . filterOutInc (\(x, _) -> x < offset)
+  . fmap (\(Note y x) -> Note y (x - offset))
+  . filterOutInc (\(Note _ x) -> x < offset)
 
 -- | Create a diagram of a single dot
-frettingDot :: Color -> Bool -> Int -> Double -> (Int, Bool) -> Diagram B
-frettingDot _ _ 0 _ (0, _) = circle 0.03 # lwL 0.007
-frettingDot rootColor displayMarkersOnFrets _ vs (n, colored) =
-    translateY offset $ circle (0.03 * 0.8)
-        # fc color
-        # lwL 0.007
-        # translateY (-n'*vs)
+frettingDot :: Color -> Bool -> Int -> Double -> Note Int -> Diagram B
+frettingDot _ _ 0 _ (Note _ 0) = circle 0.03 # lwL 0.007
+frettingDot rootColor displayMarkersOnFrets _ vs (Note degree n) = 
+    (text (show $ degree + 1) 
+        # scale 0.045
+        # fc white 
+        # bold
+        # translateY offset 
+        # translateY (- 0.006 - n'*vs)) `atop`
+            translateY offset (circle (0.03 * 0.8)
+                # fc color
+                # lwL 0.007
+                # translateY (-n'*vs))
   where
     n'     = fromIntegral n  :: Double
+    colored = degree == 0
     color  = if colored then toColour rootColor else black
     offset = if displayMarkersOnFrets
         then 0.0
@@ -143,9 +150,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
     notes    = getNotes scale' fretboard key skipFrets
 
     dots       = fmap (frettingDots rootColor displayMarkersOnFrets offset vs hs) positions
-    positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions strings
-    unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)))
-            (fmap _notePitch <$> notes)
+    positions = fmap (takeWhile (\x -> _notePitch x <= (nFrets + offset))) notes
 
     rootColor  = rootNoteColor prefs
     boardColor = fretboardColor prefs
