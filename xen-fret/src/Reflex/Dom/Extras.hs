@@ -11,7 +11,7 @@ import Data.Map (empty, Map)
 import Control.Monad.IO.Class
 import Data.Ratio
 import Language.Javascript.JSaddle (eval, liftJSM)
-import Data.Validation
+import Data.Validation ( Validation(..) )
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import Text.Read
@@ -261,6 +261,83 @@ button label = do
     domEvent Click . fst <$> elAttr' "a" attributes
       (text label)
 
+-- | Reflex bindings to the materialize css autocomplete widget.
+--
+-- Works conceptually like any other select widget, but the user
+-- can narrow down the input by typing.
+--
+-- Thus, this widget works the best with a large set of inputs.
+--
+selectAutocompleteMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) =>
+     T.Text
+  -> T.Text
+  -> Dynamic t [a]
+  -> Maybe a -> m (Dynamic t (Maybe a))
+selectAutocompleteMaterial label missingText itemsDyn initialValue = elClass "div" "input-field" $ mdo
+    initialItems <- sample $ current itemsDyn
+
+    let initialValueActual = if initialValue `elem` (Just <$> initialItems)
+        then initialValue
+        else headMay initialItems
+
+    (form, changeSelection) <- elClass "div" "select-wrapper" $ do
+        (form, _) <- el' "div" $ inputElement $ def
+            & inputElementConfig_elementConfig
+            . elementConfig_initialAttributes .~ ("class" =: "select-dropdown dropdown-trigger" <> "readonly" =: "true")
+            & inputElementConfig_initialValue .~ maybe missingText (T.pack . show) initialValueActual
+            & inputElementConfig_setValue .~
+                leftmost [
+                    T.pack . show <$> changeSelection,
+                    maybe missingText (T.pack . show) <$> itemsUpdated]
+
+        changeSelection <- elDynAttr "ul" selectAttrs $ do
+            itemEvents <- dyn $ itemsDyn <&> \items -> leftmost <$> forM items (\item -> do
+                el "li" $
+                   (item <$) . domEvent Click . fst <$> el' "span" (
+                        text $ T.pack $ show item))
+            switchHold never itemEvents
+
+        elSvg "svg" ("class" =: "caret" <>
+            "height" =: "24" <>
+            "viewBox" =: "0 0 24 24" <>
+            "width" =: "24" <>
+            "xmlns" =: "http://www.w3.org/2000/svg") $ do
+                elSvg "path" ("d" =: "M7 10l5 5 5-5z") $ pure ()
+                elSvg "path" ("d" =: "M0 0h24v24H0z" <> "fill" =: "none") $ pure ()
+
+        pure (form, changeSelection)
+
+    elAttr "label" ("class" =: "unselectable" <> "style" =: "left: 0rem;") $ text label
+
+    let itemsUpdated = updated $ headMay <$> itemsDyn
+
+    let selectedStyle = "display: block;" <>
+          "width: 100%;" <> "left: 0px;" <>
+          "top: 0px;" <> "height: auto;" <> "transform-origin: 0px 0px;" <>
+          "opacity: 1;" <> "transform: scaleX(1) scaleY(1);"
+
+    let inputClicks = form &
+            domEvent Click
+
+    dropdownOpenDyn <- foldDyn const False $
+        leftmost [
+            True <$ inputClicks,
+            False <$ changeSelection
+        ]
+
+    let selectAttrs = dropdownOpenDyn <&> \dropdownOpen ->
+            "class" =: "dropdown-content select-dropdown" <>
+                if dropdownOpen
+                    then "style" =: selectedStyle
+                    else empty
+
+    dynResult <- foldDyn const initialValueActual
+        (leftmost [Just <$> changeSelection, itemsUpdated])
+
+    pure dynResult
+
+-- | Reflex bindings to the materialize css select widget.
+-- see
 selectMaterial :: (Eq a, Reflex t, MonadHold t m, MonadWidget t m, Show a) =>
      T.Text
   -> T.Text
