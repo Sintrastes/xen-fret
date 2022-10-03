@@ -51,10 +51,11 @@ getNotes :: Scale -> Fretboard -> Int -> Int -> [[Note Int]]
 getNotes scale (Fretboard stringTunings) key skipFretting = stringTunings <&> \stringPitch ->
     mapMaybe (notePitch fromRatio)
         $ filterOutInc (\x -> _notePitch x < 0)
-        $ (fmap (over notePitch $ \x -> x - (stringPitch % n)))
-        $ (fmap (over notePitch $ \x -> x + (key % n)))
-        $ (fmap (over notePitch (% n)))
-        $ zipWith Note scaleDegrees (repeatingNotes scale)
+        $ fmap 
+          ((over notePitch (\x -> x - (stringPitch % n)) 
+            . over notePitch (\x -> x + (key % n))) 
+            . over notePitch (% n)) 
+          (zipWith Note scaleDegrees (repeatingNotes scale))
     where
       n = skipFretting + 1
       scaleSize = length $ toList $ scaleIntervals scale
@@ -69,7 +70,7 @@ fromRatio x
 
 -- | Convert a list of positions to a diagram of the dots at those positions (with a given
 -- vertical and horizontal spacing)
-frettingDots :: 
+frettingDots ::
      Color
   -> Bool
   -> Int
@@ -211,7 +212,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
 baseFontSize = 0.0033
 
 -- | An empty fretboard diagram.
-emptyBoard :: 
+emptyBoard ::
      Color
   -> LineStyle
   -> Int    -- Number of frets to display on board.
