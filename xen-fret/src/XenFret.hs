@@ -37,24 +37,30 @@ newtype Fretboard = Fretboard {
 
 -- | Information associated with a note for use
 -- in displaying this data differently on a fretboard.
-data Note = Note {
-    scaleDegree :: Int,
-    notePitch :: Int
+data Note a = Note {
+    _scaleDegree :: Int,
+    _notePitch :: a
 }
+
+$(makeLenses ''Note)
 
 -- | Given a scale, a fretboard, and a skip fretting value,
 -- return a list of the note positions on each of the strings
 -- of the passed fretboard.
-getNotes :: Scale -> Fretboard -> Int -> Int -> [[Int]]
+getNotes :: Scale -> Fretboard -> Int -> Int -> [[Note Int]]
 getNotes scale (Fretboard stringTunings) key skipFretting = stringTunings <&> \stringPitch ->
-    mapMaybe fromRatio
-        $ filterOutInc (< 0)
-        $ fmap (\x -> x - (stringPitch % n))
-        $ fmap (\x -> x + (key % n))
-        $ fmap (% n)
-        $ repeatingNotes scale
+    mapMaybe (notePitch fromRatio)
+        $ filterOutInc (\x -> _notePitch x < 0)
+        $ (fmap (over notePitch $ \x -> x - (stringPitch % n)))
+        $ (fmap (over notePitch $ \x -> x + (key % n)))
+        $ (fmap (over notePitch (% n)))
+        $ zipWith Note scaleDegrees (repeatingNotes scale)
     where
       n = skipFretting + 1
+      scaleSize = length $ toList $ scaleIntervals scale
+
+      scaleDegrees :: [Int]
+      scaleDegrees = fmap (`mod` scaleSize) [0..]
 
 fromRatio :: Ratio Int -> Maybe Int
 fromRatio x
@@ -138,7 +144,7 @@ board prefs scaleName key scale' skipFrets fretboard optNoteNames FretboardStyle
     dots       = fmap (frettingDots rootColor displayMarkersOnFrets offset vs hs) positions
     positions  = (\(xs, p) -> fmap (markRoot p) xs) <$> zip unmarkedPositions strings
     unmarkedPositions = fmap (takeWhile (<= (nFrets + offset)))
-            notes
+            (fmap _notePitch <$> notes)
 
     rootColor  = rootNoteColor prefs
     boardColor = fretboardColor prefs
