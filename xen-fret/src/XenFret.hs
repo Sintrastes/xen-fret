@@ -35,6 +35,13 @@ newtype Fretboard = Fretboard {
     fretboardStrings :: [Int]
 }
 
+-- | Information associated with a note for use
+-- in displaying this data differently on a fretboard.
+data Note = Note {
+    scaleDegree :: Int,
+    notePitch :: Int
+}
+
 -- | Given a scale, a fretboard, and a skip fretting value,
 -- return a list of the note positions on each of the strings
 -- of the passed fretboard.
