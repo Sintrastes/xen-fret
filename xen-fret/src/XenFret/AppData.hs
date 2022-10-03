@@ -812,6 +812,36 @@ defaultAppData = AppData {
                         (5 :| [5, 1, 5, 5, 1])
                   , Scale "Doublewide[10]"
                         (4 :| [1, 4, 1, 1, 4, 1, 4, 1, 1])
+                  , Scale "Porcupine bright major #7"
+                        (4 :| [3, 3, 3, 3, 4, 2])
+                  , Scale "Porcupine bright major #6 #7"
+                        (4 :| [3, 3, 3, 4, 3, 2])
+                  , Scale "Porcupine bright minor #2"
+                        (4 :| [2, 4, 3, 3, 3, 3])
+                  , Scale "Porcupine dark minor #2"
+                        (4 :| [2, 3, 4, 3, 3, 3])
+                  , Scale "Porcupine bright harmonic 11th mode"
+                        (4 :| [3, 3, 3, 3, 2, 4])
+                  , Scale "Superpyth harmonic minor"
+                        (4 :| [1, 4, 4, 1, 7, 1])
+                  , Scale "Superpyth harmonic major"
+                        (4 :| [4, 1, 4, 1, 7, 1])
+                  , Scale "Superpyth melodic minor"
+                        (4 :| [1, 4, 4, 4, 4, 1])
+                  , Scale "Superpyth double harmonic major"
+                        (1 :| [7, 1, 4, 1, 7, 1])
+                  , Scale "Syntonic Harmonic Minor"
+                        (4 :| [2, 3, 4, 2, 5, 2])
+                  , Scale "Syntonic Harmonic Major"
+                        (4 :| [3, 2, 4, 2, 5, 2])
+                  , Scale "Syntonic Melodic Minor"
+                        (4 :| [2, 3, 4, 3, 4, 2])
+                  , Scale "Marvel Double Harmonic Major"
+                        (2 :| [5, 2, 4, 2, 5, 2])
+                  , Scale "Blackdye"
+                        (1 :| [3, 2, 3, 1, 3, 2, 3, 1, 3])
+                  , Scale "Marvel Hexatonic"
+                        (5 :| [2, 6, 2, 5, 2])
                   -- 11-EDO inclusions
                   , Scale "Machine[6]"
                         (fmap (*2) $ 2 :| [2, 2, 2, 2, 1])
