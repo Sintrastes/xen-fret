@@ -798,6 +798,8 @@ defaultAppData = AppData {
                         (5 :| [1, 1, 5, 1, 1, 5, 1, 1, 1])
                   , Scale "Pajara[10]"
                         (2 :| [2, 3, 2, 2, 2, 2, 3, 2, 2])
+                  , Scale "Pentachordal Decatonic"
+                        (2 :| [2, 3, 2, 2, 2, 3, 2, 2, 2])
                   , Scale "Hedgehog[6]"
                         (3 :| [5, 3, 3, 5, 3])
                   , Scale "Hedgehog[8]"
