@@ -57,9 +57,17 @@ dx build --release --platform web
 
 Output lands in `dist/`. The site is fully static and can be deployed to any static host (GitHub Pages, Netlify, etc.).
 
+**GitHub Pages build**
+
+The app is served from a subdirectory (`/xen_fret/`), which requires a different base path. Use `Dioxus.gh-pages.toml` for that build:
+
+```
+cp Dioxus.gh-pages.toml Dioxus.toml && dx build --release --platform web
+```
+
 Nerd Stuff
 ----------
 
 Xen Fret has been a longstanding project of mine. Originally it was a simple [CGI](https://en.wikipedia.org/wiki/Common_Gateway_Interface) binary that could be served up in Apache and generated static SVG images built in Haskell using [diagrams](https://diagrams.github.io/). Later on I turned it into a simple web app using [reflex](https://reflex-frp.org/). Since then I've re-written the whole thing in Rust with [Dioxus](https://dioxuslabs.com/) and the assistance of agentic AI.
 
-I am a bit sad with the sunsetting of the old Haskell version, but I think ultimately Rust is the right choice for performance and ecosystem, allowing us to iterate faster and deliver more features to the Xenharmonic community. 🎸
+I am a bit sad with the sunsetting of the old Haskell version, but I think ultimately Rust is the right choice for performance ("Rust -> WASM" is much faster than "Haskell -> JS" was in the browser) and ecosystem, allowing us to iterate faster and deliver more features to the Xenharmonic community. 🎸
