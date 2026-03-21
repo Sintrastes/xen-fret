@@ -25,7 +25,7 @@ Features
 Gettring started
 ----------------
 
-Xen Fret is currently hosted [here](https://sintrastes.github.io/demos/xen_fret/) as a static page on github pages. In the future, we may add desktop and mobile versions.
+Xen Fret is currently hosted [here](https://sintrastes.github.io/xen_fret/) as a static page on github pages. In the future, we may add desktop and mobile versions.
 
 Building
 --------
