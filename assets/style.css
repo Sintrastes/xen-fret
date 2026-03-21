@@ -1448,6 +1448,7 @@ input, select, textarea { font: inherit; }
 .home-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
+  grid-template-rows: 1fr;
   height: 100%;
   min-height: 0;
   flex: 1;
@@ -1459,6 +1460,7 @@ input, select, textarea { font: inherit; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
   transition: background var(--transition);
 }
 
@@ -1487,6 +1489,7 @@ input, select, textarea { font: inherit; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
   background: var(--surface-raised);
 }
 
@@ -1601,9 +1604,10 @@ input, select, textarea { font: inherit; }
 
 .preview-body {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
   padding: 24px;
 }
@@ -1702,6 +1706,10 @@ input, select, textarea { font: inherit; }
   width: 100%;
 }
 
+.home-layout--h .fretboard-container svg {
+  height: auto;
+}
+
 } /* end @media (min-width: 769px) */
 
 /* ── Fretboard SVG ──────────────────────────────────────────── */
@@ -1711,13 +1719,27 @@ input, select, textarea { font: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 20px;
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
   justify-content: center;
 }
 
 .fretboard-container {
+  flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.fretboard-container svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .fretboard-svg {
