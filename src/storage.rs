@@ -1,0 +1,16 @@
+use crate::state::AppState;
+
+#[cfg(not(target_arch = "wasm32"))]
+mod native;
+#[cfg(target_arch = "wasm32")]
+mod web;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn load() -> AppState { native::load() }
+#[cfg(target_arch = "wasm32")]
+pub fn load() -> AppState { web::load() }
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn save(state: &AppState) { native::save(state); }
+#[cfg(target_arch = "wasm32")]
+pub fn save(state: &AppState) { web::save(state); }

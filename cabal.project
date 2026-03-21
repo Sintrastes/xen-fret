@@ -1,1 +1,0 @@
-packages: ./xen-fret/xen-fret.cabal ./frontend/*.cabal 
