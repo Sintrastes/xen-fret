@@ -1,0 +1,19 @@
+[application]
+name = "xen-fret"
+default_platform = "web"
+
+[web.app]
+title = "Xen Fret"
+base_path = "xen_fret"
+
+[web.watcher]
+reload_html = true
+watch_path = ["src", "assets"]
+
+[web.resource.dev]
+style = ["/assets/style.css"]
+script = []
+
+[web.resource.release]
+style = ["/assets/style.css"]
+script = []
