@@ -1,0 +1,234 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; don't cancel in-progress so partial deploys finish.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # ── Web (GitHub Pages) ────────────────────────────────────────────────────────
+
+  build-web:
+    name: Build (web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: web-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: web-
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --version "^0.7" --locked
+
+      - name: Use GitHub Pages config
+        run: cp Dioxus.gh-pages.toml Dioxus.toml
+
+      - name: Build
+        run: dx build --release --platform web
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/dx/xen-fret-app/release/web/public
+
+  deploy-web:
+    name: Deploy (GitHub Pages)
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build-web
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ── Desktop — Linux ───────────────────────────────────────────────────────────
+
+  build-linux:
+    name: Build (Linux desktop)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: linux-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: linux-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --version "^0.7" --locked
+
+      - name: Build
+        run: dx build --release --platform desktop
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xen-fret-linux
+          path: target/dx/xen-fret-app/release/desktop/
+
+  # ── Desktop — Windows ─────────────────────────────────────────────────────────
+
+  build-windows:
+    name: Build (Windows desktop)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: windows-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: windows-
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --version "^0.7" --locked
+
+      - name: Build
+        run: dx build --release --platform desktop
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xen-fret-windows
+          path: target/dx/xen-fret-app/release/desktop/
+
+  # ── Desktop — macOS ───────────────────────────────────────────────────────────
+
+  build-macos:
+    name: Build (macOS desktop)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: macos-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: macos-
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --version "^0.7" --locked
+
+      - name: Build
+        run: dx build --release --platform desktop
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xen-fret-macos
+          path: target/dx/xen-fret-app/release/desktop/
+
+  # ── Mobile — iOS ──────────────────────────────────────────────────────────────
+
+  build-ios:
+    name: Build (iOS simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ios-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ios-
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --version "^0.7" --locked
+
+      - name: Build (simulator)
+        run: dx build --release --platform ios
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xen-fret-ios
+          path: target/dx/xen-fret-app/release/ios/
+
+  # ── Mobile — Android ──────────────────────────────────────────────────────────
+
+  build-android:
+    name: Build (Android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: android-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: android-
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --version "^0.7" --locked
+
+      - name: Build
+        run: dx build --release --platform android
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xen-fret-android
+          path: target/dx/xen-fret-app/release/android/
