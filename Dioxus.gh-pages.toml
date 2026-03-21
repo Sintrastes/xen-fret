@@ -4,7 +4,7 @@ default_platform = "web"
 
 [web.app]
 title = "Xen Fret"
-base_path = "xen_fret"
+base_path = "xen-fret"
 
 [web.watcher]
 reload_html = true
