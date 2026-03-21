@@ -59,7 +59,7 @@ Output lands in `dist/`. The site is fully static and can be deployed to any sta
 
 **GitHub Pages build**
 
-The app is served from a subdirectory (`/xen_fret/`), which requires a different base path. Use `Dioxus.gh-pages.toml` for that build:
+The app is served from a subdirectory (`/xen-fret/`), which requires a different base path. Use `Dioxus.gh-pages.toml` for that build:
 
 ```
 cp Dioxus.gh-pages.toml Dioxus.toml && dx build --release --platform web
