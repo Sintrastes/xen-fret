@@ -1,0 +1,34 @@
+[package]
+name = "xen-fret-app"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "xen-fret-app"
+path = "src/main.rs"
+
+[dependencies]
+dioxus = { version = "0.7", features = ["web", "router", "document"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rustfft = "6"
+realfft = "3"
+
+hagoromo = "0.1"
+
+# For developing locally
+# hagoromo = { path = "../hagoromo" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+cozo = { version = "0.7", features = ["storage-sqlite"] }
+dirs = "5"
+rayon = "~1.8"  # pin below 1.9 to avoid graph_builder breakage in cozo's dep tree
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", features = ["Window", "Storage"] }
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+debug = false
+lto = true
