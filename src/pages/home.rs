@@ -184,11 +184,13 @@ pub fn Home() -> Element {
     let scale_options: Vec<(usize, String)> = state
         .current_temperament()
         .map(|t| {
-            state.scales.iter()
+            let mut opts: Vec<(usize, String, usize)> = state.scales.iter()
                 .filter(|s| s.temperament_name == t.name)
                 .enumerate()
-                .map(|(i, s)| (i, s.name.clone()))
-                .collect()
+                .map(|(i, s)| (i, s.name.clone(), s.intervals.len()))
+                .collect();
+            opts.sort_by(|a, b| a.2.cmp(&b.2).then(a.1.cmp(&b.1)));
+            opts.into_iter().map(|(i, name, _)| (i, name)).collect()
         })
         .unwrap_or_default();
 
