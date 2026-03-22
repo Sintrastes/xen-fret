@@ -10,6 +10,227 @@ use dioxus::document::eval;
 
 static BRAVURA_FONT: Asset = asset!("/assets/Bravura.woff2");
 
+/// Bravura font bytes embedded at compile-time for offline PDF generation.
+/// Uses .woff (zlib-wrapped SFNT) rather than .woff2 (Brotli) because fontdb's
+/// bundled ttf-parser can decompress woff natively without extra crate features.
+static BRAVURA_BYTES: &[u8] = include_bytes!("../../assets/Bravura.woff");
+
+/// Minimal Noto Sans subset (Latin A-Z, a-z, 0-9, punctuation) for PDF text
+/// on WASM where system fonts are unavailable.  OFL-licensed, ~10 KB.
+static NOTO_SANS_BYTES: &[u8] = include_bytes!("../../assets/NotoSans-Latin.ttf");
+
+/// Encode bytes as base64 (used to pass binary PDF data through the JS eval bridge).
+fn to_base64(bytes: &[u8]) -> String {
+    const TABLE: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    for chunk in bytes.chunks(3) {
+        let b = [
+            chunk[0] as u32,
+            chunk.get(1).copied().unwrap_or(0) as u32,
+            chunk.get(2).copied().unwrap_or(0) as u32,
+        ];
+        let n = (b[0] << 16) | (b[1] << 8) | b[2];
+        out.push(TABLE[((n >> 18) & 63) as usize] as char);
+        out.push(TABLE[((n >> 12) & 63) as usize] as char);
+        out.push(if chunk.len() > 1 { TABLE[((n >> 6) & 63) as usize] as char } else { '=' });
+        out.push(if chunk.len() > 2 { TABLE[(n & 63) as usize] as char } else { '=' });
+    }
+    out
+}
+
+/// Replace `width="100%"` in the SVG with explicit dimensions scaled to fit
+/// ~500×700 PDF points (≈ A4 with margins), maintaining the diagram's aspect ratio.
+/// hagoromo outputs a viewBox in abstract float units (e.g. `0 0 2.3 5.8`);
+/// without scaling these up, usvg produces a ~2-point wide PDF page.
+fn svg_with_explicit_size(svg: &str) -> String {
+    let vb_dims = svg
+        .split("viewBox=\"")
+        .nth(1)
+        .and_then(|s| s.split('"').next())
+        .and_then(|s| {
+            let v: Vec<f32> = s.split_whitespace().filter_map(|n| n.parse().ok()).collect();
+            if v.len() == 4 { Some((v[2], v[3])) } else { None }
+        });
+    match vb_dims {
+        Some((vw, vh)) if vw > 0.0 && vh > 0.0 => {
+            const MAX_W: f32 = 500.0;
+            const MAX_H: f32 = 700.0;
+            let scale = (MAX_W / vw).min(MAX_H / vh);
+            let w = vw * scale;
+            let h = vh * scale;
+            svg.replacen(
+                "width=\"100%\"",
+                &format!("width=\"{w:.2}\" height=\"{h:.2}\""),
+                1,
+            )
+        }
+        _ => svg.to_string(),
+    }
+}
+
+/// Convert a WOFF1 font to raw SFNT bytes that fontdb/ttf-parser can load.
+/// WOFF1 wraps each OpenType table in an optional zlib deflate stream; we
+/// decompress each one and reconstruct a standard SFNT binary.
+fn woff1_to_sfnt(woff: &[u8]) -> Option<Vec<u8>> {
+    use std::convert::TryInto;
+
+    if woff.len() < 44 { return None; }
+    if &woff[0..4] != b"wOFF" { return None; }
+
+    let sfnt_flavor = u32::from_be_bytes(woff[4..8].try_into().ok()?);
+    let num_tables = u16::from_be_bytes(woff[12..14].try_into().ok()?) as usize;
+
+    if woff.len() < 44 + num_tables * 20 { return None; }
+
+    struct Entry { tag: [u8; 4], woff_off: usize, comp_len: usize, orig_len: usize, checksum: u32 }
+    let mut tables: Vec<Entry> = Vec::with_capacity(num_tables);
+    for i in 0..num_tables {
+        let e = 44 + i * 20;
+        tables.push(Entry {
+            tag:      woff[e..e+4].try_into().ok()?,
+            woff_off: u32::from_be_bytes(woff[e+4..e+8].try_into().ok()?)  as usize,
+            comp_len: u32::from_be_bytes(woff[e+8..e+12].try_into().ok()?) as usize,
+            orig_len: u32::from_be_bytes(woff[e+12..e+16].try_into().ok()?) as usize,
+            checksum: u32::from_be_bytes(woff[e+16..e+20].try_into().ok()?),
+        });
+    }
+    tables.sort_by(|a, b| a.tag.cmp(&b.tag));
+
+    let n = num_tables as u16;
+    let mut x = 1u16;
+    while x * 2 <= n { x *= 2; }
+    let search_range   = x * 16;
+    let entry_selector = (x as f32).log2() as u16;
+    let range_shift    = n * 16 - search_range;
+
+    // Compute each table's position in the output (4-byte aligned after the header)
+    let header_size = 12 + num_tables as u32 * 16;
+    let mut sfnt_offsets: Vec<u32> = Vec::with_capacity(num_tables);
+    let mut cursor = header_size;
+    for t in &tables {
+        sfnt_offsets.push(cursor);
+        cursor += t.orig_len as u32;
+        cursor = (cursor + 3) & !3;
+    }
+
+    let mut out = vec![0u8; cursor as usize];
+
+    // Offset table
+    out[0..4].copy_from_slice(&sfnt_flavor.to_be_bytes());
+    out[4..6].copy_from_slice(&n.to_be_bytes());
+    out[6..8].copy_from_slice(&search_range.to_be_bytes());
+    out[8..10].copy_from_slice(&entry_selector.to_be_bytes());
+    out[10..12].copy_from_slice(&range_shift.to_be_bytes());
+
+    for (i, (t, &off)) in tables.iter().zip(sfnt_offsets.iter()).enumerate() {
+        let d = 12 + i * 16;
+        out[d..d+4].copy_from_slice(&t.tag);
+        out[d+4..d+8].copy_from_slice(&t.checksum.to_be_bytes());
+        out[d+8..d+12].copy_from_slice(&off.to_be_bytes());
+        out[d+12..d+16].copy_from_slice(&(t.orig_len as u32).to_be_bytes());
+
+        let src = woff.get(t.woff_off..t.woff_off + t.comp_len)?;
+        let data: Vec<u8> = if t.comp_len < t.orig_len {
+            miniz_oxide::inflate::decompress_to_vec_zlib(src).ok()?
+        } else {
+            src.to_vec()
+        };
+        let start = off as usize;
+        out[start..start + data.len()].copy_from_slice(&data);
+    }
+    Some(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn woff1_converts_and_loads() {
+        let sfnt = woff1_to_sfnt(BRAVURA_BYTES).expect("woff1_to_sfnt should return Some");
+        assert_eq!(&sfnt[0..4], &[0x00, 0x01, 0x00, 0x00], "SFNT must start with TrueType magic");
+
+        let mut db = svg2pdf::usvg::fontdb::Database::new();
+        let ids = db.load_font_source(svg2pdf::usvg::fontdb::Source::Binary(
+            std::sync::Arc::new(sfnt),
+        ));
+        assert!(!ids.is_empty(), "fontdb must load at least one face from converted SFNT");
+
+        let face_id = db.faces().find(|f| {
+            f.families.iter().any(|(n, _)| n.to_lowercase().contains("bravura"))
+        }).map(|f| f.id).expect("fontdb must find a Bravura face");
+
+        // Verify the natural sign glyph (U+E261) is present using ttf_parser directly.
+        let has_natural = db.with_face_data(face_id, |font_data, face_index| {
+            ttf_parser::Face::parse(font_data, face_index)
+                .ok()
+                .and_then(|face| face.glyph_index('\u{E261}').map(|_| true))
+        }).flatten().unwrap_or(false);
+        assert!(has_natural, "Bravura face must have SMuFL natural sign (U+E261)");
+    }
+
+    #[test]
+    fn noto_sans_subset_has_latin() {
+        let mut db = svg2pdf::usvg::fontdb::Database::new();
+        db.load_font_data(NOTO_SANS_BYTES.to_vec());
+        let face = db.faces().next().expect("Noto Sans must load");
+        assert!(
+            face.families.iter().any(|(n, _)| n == "Noto Sans"),
+            "font must register as 'Noto Sans'"
+        );
+        let has_a = db.with_face_data(face.id, |data, idx| {
+            ttf_parser::Face::parse(data, idx)
+                .ok()
+                .and_then(|f| f.glyph_index('A').map(|_| true))
+        }).flatten().unwrap_or(false);
+        assert!(has_a, "Noto Sans subset must have Latin 'A'");
+    }
+}
+
+/// Convert the current diagram SVG to a PDF, returning (filename, bytes).
+fn build_pdf() -> Option<(String, Vec<u8>)> {
+    let raw = build_svg()?;
+    // Rewrite font-family values for the PDF rendering pipeline.
+    //
+    // Bravura.woff registers as "Bravura Text" in fontdb, so we correct that name.
+    // For SMuFL spans: "Bravura Text" is primary, "Noto Sans" is Latin fallback.
+    // For ASCII spans: "Noto Sans" is primary, "sans-serif" is generic fallback.
+    //
+    // On native, load_system_fonts() provides additional sans-serif coverage.
+    // On WASM, Noto Sans (embedded 10 KB subset) is the only Latin source.
+    let raw = raw.replace("font-family=\"Bravura, sans-serif\"", "font-family=\"Bravura Text, Noto Sans, sans-serif\"");
+    let raw = raw.replace("font-family='Bravura, sans-serif'", "font-family='Bravura Text, Noto Sans, sans-serif'");
+    let raw = raw.replace("font-family=\"Bravura\"", "font-family=\"Bravura Text, Noto Sans, sans-serif\"");
+    let raw = raw.replace("font-family='Bravura'", "font-family='Bravura Text, Noto Sans, sans-serif'");
+    let raw = raw.replace("font-family=\"sans-serif\"", "font-family=\"Noto Sans, sans-serif\"");
+    let raw = raw.replace("font-family='sans-serif'", "font-family='Noto Sans, sans-serif'");
+    let svg = svg_with_explicit_size(&raw);
+    let filename = {
+        let s = APP_STATE.read();
+        s.current_scale()
+            .map(|sc| format!("{}.pdf", sc.name.to_lowercase().replace(' ', "_")))
+            .unwrap_or_else(|| "fretboard.pdf".to_string())
+    };
+
+    let mut options = svg2pdf::usvg::Options::default();
+    options.fontdb_mut().load_system_fonts();
+    if let Some(sfnt) = woff1_to_sfnt(BRAVURA_BYTES) {
+        options.fontdb_mut().load_font_data(sfnt);
+    }
+    // Load embedded Noto Sans subset for Latin coverage (critical on WASM where
+    // load_system_fonts() is a no-op).
+    options.fontdb_mut().load_font_data(NOTO_SANS_BYTES.to_vec());
+    options.fontdb_mut().set_sans_serif_family("Noto Sans");
+    let tree = svg2pdf::usvg::Tree::from_str(&svg, &options).ok()?;
+    let pdf = svg2pdf::to_pdf(
+        &tree,
+        svg2pdf::ConversionOptions::default(),
+        svg2pdf::PageOptions::default(),
+    )
+    .ok()?;
+    Some((filename, pdf))
+}
+
 /// Generate an SCL file for the current scale/chord, or None if nothing is selected.
 /// Intervals are expressed as cumulative cents using the temperament's period.
 fn build_scl() -> Option<(String, String)> {
@@ -120,6 +341,23 @@ pub fn Home() -> Element {
         let js = format!(
             "const b=new Blob([`{escaped}`],{{type:'image/svg+xml'}});\
              const u=URL.createObjectURL(b);\
+             const a=document.createElement('a');\
+             a.href=u;a.download={filename:?};a.click();\
+             URL.revokeObjectURL(u);"
+        );
+        let _ = eval(&js);
+    };
+
+    let do_export_pdf = move |_| {
+        show_export_modal.set(false);
+        let Some((filename, bytes)) = build_pdf() else { return };
+        let b64 = to_base64(&bytes);
+        let js = format!(
+            "const s=atob({b64:?});\
+             const b=new Uint8Array(s.length);\
+             for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);\
+             const bl=new Blob([b],{{type:'application/pdf'}});\
+             const u=URL.createObjectURL(bl);\
              const a=document.createElement('a');\
              a.href=u;a.download={filename:?};a.click();\
              URL.revokeObjectURL(u);"
@@ -855,6 +1093,13 @@ pub fn Home() -> Element {
                     div { class: "export-format-icon", "SVG" }
                     div { class: "export-format-label", "SVG Image" }
                     div { class: "export-format-desc", "Fretboard diagram as a scalable vector graphic" }
+                }
+                button {
+                    class: "export-format-btn",
+                    onclick: do_export_pdf,
+                    div { class: "export-format-icon", "PDF" }
+                    div { class: "export-format-label", "PDF Document" }
+                    div { class: "export-format-desc", "Fretboard diagram as a vector PDF" }
                 }
                 button {
                     class: "export-format-btn",

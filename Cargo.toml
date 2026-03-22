@@ -15,6 +15,8 @@ rustfft = "6"
 realfft = "3"
 
 hagoromo = "0.1"
+svg2pdf = "0.13.0"
+miniz_oxide = "0.8"
 
 # For developing locally
 # hagoromo = { path = "../hagoromo" }
@@ -35,6 +37,9 @@ core-foundation-sys = "0.8"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3", features = ["Window", "Storage"] }
+
+[dev-dependencies]
+ttf-parser = "0.25"
 
 [profile.wasm-release]
 inherits = "release"
