@@ -43,6 +43,21 @@ pub fn scale_to_hz_sequence(
         .collect()
 }
 
+/// Return the absolute EDO steps for one period of `scale` rooted at `key`.
+///
+/// E.g. for a major scale (intervals [2,2,1,2,2,2,1]) with key=7 (E in 12-TET):
+/// returns [7, 9, 11, 12, 14, 16, 18, 19].
+pub fn scale_absolute_steps(scale: &Scale, key: i32) -> Vec<i32> {
+    let mut steps = Vec::with_capacity(scale.intervals.len() + 1);
+    let mut acc = 0i32;
+    steps.push(key);
+    for &interval in &scale.intervals {
+        acc += interval;
+        steps.push(key + acc);
+    }
+    steps
+}
+
 /// Convert a frequency in Hz to the nearest MIDI note number and its deviation in cents.
 ///
 /// Returns `(midi_note, cents)` where `cents` is in `(-50, 50]`.
