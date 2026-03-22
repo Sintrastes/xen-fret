@@ -1,5 +1,5 @@
 use crate::components::{ColorPicker, Combobox, Select};
-use crate::models::{FretStyle, PitchDetectorKind};
+use crate::models::{FretStyle, PitchDetectorKind, ThemeMode};
 use crate::state::APP_STATE;
 use dioxus::prelude::*;
 
@@ -28,17 +28,42 @@ pub fn Preferences() -> Element {
                 div { class: "card prefs-card",
                     h2 { class: "card-heading", "Appearance" }
 
-                    div { class: "form-group form-group-inline",
-                        label { class: "form-label", "Dark Mode" }
-                        label { class: "toggle",
-                            input {
-                                r#type: "checkbox",
-                                checked: prefs.dark_mode,
-                                onchange: move |e| {
-                                    APP_STATE.write().preferences.dark_mode = e.checked();
+                    div { class: "form-group",
+                        label { class: "form-label", "Theme" }
+                        div { class: "radio-group",
+                            label { class: "radio-option",
+                                input {
+                                    r#type: "radio",
+                                    name: "theme-mode",
+                                    checked: matches!(prefs.theme_mode, ThemeMode::System),
+                                    onchange: move |_| {
+                                        APP_STATE.write().preferences.theme_mode = ThemeMode::System;
+                                    }
                                 }
+                                "System (auto-detect)"
                             }
-                            span { class: "toggle-slider" }
+                            label { class: "radio-option",
+                                input {
+                                    r#type: "radio",
+                                    name: "theme-mode",
+                                    checked: matches!(prefs.theme_mode, ThemeMode::Light),
+                                    onchange: move |_| {
+                                        APP_STATE.write().preferences.theme_mode = ThemeMode::Light;
+                                    }
+                                }
+                                "Light"
+                            }
+                            label { class: "radio-option",
+                                input {
+                                    r#type: "radio",
+                                    name: "theme-mode",
+                                    checked: matches!(prefs.theme_mode, ThemeMode::Dark),
+                                    onchange: move |_| {
+                                        APP_STATE.write().preferences.theme_mode = ThemeMode::Dark;
+                                    }
+                                }
+                                "Dark"
+                            }
                         }
                     }
                 }
