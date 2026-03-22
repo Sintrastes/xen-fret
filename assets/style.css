@@ -1825,7 +1825,13 @@ input, select, textarea { font: inherit; }
   gap: 20px;
 }
 
-.prefs-card { padding: 20px; }
+.prefs-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.prefs-card .card-heading { margin-bottom: 0; }
 .prefs-card-wide { grid-column: span 2; }
 @media (max-width: 600px) { .prefs-card-wide { grid-column: span 1; } }
 
