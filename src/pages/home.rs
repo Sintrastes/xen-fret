@@ -57,7 +57,9 @@ fn build_svg() -> Option<String> {
 
 #[component]
 pub fn Home() -> Element {
-    let mut show_diagram_mobile = use_signal(|| false);
+    let mut drawer_open = use_signal(|| false);
+    let mut is_mobile = use_signal(|| false);
+    let mut is_landscape = use_signal(|| false);
     let mut show_instrument_picker = use_signal(|| false);
     let mut is_playing = use_signal(|| false);
     let mut playing_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
@@ -99,6 +101,7 @@ pub fn Home() -> Element {
     let settings = state.diagram_settings.clone();
     let is_scale_mode = matches!(settings.mode, DiagramMode::Scale);
     let is_horizontal = settings.horizontal;
+    let effective_horizontal = if *is_mobile.read() { *is_landscape.read() } else { is_horizontal };
 
     let maybe_item: Option<Scale> = if is_scale_mode {
         state.current_scale().cloned()
@@ -308,6 +311,53 @@ pub fn Home() -> Element {
         }
     };
 
+    use_effect(move || {
+        spawn(async move {
+            let mut e = eval(r#"
+                function sendOrientation() {
+                    dioxus.send({type: 'orientation', mobile: window.innerWidth <= 768, landscape: window.innerWidth > window.innerHeight});
+                }
+                sendOrientation();
+                window.addEventListener('resize', sendOrientation);
+                window.addEventListener('orientationchange', sendOrientation);
+                // Swipe on drawer handle
+                let startY = 0;
+                document.addEventListener('touchstart', function(e) {
+                    if (e.target.closest('.drawer-handle')) startY = e.touches[0].clientY;
+                }, {passive: true});
+                document.addEventListener('touchend', function(e) {
+                    if (!e.target.closest('.drawer-handle')) return;
+                    var delta = e.changedTouches[0].clientY - startY;
+                    if (delta < -50) dioxus.send({type: 'swipe', dir: 'open'});
+                    else if (delta > 50) dioxus.send({type: 'swipe', dir: 'close'});
+                }, {passive: true});
+            "#);
+            loop {
+                match e.recv().await {
+                    Ok(serde_json::Value::Object(obj)) => {
+                        match obj.get("type").and_then(|t| t.as_str()) {
+                            Some("orientation") => {
+                                let mobile = obj.get("mobile").and_then(|v| v.as_bool()).unwrap_or(false);
+                                let landscape = obj.get("landscape").and_then(|v| v.as_bool()).unwrap_or(false);
+                                is_mobile.set(mobile);
+                                is_landscape.set(landscape);
+                            }
+                            Some("swipe") => {
+                                match obj.get("dir").and_then(|v| v.as_str()) {
+                                    Some("open") => drawer_open.set(true),
+                                    Some("close") => drawer_open.set(false),
+                                    _ => {}
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ => break,
+                }
+            }
+        });
+    });
+
     let effective_degrees = {
         let mut degs = playing_degrees.read().clone();
         degs.extend(mic_degrees.read().iter().copied());
@@ -316,10 +366,24 @@ pub fn Home() -> Element {
     let effective_steps = mic_steps.read().clone();
 
     rsx! {
-        div { class: if is_horizontal { "home-layout home-layout--h" } else { "home-layout" },
+        div { class: if effective_horizontal { "home-layout home-layout--h" } else { "home-layout" },
 
             // ── Controls panel ──────────────────────────────────────────────
-            div { class: "controls-panel",
+            div {
+                class: if *drawer_open.read() { "controls-panel drawer-open" } else { "controls-panel" },
+
+                // Drawer handle — visible on mobile only
+                div {
+                    class: "drawer-handle",
+                    onclick: move |_| {
+                        let open = *drawer_open.read();
+                        drawer_open.set(!open);
+                    },
+                    div { class: "drawer-pill" }
+                    span { class: "drawer-label",
+                        if *drawer_open.read() { "Settings ▾" } else { "Settings ▴" }
+                    }
+                }
 
                 div { class: "controls-body",
 
@@ -344,7 +408,7 @@ pub fn Home() -> Element {
                     if has_instrument {
                         // Tuning
                         div { class: "form-group",
-                            if !is_horizontal { label { class: "form-label", "Tuning" } }
+                            if !effective_horizontal { label { class: "form-label", "Tuning" } }
                             if tuning_options.is_empty() {
                                 p { class: "form-empty", "No compatible tunings for this instrument." }
                             } else {
@@ -380,7 +444,7 @@ pub fn Home() -> Element {
 
                         // Diagram type
                         div { class: "form-group",
-                            if !is_horizontal { label { class: "form-label", "Diagram Type" } }
+                            if !effective_horizontal { label { class: "form-label", "Diagram Type" } }
                             div { class: "segmented-control",
                                 button {
                                     class: if is_scale_mode { "seg-btn active" } else { "seg-btn" },
@@ -400,8 +464,8 @@ pub fn Home() -> Element {
                         }
 
                         // Orientation
-                        div { class: "form-group",
-                            if !is_horizontal { label { class: "form-label", "Orientation" } }
+                        div { class: "form-group hide-mobile",
+                            if !effective_horizontal { label { class: "form-label", "Orientation" } }
                             div { class: "segmented-control",
                                 button {
                                     class: if !is_horizontal { "seg-btn active" } else { "seg-btn" },
@@ -640,11 +704,6 @@ pub fn Home() -> Element {
                         // Action buttons
                         div { class: "controls-actions",
                             button {
-                                class: "btn btn-primary btn-full show-mobile",
-                                onclick: move |_| show_diagram_mobile.set(true),
-                                "View Diagram"
-                            }
-                            button {
                                 class: "btn btn-outline btn-full",
                                 onclick: export_svg,
                                 "↓ Export SVG"
@@ -715,39 +774,14 @@ pub fn Home() -> Element {
                     }
                 }
                 div { class: "preview-body",
-                    FretboardPreview { playing_degrees: effective_degrees.clone(), playing_steps: effective_steps.clone() }
-                }
-            }
-
-            // ── Mobile diagram modal ────────────────────────────────────────
-            if show_diagram_mobile() {
-                div {
-                    class: "modal-backdrop",
-                    onclick: move |_| show_diagram_mobile.set(false),
-                    div {
-                        class: "modal modal-diagram",
-                        onclick: |e| e.stop_propagation(),
-                        div { class: "modal-header",
-                            h2 { class: "modal-title", "Diagram" }
-                            button {
-                                class: "modal-close",
-                                onclick: move |_| show_diagram_mobile.set(false),
-                                "✕"
-                            }
-                        }
-                        div { class: "modal-body",
-                            FretboardPreview { playing_degrees: effective_degrees.clone(), playing_steps: effective_steps.clone() }
-                        }
-                        div { class: "modal-footer",
-                            button {
-                                class: "btn btn-primary",
-                                onclick: export_svg,
-                                "⬇ Export SVG"
-                            }
-                        }
+                    FretboardPreview {
+                        playing_degrees: effective_degrees.clone(),
+                        playing_steps: effective_steps.clone(),
+                        horizontal_override: Some(effective_horizontal),
                     }
                 }
             }
+
         }
 
         // ── Instrument picker modal ─────────────────────────────────────

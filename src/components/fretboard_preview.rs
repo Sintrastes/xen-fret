@@ -12,6 +12,7 @@ static BRAVURA_FONT: Asset = asset!("/assets/Bravura.woff2");
 pub fn FretboardPreview(
     playing_degrees: ReadOnlySignal<Vec<usize>>,
     playing_steps: ReadOnlySignal<Vec<i32>>,
+    horizontal_override: Option<bool>,
 ) -> Element {
     let playing_degs = playing_degrees.read().clone();
     let playing_stps = playing_steps.read().clone();
@@ -19,6 +20,7 @@ pub fn FretboardPreview(
 
     let prefs = state.preferences.clone();
     let settings = state.diagram_settings.clone();
+    let is_horizontal = horizontal_override.unwrap_or(settings.horizontal);
 
     // Resolve the current item (scale or chord) as a Scale for rendering.
     // Both types have identical fields so the conversion is free.
@@ -53,10 +55,10 @@ pub fn FretboardPreview(
     let fret_style = FretboardStyle {
         display_markers_on_frets: settings.display_markers,
         fret_offset: settings.fret_offset,
-        num_frets: if settings.horizontal { n_frets_h } else { settings.num_frets },
-        vertical_spacing: if settings.horizontal { vs_h } else { default_vs },
+        num_frets: if is_horizontal { n_frets_h } else { settings.num_frets },
+        vertical_spacing: if is_horizontal { vs_h } else { default_vs },
         horizontal_spacing: settings.horizontal_spacing as f64 / 1000.0,
-        horizontal: settings.horizontal,
+        horizontal: is_horizontal,
         edo,
         period,
     };
@@ -91,7 +93,7 @@ pub fn FretboardPreview(
             class: "fretboard-card",
             div {
                 class: "fretboard-container",
-                style: if settings.horizontal {
+                style: if is_horizontal {
                     "width: 100%;".to_string()
                 } else {
                     format!("width: {}px; max-width: 100%;", settings.display_size)
