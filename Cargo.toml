@@ -26,6 +26,10 @@ cozo = { version = "0.7", features = ["storage-sqlite"] }
 dirs = "5"
 rayon = "~1.8"  # pin below 1.9 to avoid graph_builder breakage in cozo's dep tree
 tokio = { version = "1", features = ["sync", "time"] }
+# dioxus desktop feature + tao (windowing) for native builds only.
+# Cargo merges this with the [dependencies] entry above, so on native targets
+# dioxus gets web + desktop + router + document features.
+dioxus = { version = "0.7", features = ["desktop"] }
 
 [target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
 dark-light = "1"
