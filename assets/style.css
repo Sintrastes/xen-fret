@@ -1484,6 +1484,37 @@ input, select, textarea { font: inherit; }
 
 .show-mobile { display: none !important; }
 
+/* ── Drawer handle (mobile bottom-sheet) ──────────────────── */
+.drawer-handle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  height: 48px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  user-select: none;
+}
+
+.drawer-pill {
+  width: 36px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  opacity: 0.4;
+}
+
+.drawer-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* ── Preview panel ──────────────────────────────────────────── */
 .preview-panel {
   display: flex;
@@ -1857,12 +1888,13 @@ input, select, textarea { font: inherit; }
     bottom: 0;
     left: 0;
     right: 0;
+    height: 56px;
   }
 
   .app-root {
     flex-direction: column;
     padding-top: 56px;
-    padding-bottom: 64px;
+    padding-bottom: 56px;
   }
 
   .main-content { overflow-y: auto; }
@@ -1873,13 +1905,40 @@ input, select, textarea { font: inherit; }
     grid-template-rows: 1fr;
   }
 
+  /* Controls panel becomes a swipe-up bottom drawer on mobile */
   .controls-panel {
+    position: fixed;
+    bottom: 56px; /* sit flush above the bottom nav */
+    left: 0;
+    right: 0;
+    height: 48px; /* collapsed: only the handle visible */
+    overflow: hidden;
     border-right: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    z-index: 15; /* below the nav (z-index: 20) so nav stays tappable */
+    transition: height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
-  .preview-panel { display: none; }
+  .controls-panel.drawer-open {
+    height: 72vh;
+    z-index: 50; /* above nav when open */
+    overflow-y: auto;
+  }
 
-  .show-mobile { display: flex !important; }
+  .preview-panel {
+    display: flex !important;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .drawer-handle {
+    display: flex;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
 
   /* Page padding */
   .page { padding: 20px 16px; }
