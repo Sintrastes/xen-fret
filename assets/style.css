@@ -1482,6 +1482,61 @@ input, select, textarea { font: inherit; }
   margin-top: 4px;
 }
 
+/* ── Export modal ─────────────────────────────────────────────────────────── */
+.export-format-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.export-format-btn {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.export-format-btn:hover {
+  border-color: var(--primary);
+  background: var(--surface-2);
+}
+
+.export-format-icon {
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.export-format-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.export-format-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .show-mobile { display: none !important; }
 
 /* ── Drawer handle (mobile bottom-sheet) ──────────────────── */
