@@ -136,9 +136,18 @@ pub enum FretStyle {
     Dashed,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub enum ThemeMode {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Preferences {
-    pub dark_mode: bool,
+    #[serde(default)]
+    pub theme_mode: ThemeMode,
     pub note_name_size: u32,
     pub dot_size: f64,
     pub root_note_color: Color,
@@ -187,9 +196,9 @@ pub enum PitchDetectorKind {
 }
 
 impl Preferences {
-    /// Returns (root_color, scale_color, fretboard_color, label_color) for the current theme.
-    pub fn active_diagram_colors(&self) -> (&Color, &Color, &Color, &Color) {
-        if self.dark_mode {
+    /// Returns (root_color, scale_color, fretboard_color, label_color) for the given dark flag.
+    pub fn active_diagram_colors(&self, dark: bool) -> (&Color, &Color, &Color, &Color) {
+        if dark {
             (&self.dark_root_note_color, &self.dark_scale_note_color, &self.dark_fretboard_color, &self.dark_label_color)
         } else {
             (&self.root_note_color, &self.scale_note_color, &self.fretboard_color, &self.label_color)
@@ -200,7 +209,7 @@ impl Preferences {
 impl Default for Preferences {
     fn default() -> Self {
         Self {
-            dark_mode: false,
+            theme_mode: ThemeMode::System,
             note_name_size: 12,
             dot_size: 1.0,
             root_note_color: Color { r: 51, g: 92, b: 255 },

@@ -1,10 +1,14 @@
+use crate::models::ThemeMode;
 use crate::routes::Route;
 use crate::state::APP_STATE;
+use crate::theme::use_system_dark_watcher;
 use dioxus::prelude::*;
 
 #[component]
 pub fn Layout() -> Element {
-    let dark_mode = APP_STATE.read().preferences.dark_mode;
+    use_system_dark_watcher();
+
+    let dark_mode = APP_STATE.read().effective_dark_mode();
 
     rsx! {
         div {
@@ -43,10 +47,18 @@ pub fn Layout() -> Element {
                 button {
                     class: "theme-toggle-mobile",
                     onclick: move |_| {
-                        let current = APP_STATE.read().preferences.dark_mode;
-                        APP_STATE.write().preferences.dark_mode = !current;
+                        let next = match APP_STATE.read().preferences.theme_mode {
+                            ThemeMode::System => ThemeMode::Light,
+                            ThemeMode::Light => ThemeMode::Dark,
+                            ThemeMode::Dark => ThemeMode::System,
+                        };
+                        APP_STATE.write().preferences.theme_mode = next;
                     },
-                    if dark_mode { "☀" } else { "☾" }
+                    match APP_STATE.read().preferences.theme_mode {
+                        ThemeMode::System => "◑",
+                        ThemeMode::Light => "☀",
+                        ThemeMode::Dark => "☾",
+                    }
                 }
             }
 

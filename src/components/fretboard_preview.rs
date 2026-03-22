@@ -20,6 +20,7 @@ pub fn FretboardPreview(
 
     let prefs = state.preferences.clone();
     let settings = state.diagram_settings.clone();
+    let dark = state.effective_dark_mode();
     let is_horizontal = horizontal_override.unwrap_or(settings.horizontal);
 
     // Resolve the current item (scale or chord) as a Scale for rendering.
@@ -79,6 +80,7 @@ pub fn FretboardPreview(
             &font_url,
             &playing_degs,
             &playing_stps,
+            dark,
         ),
         _ => String::from(concat!(
             r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 30">"#,

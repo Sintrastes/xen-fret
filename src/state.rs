@@ -1,6 +1,6 @@
 use crate::models::{
     default_chords, default_notation_systems, default_scales, default_temperaments,
-    default_tunings, Chord, Instrument, Preferences, Scale, Temperament, Tuning,
+    default_tunings, Chord, Instrument, Preferences, Scale, Temperament, ThemeMode, Tuning,
 };
 use crate::notation::NotationSystem;
 use dioxus::prelude::*;
@@ -61,6 +61,9 @@ pub struct AppState {
     pub selected_scale_idx: usize,
     pub selected_chord_idx: usize,
     pub diagram_settings: DiagramSettings,
+
+    /// Runtime-only: current system dark/light preference (not persisted).
+    pub system_dark: bool,
 }
 
 impl Default for AppState {
@@ -78,11 +81,21 @@ impl Default for AppState {
             selected_scale_idx: 0,
             selected_chord_idx: 0,
             diagram_settings: DiagramSettings::default(),
+            system_dark: false,
         }
     }
 }
 
 impl AppState {
+    /// Returns the effective dark mode based on user preference and detected system theme.
+    pub fn effective_dark_mode(&self) -> bool {
+        match self.preferences.theme_mode {
+            ThemeMode::Dark => true,
+            ThemeMode::Light => false,
+            ThemeMode::System => self.system_dark,
+        }
+    }
+
     /// After loading from storage, restore `selected_instrument_idx` from `preferences.default_instrument`.
     pub fn restore_selections(&mut self) {
         if let Some(ref name) = self.preferences.default_instrument.clone() {

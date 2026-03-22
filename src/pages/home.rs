@@ -13,6 +13,7 @@ static BRAVURA_FONT: Asset = asset!("/assets/Bravura.woff2");
 fn build_svg() -> Option<String> {
     let state = APP_STATE.read();
     let prefs = state.preferences.clone();
+    let dark = state.effective_dark_mode();
     let settings = state.diagram_settings.clone();
     let maybe_scale = state.current_scale().cloned();
     let maybe_tuning = state.current_tuning().cloned();
@@ -51,7 +52,7 @@ fn build_svg() -> Option<String> {
     Some(render_board(
         &prefs, &scale.name, settings.key as i32, &scale,
         tuning.skip_frets, &tuning, &fret_style, note_names_ref,
-        &BRAVURA_FONT.to_string(), &[], &[],
+        &BRAVURA_FONT.to_string(), &[], &[], dark,
     ))
 }
 

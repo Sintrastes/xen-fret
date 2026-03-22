@@ -11,6 +11,7 @@ pub mod fretboard;
 pub mod theory;
 pub mod audio;
 pub mod pitch_tracking;
+mod theme;
 
 use dioxus::prelude::*;
 use routes::Route;

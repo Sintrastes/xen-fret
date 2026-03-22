@@ -305,6 +305,7 @@ pub fn render_board(
     font_url: &str,
     playing_degrees: &[usize],
     playing_steps: &[i32],
+    dark: bool,
 ) -> String {
     let names = note_names.unwrap_or(&[]);
     let diagram = if style.horizontal {
@@ -319,6 +320,7 @@ pub fn render_board(
             names,
             playing_degrees,
             playing_steps,
+            dark,
         )
     } else {
         board_vertical(
@@ -332,6 +334,7 @@ pub fn render_board(
             names,
             playing_degrees,
             playing_steps,
+            dark,
         )
     };
     let svg = render_svg(
@@ -387,6 +390,7 @@ fn board_vertical(
     note_names: &[String],
     playing_degrees: &[usize],
     playing_steps: &[i32],
+    dark: bool,
 ) -> Diagram {
     let vs = style.vertical_spacing;
     let hs = style.horizontal_spacing;
@@ -398,7 +402,7 @@ fn board_vertical(
         return Diagram::empty();
     }
 
-    let (rc, sc, bc, lc) = prefs.active_diagram_colors();
+    let (rc, sc, bc, lc) = prefs.active_diagram_colors(dark);
     let root_color = model_color(rc);
     let scale_color = model_color(sc);
     let board_color = model_color(bc);
@@ -832,6 +836,7 @@ fn board_horizontal(
     note_names: &[String],
     playing_degrees: &[usize],
     playing_steps: &[i32],
+    dark: bool,
 ) -> Diagram {
     // vs = fret pitch (now along the x-axis), hs = string pitch (along y-axis).
     let vs = style.vertical_spacing;
@@ -844,7 +849,7 @@ fn board_horizontal(
         return Diagram::empty();
     }
 
-    let (rc, sc, bc, lc) = prefs.active_diagram_colors();
+    let (rc, sc, bc, lc) = prefs.active_diagram_colors(dark);
     let root_color = model_color(rc);
     let scale_color = model_color(sc);
     let board_color = model_color(bc);
