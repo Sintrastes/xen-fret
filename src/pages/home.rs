@@ -1,13 +1,51 @@
-use crate::components::{Combobox, FretboardPreview, Select};
+use crate::components::{Combobox, FretboardPreview, Modal, Select};
 use crate::components::InstrumentPicker;
 use crate::fretboard::{render_board, FretboardStyle};
 use crate::models::{NotationSystem, Scale};
+use crate::scala;
 use crate::state::{DiagramMode, APP_STATE};
 use crate::{audio, pitch_tracking, theory};
 use dioxus::prelude::*;
 use dioxus::document::eval;
 
 static BRAVURA_FONT: Asset = asset!("/assets/Bravura.woff2");
+
+/// Generate an SCL file for the current scale/chord, or None if nothing is selected.
+/// Intervals are expressed as cumulative cents using the temperament's period.
+fn build_scl() -> Option<(String, String)> {
+    let state = APP_STATE.read();
+    let settings = state.diagram_settings.clone();
+    let edo = state.current_temperament().map(|t| t.divisions).unwrap_or(12);
+    let period = state.current_temperament()
+        .map(|t| t.period.0 as f64 / t.period.1 as f64)
+        .unwrap_or(2.0);
+    let step_cents = 1200.0 * period.log2() / edo as f64;
+
+    let (name, intervals): (String, Vec<i32>) = match settings.mode {
+        DiagramMode::Scale => {
+            let sc = state.current_scale()?;
+            (sc.name.clone(), sc.intervals.clone())
+        }
+        DiagramMode::Chord => {
+            let ch = state.current_chord()?;
+            (ch.name.clone(), ch.intervals.clone())
+        }
+    };
+    drop(state);
+
+    let mut cumulative = 0i32;
+    let pitches: Vec<scala::Pitch> = intervals
+        .iter()
+        .map(|&steps| {
+            cumulative += steps;
+            scala::Pitch::Cents(cumulative as f64 * step_cents)
+        })
+        .collect();
+
+    let scl = scala::SclFile { description: name.clone(), pitches };
+    let filename = format!("{}.scl", name.to_lowercase().replace(' ', "_"));
+    Some((filename, scl.to_string()))
+}
 
 /// Generate the current diagram SVG from app state, or None if no scale/tuning selected.
 fn build_svg() -> Option<String> {
@@ -62,13 +100,15 @@ pub fn Home() -> Element {
     let mut is_mobile = use_signal(|| false);
     let mut is_landscape = use_signal(|| false);
     let mut show_instrument_picker = use_signal(|| false);
+    let mut show_export_modal = use_signal(|| false);
     let mut is_playing = use_signal(|| false);
     let mut playing_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
     let mut mic_active = use_signal(|| false);
     let mut mic_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
     let mut mic_steps: Signal<Vec<i32>> = use_signal(Vec::new);
 
-    let export_svg = move |_| {
+    let do_export_svg = move |_| {
+        show_export_modal.set(false);
         let Some(svg) = build_svg() else { return };
         let filename = {
             let s = APP_STATE.read();
@@ -79,6 +119,20 @@ pub fn Home() -> Element {
         let escaped = svg.replace('\\', "\\\\").replace('`', "\\`").replace("${", "\\${");
         let js = format!(
             "const b=new Blob([`{escaped}`],{{type:'image/svg+xml'}});\
+             const u=URL.createObjectURL(b);\
+             const a=document.createElement('a');\
+             a.href=u;a.download={filename:?};a.click();\
+             URL.revokeObjectURL(u);"
+        );
+        let _ = eval(&js);
+    };
+
+    let do_export_scl = move |_| {
+        show_export_modal.set(false);
+        let Some((filename, content)) = build_scl() else { return };
+        let escaped = content.replace('\\', "\\\\").replace('`', "\\`").replace("${", "\\${");
+        let js = format!(
+            "const b=new Blob([`{escaped}`],{{type:'text/plain'}});\
              const u=URL.createObjectURL(b);\
              const a=document.createElement('a');\
              a.href=u;a.download={filename:?};a.click();\
@@ -706,8 +760,8 @@ pub fn Home() -> Element {
                         div { class: "controls-actions",
                             button {
                                 class: "btn btn-outline btn-full",
-                                onclick: export_svg,
-                                "↓ Export SVG"
+                                onclick: move |_| show_export_modal.set(true),
+                                "↓ Export"
                             }
                         }
                     } else {
@@ -787,5 +841,27 @@ pub fn Home() -> Element {
 
         // ── Instrument picker modal ─────────────────────────────────────
         InstrumentPicker { show: show_instrument_picker }
+
+        // ── Export modal ────────────────────────────────────────────────
+        Modal {
+            show: show_export_modal,
+            title: "Export".to_string(),
+            div { class: "export-format-list",
+                button {
+                    class: "export-format-btn",
+                    onclick: do_export_svg,
+                    div { class: "export-format-icon", "SVG" }
+                    div { class: "export-format-label", "SVG Image" }
+                    div { class: "export-format-desc", "Fretboard diagram as a scalable vector graphic" }
+                }
+                button {
+                    class: "export-format-btn",
+                    onclick: do_export_scl,
+                    div { class: "export-format-icon", "SCL" }
+                    div { class: "export-format-label", "Scala Scale File" }
+                    div { class: "export-format-desc", "Current scale/chord in .scl format" }
+                }
+            }
+        }
     }
 }
