@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 pub mod notation;
+pub mod scala;
 mod models;
 mod state;
 mod storage;
