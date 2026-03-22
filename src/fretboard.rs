@@ -621,15 +621,16 @@ fn empty_board_h(
         .fold(Diagram::empty(), |acc, d| acc + d);
 
     // Strings: angled lines following the neck taper.
-    // At nut: inset by `pad` from y=0. At body: inset by `pad` from the
-    // tapered edges (top at -taper, bottom at board_h+taper).
+    // String 0 (lowest pitch) is at the BOTTOM (y = board_h - pad) so that the
+    // diagram matches a player's eye view: low strings near them, high strings away.
     let strings: Diagram = (0..n_str)
         .map(|i| {
-            let y_nut = pad + i as f64 * hs;
+            let j = (n_str - 1 - i) as f64; // flip: i=0 → bottom
+            let y_nut = pad + j * hs;
             let y_body = if n_str <= 1 {
                 y_nut
             } else {
-                pad - taper + i as f64 * (h_str + 2.0 * taper) / (n_str as f64 - 1.0)
+                pad - taper + j * (h_str + 2.0 * taper) / (n_str as f64 - 1.0)
             };
             polyline(&[Point::new(0.0, y_nut), Point::new(board_w, y_body)])
                 .lc(GRID_COLOR)
@@ -889,11 +890,12 @@ fn board_horizontal(
         .iter()
         .enumerate()
         .map(|(i, notes)| {
-            let y_nut = pad + i as f64 * hs;
+            let j = (n_str - 1 - i) as f64; // flip: string 0 (lowest) at bottom
+            let y_nut = pad + j * hs;
             let y_body = if n_str <= 1 {
                 y_nut
             } else {
-                pad - taper + i as f64 * (h_str + 2.0 * taper) / (n_str as f64 - 1.0)
+                pad - taper + j * (h_str + 2.0 * taper) / (n_str as f64 - 1.0)
             };
             notes.iter().fold(Diagram::empty(), |acc, note| {
                 acc + fretting_dot_h(
@@ -953,7 +955,8 @@ fn board_horizontal(
             .enumerate()
             .fold(Diagram::empty(), |acc, (i, &pitch)| {
                 let name = display_note(pitch, note_names);
-                let sy = pad + i as f64 * hs;
+                let j = (n_str - 1 - i) as f64; // flip: string 0 at bottom
+                let sy = pad + j * hs;
                 acc + text(name.clone(), note_fs)
                     .fc(label_color)
                     .bold()

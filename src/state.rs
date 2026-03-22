@@ -19,6 +19,8 @@ pub struct DiagramSettings {
     pub display_markers: bool,
     pub horizontal: bool,
     pub mode: DiagramMode,
+    /// Octave offset for playback relative to the tuning's root_octave. Default: 0.
+    pub playback_octave: i32,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -42,6 +44,7 @@ impl Default for DiagramSettings {
             display_markers: false,
             horizontal: false,
             mode: DiagramMode::Scale,
+            playback_octave: 0,
         }
     }
 }

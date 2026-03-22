@@ -12,6 +12,7 @@ pub fn Tunings() -> Element {
     let mut form_instrument = use_signal(|| String::new());
     let mut form_tunings = use_signal(|| String::new());
     let mut form_skip = use_signal(|| String::from("0"));
+    let mut form_root_octave = use_signal(|| String::from("2"));
     let mut selected_temp = use_signal(|| String::new());
 
     let temp_names: Vec<String> = APP_STATE
@@ -53,6 +54,7 @@ pub fn Tunings() -> Element {
         form_instrument.set(String::new());
         form_tunings.set(String::new());
         form_skip.set("0".into());
+        form_root_octave.set("2".into());
         edit_key.set(None);
         show_modal.set(true);
     };
@@ -66,6 +68,7 @@ pub fn Tunings() -> Element {
                 tu.string_tunings.iter().map(|n| n.to_string()).collect::<Vec<_>>().join(", "),
             );
             form_skip.set(tu.skip_frets.to_string());
+            form_root_octave.set(tu.root_octave.to_string());
             selected_temp.set(tu.temperament_name.clone());
             drop(s);
             edit_key.set(Some(ui));
@@ -82,6 +85,7 @@ pub fn Tunings() -> Element {
             .filter_map(|s| s.trim().parse().ok())
             .collect();
         let skip_frets = form_skip.read().trim().parse().unwrap_or(0);
+        let root_octave: i32 = form_root_octave.read().trim().parse().unwrap_or(2);
         let temp_name = selected_temp.read().clone();
 
         {
@@ -92,6 +96,7 @@ pub fn Tunings() -> Element {
                     tu.instrument = instrument;
                     tu.string_tunings = string_tunings;
                     tu.skip_frets = skip_frets;
+                    tu.root_octave = root_octave;
                 }
             } else {
                 s.tunings.push(Tuning {
@@ -101,7 +106,7 @@ pub fn Tunings() -> Element {
                     string_tunings,
                     skip_frets,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave,
                 });
             }
         }
@@ -232,14 +237,26 @@ pub fn Tunings() -> Element {
                         }
                         p { class: "form-hint", "Enter pitch of each string in EDO steps from the unison, low to high." }
                     }
-                    div { class: "form-group",
-                        label { class: "form-label", "Skip Frets" }
-                        input {
-                            class: "form-input",
-                            r#type: "number",
-                            min: "0",
-                            value: "{form_skip}",
-                            oninput: move |e| form_skip.set(e.value())
+                    div { class: "form-row",
+                        div { class: "form-group",
+                            label { class: "form-label", "Skip Frets" }
+                            input {
+                                class: "form-input",
+                                r#type: "number",
+                                min: "0",
+                                value: "{form_skip}",
+                                oninput: move |e| form_skip.set(e.value())
+                            }
+                        }
+                        div { class: "form-group",
+                            label { class: "form-label", "Root Octave" }
+                            input {
+                                class: "form-input",
+                                r#type: "number",
+                                value: "{form_root_octave}",
+                                oninput: move |e| form_root_octave.set(e.value())
+                            }
+                            p { class: "form-hint", "Octave of the lowest string (e.g. 2 for E2 guitar, 1 for bass)." }
                         }
                     }
                 }

@@ -324,6 +324,7 @@ pub fn Home() -> Element {
     let mut show_export_modal = use_signal(|| false);
     let mut is_playing = use_signal(|| false);
     let mut playing_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
+    let mut playing_steps: Signal<Vec<i32>> = use_signal(Vec::new);
     let mut mic_active = use_signal(|| false);
     let mut mic_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
     let mut mic_steps: Signal<Vec<i32>> = use_signal(Vec::new);
@@ -392,6 +393,8 @@ pub fn Home() -> Element {
     let sel_scale_idx = state.selected_scale_idx;
     let sel_chord_idx = state.selected_chord_idx;
     let settings = state.diagram_settings.clone();
+    let concert_hz = state.preferences.concert_hz;
+    let concert_octave = state.preferences.concert_octave;
     let is_scale_mode = matches!(settings.mode, DiagramMode::Scale);
     let is_horizontal = settings.horizontal;
     let effective_horizontal = if *is_mobile.read() { *is_landscape.read() } else { is_horizontal };
@@ -405,11 +408,22 @@ pub fn Home() -> Element {
             intervals: c.intervals.clone(),
         })
     };
-    let play_freqs: Vec<f64> = state
+    let playback_octave = settings.playback_octave;
+    let (play_freqs, play_abs_steps): (Vec<f64>, Vec<i32>) = state
         .current_temperament()
         .zip(maybe_item.as_ref())
         .map(|(temp, item)| {
-            theory::scale_to_hz_sequence(item, settings.key as i32, temp.divisions, temp.period, 440.0)
+            let period_ratio = temp.period.0 as f64 / temp.period.1 as f64;
+            let step0_hz = state.current_tuning()
+                .map(|tu| tu.step0_hz(concert_hz, concert_octave, temp.divisions, temp.period))
+                .unwrap_or(440.0);
+            let root_hz = step0_hz * period_ratio.powi(playback_octave);
+            let freqs = theory::scale_to_hz_sequence(item, settings.key as i32, temp.divisions, temp.period, root_hz);
+            let abs = theory::scale_absolute_steps(item, settings.key as i32)
+                .into_iter()
+                .map(|s| s + (temp.divisions as i32) * playback_octave)
+                .collect();
+            (freqs, abs)
         })
         .unwrap_or_default();
 
@@ -465,8 +479,6 @@ pub fn Home() -> Element {
         .or_else(|| notation_system.as_ref()
             .and_then(|ns| ns.naturals.iter().position(|n| n.degree == settings.key)))
         .or(Some(0));
-    let concert_hz = state.preferences.concert_hz;
-    let concert_octave = state.preferences.concert_octave;
     let concert_ref_name = notation_system.as_ref()
         .and_then(|ns| ns.naturals.iter().find(|n| n.degree == 0))
         .map(|n| n.name.clone())
@@ -478,17 +490,21 @@ pub fn Home() -> Element {
     let n_degrees = play_freqs.len().saturating_sub(1).max(1);
     let on_play = {
         let freqs = play_freqs;
+        let abs_steps = play_abs_steps;
         move |_| {
             if is_playing() || freqs.is_empty() { return; }
             let f = freqs.clone();
+            let steps = abs_steps.clone();
             spawn(async move {
                 is_playing.set(true);
                 if is_scale_mode {
                     let mut pb = audio::start_scale(&f);
                     while let Some(note_idx) = pb.next_note().await {
-                        playing_degrees.set(vec![note_idx % n_degrees]);
+                        if let Some(&step) = steps.get(note_idx) {
+                            playing_steps.set(vec![step]);
+                        }
                     }
-                    playing_degrees.set(vec![]);
+                    playing_steps.set(vec![]);
                 } else {
                     audio::play_chord(&f).await;
                 }
@@ -529,58 +545,42 @@ pub fn Home() -> Element {
                             let concert_hz = state.preferences.concert_hz;
 
                             let (fresh_degs, fresh_steps): (Vec<usize>, Vec<i32>) =
-                                if let (Some(temp), Some(scale)) =
-                                    (state.current_temperament(), state.current_scale())
+                                if let (Some(temp), Some(scale), Some(tuning)) =
+                                    (state.current_temperament(), state.current_scale(), state.current_tuning())
                                 {
                                     let key = state.diagram_settings.key as i32;
-                                    if let Some(lowest_hz) =
-                                        state.current_tuning().and_then(|t| t.lowest_string_hz)
-                                    {
-                                        let string0 = state.current_tuning()
-                                            .and_then(|t| t.string_tunings.first().copied())
-                                            .unwrap_or(0);
-                                        let period_ratio =
-                                            temp.period.0 as f64 / temp.period.1 as f64;
-                                        let lowest_step = (temp.divisions as f64
-                                            * (lowest_hz / 440.0_f64).ln()
-                                            / period_ratio.ln())
-                                            .round() as i32;
-                                        let offset = string0 - lowest_step;
-                                        let steps = pitches
-                                            .iter()
-                                            .filter(|p| p.confidence > 0.1)
-                                            .filter_map(|p| {
-                                                pitch_tracking::hz_to_absolute_step(
-                                                    p.hz,
-                                                    temp.divisions,
-                                                    temp.period,
-                                                    concert_hz,
-                                                    key,
-                                                    &scale.intervals,
-                                                    50.0,
-                                                )
-                                                .map(|s| s + offset)
-                                            })
-                                            .collect();
-                                        (vec![], steps)
-                                    } else {
-                                        let degs = pitches
-                                            .iter()
-                                            .filter(|p| p.confidence > 0.1)
-                                            .filter_map(|p| {
-                                                pitch_tracking::hz_to_scale_degree(
-                                                    p.hz,
-                                                    temp.divisions,
-                                                    temp.period,
-                                                    concert_hz,
-                                                    key,
-                                                    &scale.intervals,
-                                                    50.0,
-                                                )
-                                            })
-                                            .collect();
-                                        (degs, vec![])
-                                    }
+                                    let step0_hz = tuning.step0_hz(
+                                        concert_hz,
+                                        state.preferences.concert_octave,
+                                        temp.divisions,
+                                        temp.period,
+                                    );
+                                    let period_ratio =
+                                        temp.period.0 as f64 / temp.period.1 as f64;
+                                    let lowest_step = tuning.string_tunings.iter().min().copied().unwrap_or(0);
+                                    let lowest_hz = step0_hz * period_ratio.powf(lowest_step as f64 / temp.divisions as f64);
+                                    let lowest_abs = (temp.divisions as f64
+                                        * (lowest_hz / concert_hz).ln()
+                                        / period_ratio.ln())
+                                        .round() as i32;
+                                    let offset = lowest_step - lowest_abs;
+                                    let steps = pitches
+                                        .iter()
+                                        .filter(|p| p.confidence > 0.1)
+                                        .filter_map(|p| {
+                                            pitch_tracking::hz_to_absolute_step(
+                                                p.hz,
+                                                temp.divisions,
+                                                temp.period,
+                                                concert_hz,
+                                                key,
+                                                &scale.intervals,
+                                                50.0,
+                                            )
+                                            .map(|s| s + offset)
+                                        })
+                                        .collect();
+                                    (vec![], steps)
                                 } else {
                                     (vec![], vec![])
                                 };
@@ -653,12 +653,12 @@ pub fn Home() -> Element {
         });
     });
 
-    let effective_degrees = {
-        let mut degs = playing_degrees.read().clone();
-        degs.extend(mic_degrees.read().iter().copied());
-        degs
+    let effective_degrees = mic_degrees.read().clone();
+    let effective_steps = {
+        let mut steps = playing_steps.read().clone();
+        steps.extend(mic_steps.read().iter().copied());
+        steps
     };
-    let effective_steps = mic_steps.read().clone();
 
     rsx! {
         div { class: if effective_horizontal { "home-layout home-layout--h" } else { "home-layout" },
@@ -1053,6 +1053,27 @@ pub fn Home() -> Element {
                     }
                     div { class: "preview-header-actions",
                         if has_freqs {
+                            div { class: "octave-selector",
+                                button {
+                                    class: "btn-octave",
+                                    title: "Lower octave",
+                                    onclick: move |_| {
+                                        APP_STATE.write().diagram_settings.playback_octave -= 1;
+                                    },
+                                    "−"
+                                }
+                                span { class: "octave-label",
+                                    {if playback_octave == 0 { "Oct 0".to_string() } else { format!("Oct {:+}", playback_octave) }}
+                                }
+                                button {
+                                    class: "btn-octave",
+                                    title: "Higher octave",
+                                    onclick: move |_| {
+                                        APP_STATE.write().diagram_settings.playback_octave += 1;
+                                    },
+                                    "+"
+                                }
+                            }
                             button {
                                 class: if is_playing() { "btn-play playing" } else { "btn-play" },
                                 title: if is_playing() { "Playing…" } else { "Play scale" },

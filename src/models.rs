@@ -32,11 +32,42 @@ pub struct Tuning {
     /// Neck position markers (inlays). Each entry is (fret_number, marker_type).
     #[serde(default)]
     pub fret_markers: Vec<(u32, FretMarker)>,
-    /// Hz of the lowest open string, measured with A4 = 440 Hz as reference.
-    /// Used to compute the absolute-octave offset for mic pitch matching.
-    /// None means pitch-class (degree) matching is used instead.
-    #[serde(default)]
-    pub lowest_string_hz: Option<f64>,
+    /// Octave of the lowest sounding string, matching standard pitch notation
+    /// (e.g. E2 → 2, G3 → 3). Used to anchor playback and mic pitch matching
+    /// in the correct register. Default: 2 (guitar range).
+    #[serde(default = "default_root_octave")]
+    pub root_octave: i32,
+}
+
+fn default_root_octave() -> i32 { 2 }
+
+impl Tuning {
+    /// Compute the Hz of EDO step 0 (A in 12-TET) for this tuning's register.
+    ///
+    /// `concert_hz` / `concert_octave` define the reference pitch (e.g. 440 Hz, octave 4 for A4).
+    /// `divisions` and `period` come from the temperament.
+    ///
+    /// In 12-TET, octave numbers increment at C (step 3 from A), so a tuning whose
+    /// lowest string is at or above step 3 is in the *next* named octave relative to A.
+    pub fn step0_hz(
+        &self,
+        concert_hz: f64,
+        concert_octave: i32,
+        divisions: u32,
+        period: (u32, u32),
+    ) -> f64 {
+        let period_ratio = period.0 as f64 / period.1 as f64;
+        let lowest_step = self.string_tunings.iter().min().copied().unwrap_or(0);
+        let pc = lowest_step.rem_euclid(divisions as i32);
+        // In 12-TET, C (step 3) starts a new octave number in standard notation.
+        // If the lowest string's pitch class is >= 3, the A below it is one named-octave lower.
+        let a_octave = if divisions == 12 && pc >= 3 {
+            self.root_octave - 1
+        } else {
+            self.root_octave
+        };
+        concert_hz * period_ratio.powi(a_octave - concert_octave)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -314,7 +345,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 5, 10, 15, 20, 25],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "11-TET".into(),
@@ -323,7 +354,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 4, 8, 12, 16, 20],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "11-TET".into(),
@@ -332,7 +363,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 5, 10, 15],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "11-TET".into(),
@@ -341,7 +372,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 4, 8, 120],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
             ],
         },
@@ -400,7 +431,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![10, 17, 24, 31],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: Some(196.0), // G3
+                    root_octave: 3, // G3
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -410,7 +441,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![10, 3, 7, 12],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None, // re-entrant G tuning; lowest sounding is C4
+                    root_octave: 4, // re-entrant G tuning; lowest sounding is C4
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -420,7 +451,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![7, 12, 17, 22, 26, 31],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(82.41), // E2
+                    root_octave: 2, // E2
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -430,7 +461,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![7, 12, 17, 22],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(41.20), // E1
+                    root_octave: 1, // E1
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -440,7 +471,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![2, 7, 12, 17, 22, 16, 31],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(61.74), // B1
+                    root_octave: 1, // B1
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -450,7 +481,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![5, 12, 17, 22, 26, 31],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(73.42), // D2
+                    root_octave: 2, // D2
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -460,7 +491,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![5, 12, 17, 22, 24, 29],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(73.42), // D2
+                    root_octave: 2, // D2
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -470,7 +501,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![7, 12, 17, 22, 27, 32],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(82.41), // E2
+                    root_octave: 2, // E2
                 },
                 Tuning {
                     temperament_name: "12-TET".into(),
@@ -479,7 +510,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 7, 14, 21, 28, 35],
                     skip_frets: 0,
                     fret_markers: guitar_markers(),
-                    lowest_string_hz: Some(55.0), // A1
+                    root_octave: 1, // A1
                 },
             ],
         },
@@ -530,7 +561,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![3, 8, 14, 19, 24, 29],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -574,7 +605,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 5, 10, 15, 20, 25],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -653,7 +684,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 5, 10, 15, 20, 25],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -702,7 +733,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![9, 16, 23, 30, 37, 44],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "16-TET".into(),
@@ -712,7 +743,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![9, 15, 21, 27, 33, 39],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "16-TET".into(),
@@ -722,7 +753,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![9, 16, 23, 30, 37, 44, 49],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "16-TET".into(),
@@ -732,7 +763,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![2, 8, 14, 20, 26, 32, 38],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
             ],
         },
@@ -795,7 +826,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![10, 17, 24, 31, 37, 44],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "17-TET".into(),
@@ -805,7 +836,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![10, 17, 24, 31, 38, 45],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
             ],
         },
@@ -853,7 +884,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 8, 16, 24, 32, 40],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -907,7 +938,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![11, 19, 27, 35, 41, 49],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -967,7 +998,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 8, 16, 24, 32, 40],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1032,7 +1063,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 9, 18, 27, 33, 42],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1175,7 +1206,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![13, 22, 31, 40, 48, 57],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "22-TET".into(),
@@ -1185,7 +1216,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![13, 18, 31, 40, 48, 57],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "22-TET".into(),
@@ -1195,7 +1226,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![13, 22, 31, 40, 49, 58],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "22-TET".into(),
@@ -1205,7 +1236,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![13, 21, 29, 37, 45, 53],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "22-TET".into(),
@@ -1215,7 +1246,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![13, 23, 33, 43, 53, 63],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
             ],
         },
@@ -1268,7 +1299,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 10, 20, 30, 40, 50],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1316,7 +1347,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![14, 24, 34, 44, 52, 62],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "24-TET".into(),
@@ -1326,7 +1357,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![12, 26, 36, 46, 54, 64],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
             ],
         },
@@ -1385,7 +1416,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 10, 20, 30, 38, 48],
                 skip_frets: 0,
                 fret_markers: guitar_markers(),
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1428,7 +1459,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 11, 22, 33, 44, 55],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1485,7 +1516,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 11, 22, 33, 42, 53],
                 skip_frets: 0,
                 fret_markers: guitar_markers(),
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1538,7 +1569,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 12, 24, 36, 48, 69],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
                 Tuning {
                     temperament_name: "28-TET".into(),
@@ -1547,7 +1578,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     string_tunings: vec![0, 11, 22, 33, 44, 55],
                     skip_frets: 0,
                     fret_markers: vec![],
-                    lowest_string_hz: None,
+                    root_octave: 2,
                 },
             ],
         },
@@ -1596,7 +1627,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 12, 24, 36, 46, 58],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1642,7 +1673,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 12, 24, 36, 48, 60],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1715,7 +1746,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 13, 26, 39, 49, 62],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1761,7 +1792,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 14, 28, 42, 56, 70],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1811,7 +1842,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 14, 28, 42, 56, 70],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1865,7 +1896,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 14, 28, 42, 53, 67],
                 skip_frets: 0,
                 fret_markers: guitar_markers(),
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1923,7 +1954,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 15, 30, 45, 60, 75],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -1965,7 +1996,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 15, 30, 45, 57, 72],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -2021,7 +2052,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 13, 26, 39, 52, 65],
                 skip_frets: 1,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
         TemperamentBundle {
@@ -2074,7 +2105,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 string_tunings: vec![0, 3, 6, 9, 13, 16],
                 skip_frets: 0,
                     fret_markers: vec![],
-                lowest_string_hz: None,
+                root_octave: 2,
             }],
         },
     ]
