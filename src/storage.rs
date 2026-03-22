@@ -14,3 +14,13 @@ pub fn load() -> AppState { web::load() }
 pub fn save(state: &AppState) { native::save(state); }
 #[cfg(target_arch = "wasm32")]
 pub fn save(state: &AppState) { web::save(state); }
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn load_window_geometry() -> Option<crate::models::WindowGeometry> {
+    native::load_window_geometry()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn save_window_geometry(geo: &crate::models::WindowGeometry) {
+    native::save_window_geometry(geo);
+}

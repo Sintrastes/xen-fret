@@ -3,6 +3,17 @@ use std::collections::HashMap;
 
 pub use crate::notation::{Accidental, AccidentalPosition, Natural, NotationSystem};
 
+/// Persisted desktop window position and size (logical pixels, DPI-independent).
+/// Not part of `Preferences` — tracked separately in native storage.
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub struct WindowGeometry {
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum FretMarker {
     Single,
