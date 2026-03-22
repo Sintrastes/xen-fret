@@ -368,7 +368,7 @@ fn inject_bravura_font(svg: String, font_url: &str) -> String {
         "woff"
     };
     let defs = format!(
-        "\n  <defs><style>@font-face{{font-family:'Bravura';src:url('{}') format('{}')}}</style></defs>",
+        "\n  <defs><style>@font-face{{font-family:'Bravura';src:url('{}') format('{}');font-display:swap}}</style></defs>",
         font_url, fmt
     );
     match svg.find('>') {
