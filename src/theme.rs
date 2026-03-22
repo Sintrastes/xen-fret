@@ -10,8 +10,10 @@ use dioxus::prelude::*;
 /// - **Windows**: 2 s poll via OS thread.
 /// - **Other native**: one-shot detection at startup.
 pub fn use_system_dark_watcher() {
-    // ── Web / WebView (Android, iOS) ──────────────────────────────────────────
-    #[cfg(target_arch = "wasm32")]
+    // ── Web / WebView (wasm32 browser, native iOS, native Android) ───────────
+    // Dioxus on iOS/Android compiles as native (not wasm32) but renders inside
+    // a WKWebView/WebView — eval() is available and matchMedia works fine.
+    #[cfg(any(target_arch = "wasm32", target_os = "ios", target_os = "android"))]
     use_effect(move || {
         spawn(async move {
             let mut e = dioxus::document::eval(
@@ -89,17 +91,18 @@ pub fn use_system_dark_watcher() {
         });
     });
 
-    // ── Other native platforms: one-shot at startup ───────────────────────────
+    // ── Other native platforms: default to light ─────────────────────────────
+    // iOS and Android are handled by the wasm32/matchMedia branch above.
+    // Any remaining exotic targets just stay at the default (light).
     #[cfg(not(any(
         target_arch = "wasm32",
+        target_os = "ios",
+        target_os = "android",
         target_os = "linux",
         target_os = "macos",
         target_os = "windows",
     )))]
-    use_effect(move || {
-        let is_dark = dark_light::detect() == dark_light::Mode::Dark;
-        APP_STATE.write().system_dark = is_dark;
-    });
+    let _ = (); // nothing to do
 }
 
 // ── Linux ─────────────────────────────────────────────────────────────────────
