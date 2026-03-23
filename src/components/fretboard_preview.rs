@@ -34,6 +34,10 @@ pub fn FretboardPreview(
         }),
     };
     let maybe_tuning = state.current_tuning().cloned();
+    // Resolve effective handedness: instrument override takes priority over global preference.
+    let left_handed = state.current_instrument()
+        .and_then(|i| i.left_handed)
+        .unwrap_or(prefs.left_handed);
     let edo = state.current_temperament().map(|t| t.divisions).unwrap_or(12);
     let note_names: Vec<String> = state
         .current_notation_system()
@@ -62,6 +66,7 @@ pub fn FretboardPreview(
         horizontal: is_horizontal,
         edo,
         period,
+        left_handed,
     };
 
     let note_names_ref: Option<&[String]> = if note_names.is_empty() { None } else { Some(&note_names) };
