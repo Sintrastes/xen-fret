@@ -17,9 +17,11 @@ pub fn Layout() -> Element {
 
             // Sidebar (desktop)
             aside { class: "sidebar",
-                div { class: "sidebar-logo",
-                    span { class: "logo-icon", "♩" }
-                    span { class: "logo-text", "Xen Fret" }
+                if cfg!(target_arch = "wasm32") {
+                    div { class: "sidebar-logo",
+                        span { class: "logo-icon", "♩" }
+                        span { class: "logo-text", "Xen Fret" }
+                    }
                 }
 
                 nav { class: "sidebar-nav",
@@ -42,8 +44,10 @@ pub fn Layout() -> Element {
 
             // Mobile top bar
             header { class: "mobile-header",
-                span { class: "logo-icon", "♩" }
-                span { class: "logo-text", "Xen Fret" }
+                if cfg!(target_arch = "wasm32") {
+                    span { class: "logo-icon", "♩" }
+                    span { class: "logo-text", "Xen Fret" }
+                }
                 button {
                     class: "theme-toggle-mobile",
                     onclick: move |_| {
