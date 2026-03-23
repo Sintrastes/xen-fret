@@ -115,6 +115,9 @@ pub struct Instrument {
     pub num_frets: u32,
     #[serde(default)]
     pub fret_markers: Vec<(u32, FretMarker)>,
+    /// Per-instrument handedness override. `None` = follow the global preference.
+    #[serde(default)]
+    pub left_handed: Option<bool>,
 }
 
 pub fn default_instrument_types() -> &'static [&'static str] {
@@ -219,6 +222,9 @@ pub struct Preferences {
     pub concert_octave: i32,
     #[serde(default = "default_pitch_detector")]
     pub pitch_detector: PitchDetectorKind,
+    /// Global default handedness. Can be overridden per instrument.
+    #[serde(default)]
+    pub left_handed: bool,
 }
 
 fn default_scale_note_color() -> Color { Color { r: 57, g: 112, b: 217 } }
@@ -271,6 +277,7 @@ impl Default for Preferences {
             concert_hz: 440.0,
             concert_octave: 4,
             pitch_detector: PitchDetectorKind::Yin,
+            left_handed: false,
         }
     }
 }

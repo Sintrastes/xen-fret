@@ -274,6 +274,35 @@ pub fn Preferences() -> Element {
                             },
                         }
                     }
+
+                    div { class: "form-group",
+                        label { class: "form-label", "Handedness" }
+                        div { class: "radio-group",
+                            label { class: "radio-option",
+                                input {
+                                    r#type: "radio",
+                                    name: "handedness",
+                                    checked: !prefs.left_handed,
+                                    onchange: move |_| {
+                                        APP_STATE.write().preferences.left_handed = false;
+                                    }
+                                }
+                                "Right-handed"
+                            }
+                            label { class: "radio-option",
+                                input {
+                                    r#type: "radio",
+                                    name: "handedness",
+                                    checked: prefs.left_handed,
+                                    onchange: move |_| {
+                                        APP_STATE.write().preferences.left_handed = true;
+                                    }
+                                }
+                                "Left-handed (mirror diagram)"
+                            }
+                        }
+                        p { class: "form-hint", "Can be overridden per instrument." }
+                    }
                 }
 
                 // Diagram options card

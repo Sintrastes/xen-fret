@@ -276,6 +276,9 @@ fn build_svg() -> Option<String> {
     let settings = state.diagram_settings.clone();
     let maybe_scale = state.current_scale().cloned();
     let maybe_tuning = state.current_tuning().cloned();
+    let left_handed = state.current_instrument()
+        .and_then(|i| i.left_handed)
+        .unwrap_or(prefs.left_handed);
     let edo = state.current_temperament().map(|t| t.divisions).unwrap_or(12);
     let note_names: Vec<String> = state
         .current_notation_system()
@@ -306,6 +309,7 @@ fn build_svg() -> Option<String> {
         horizontal: settings.horizontal,
         edo,
         period,
+        left_handed,
     };
     let note_names_ref: Option<&[String]> = if note_names.is_empty() { None } else { Some(&note_names) };
     Some(render_board(

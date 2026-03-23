@@ -152,6 +152,8 @@ fn NewInstrumentForm(show: Signal<bool>, picker_show: Signal<bool>) -> Element {
     let mut form_temp = use_signal(|| String::new());
     let mut form_strings = use_signal(|| 6u32);
     let mut form_frets = use_signal(|| 24u32);
+    // None = use global default, Some(false) = right-handed, Some(true) = left-handed.
+    let mut form_left_handed: Signal<Option<bool>> = use_signal(|| None);
 
     // Initialize default temperament name on first render
     let temp_names: Vec<(String, String)> = APP_STATE
@@ -222,6 +224,7 @@ fn NewInstrumentForm(show: Signal<bool>, picker_show: Signal<bool>) -> Element {
             } else {
                 vec![]
             },
+            left_handed: *form_left_handed.read(),
         };
         let mut s = APP_STATE.write();
         s.instruments.push(instrument);
@@ -242,6 +245,7 @@ fn NewInstrumentForm(show: Signal<bool>, picker_show: Signal<bool>) -> Element {
         form_type.set("Guitar".to_string());
         form_strings.set(6);
         form_frets.set(24);
+        form_left_handed.set(None);
 
         // Close both modals
         show.set(false);
@@ -330,6 +334,36 @@ fn NewInstrumentForm(show: Signal<bool>, picker_show: Signal<bool>) -> Element {
                 }
 
                 div { class: "form-group",
+                    label { class: "form-label", "Handedness" }
+                    div { class: "radio-group",
+                        label { class: "radio-option",
+                            input {
+                                r#type: "radio", name: "new-handedness",
+                                checked: form_left_handed.read().is_none(),
+                                onchange: move |_| form_left_handed.set(None)
+                            }
+                            "Use default"
+                        }
+                        label { class: "radio-option",
+                            input {
+                                r#type: "radio", name: "new-handedness",
+                                checked: *form_left_handed.read() == Some(false),
+                                onchange: move |_| form_left_handed.set(Some(false))
+                            }
+                            "Right-handed"
+                        }
+                        label { class: "radio-option",
+                            input {
+                                r#type: "radio", name: "new-handedness",
+                                checked: *form_left_handed.read() == Some(true),
+                                onchange: move |_| form_left_handed.set(Some(true))
+                            }
+                            "Left-handed"
+                        }
+                    }
+                }
+
+                div { class: "form-group",
                     label { class: "form-label", "Suggested Tuning" }
                     div { class: "form-hint-box tuning-name-row",
                         for (i, name) in tuning_note_names.iter().enumerate() {
@@ -351,6 +385,7 @@ fn EditInstrumentForm(show: Signal<bool>, edit_idx: Signal<Option<usize>>) -> El
     let mut form_temp = use_signal(|| String::new());
     let mut form_strings = use_signal(|| 6u32);
     let mut form_frets = use_signal(|| 24u32);
+    let mut form_left_handed: Signal<Option<bool>> = use_signal(|| None);
     // Tracks which index we've loaded into the form — re-initializes when it changes.
     let mut initialized_for: Signal<Option<usize>> = use_signal(|| None);
 
@@ -377,6 +412,7 @@ fn EditInstrumentForm(show: Signal<bool>, edit_idx: Signal<Option<usize>>) -> El
                 form_temp.set(inst.temperament_name.clone());
                 form_strings.set(inst.num_strings);
                 form_frets.set(inst.num_frets);
+                form_left_handed.set(inst.left_handed);
             }
         }
         initialized_for.set(current_idx);
@@ -424,6 +460,7 @@ fn EditInstrumentForm(show: Signal<bool>, edit_idx: Signal<Option<usize>>) -> El
                 inst.temperament_name = form_temp.read().clone();
                 inst.num_strings = *form_strings.read();
                 inst.num_frets = *form_frets.read();
+                inst.left_handed = *form_left_handed.read();
                 if inst.fret_markers.is_empty() && inst.num_frets >= 24 {
                     inst.fret_markers = crate::models::guitar_markers();
                 }
@@ -510,6 +547,36 @@ fn EditInstrumentForm(show: Signal<bool>, edit_idx: Signal<Option<usize>>) -> El
                                     form_frets.set(v);
                                 }
                             },
+                        }
+                    }
+                }
+
+                div { class: "form-group",
+                    label { class: "form-label", "Handedness" }
+                    div { class: "radio-group",
+                        label { class: "radio-option",
+                            input {
+                                r#type: "radio", name: "edit-handedness",
+                                checked: form_left_handed.read().is_none(),
+                                onchange: move |_| form_left_handed.set(None)
+                            }
+                            "Use default"
+                        }
+                        label { class: "radio-option",
+                            input {
+                                r#type: "radio", name: "edit-handedness",
+                                checked: *form_left_handed.read() == Some(false),
+                                onchange: move |_| form_left_handed.set(Some(false))
+                            }
+                            "Right-handed"
+                        }
+                        label { class: "radio-option",
+                            input {
+                                r#type: "radio", name: "edit-handedness",
+                                checked: *form_left_handed.read() == Some(true),
+                                onchange: move |_| form_left_handed.set(Some(true))
+                            }
+                            "Left-handed"
                         }
                     }
                 }

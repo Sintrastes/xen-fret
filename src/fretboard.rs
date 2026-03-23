@@ -40,6 +40,9 @@ pub struct FretboardStyle {
     pub edo: u32,
     /// Period ratio (e.g. 2.0 for octave, 3.0 for tritave/Bohlen-Pierce).
     pub period: f64,
+    /// Mirror the diagram for left-handed players (nut on right for horizontal,
+    /// lowest string on right for vertical).
+    pub left_handed: bool,
 }
 
 impl Default for FretboardStyle {
@@ -53,6 +56,7 @@ impl Default for FretboardStyle {
             horizontal: false,
             edo: 12,
             period: 2.0,
+            left_handed: false,
         }
     }
 }
@@ -442,7 +446,9 @@ fn board_vertical(
         .iter()
         .enumerate()
         .map(|(i, notes)| {
-            let sx = pad + i as f64 * hs;
+            // Left-handed: mirror string order so lowest string is on the right.
+            let j = if style.left_handed { n_str - 1 - i } else { i };
+            let sx = pad + j as f64 * hs;
             notes.iter().fold(Diagram::empty(), |acc, note| {
                 acc + fretting_dot(
                     root_color,
@@ -490,17 +496,18 @@ fn board_vertical(
             .enumerate()
             .fold(Diagram::empty(), |acc, (i, &pitch)| {
                 let name = display_note(pitch, note_names);
+                let j = if style.left_handed { n_str - 1 - i } else { i };
                 acc + text(name.clone(), note_fs)
                     .fc(label_color)
                     .bold()
                     .font_family(note_font(&name))
-                    .translate(pad + i as f64 * hs, string_name_y)
+                    .translate(pad + j as f64 * hs, string_name_y)
             })
     } else {
         Diagram::empty()
     };
 
-    // ── Fret markers (left column) ────────────────────────────────────────────
+    // ── Fret markers (left or right column depending on handedness) ───────────
     let fret_markers: Diagram = if has_names {
         let lowest = tuning.string_tunings.first().copied().unwrap_or(0);
         let leading_y = if offset == 0 {
@@ -514,9 +521,8 @@ fn board_vertical(
         } else {
             0.0
         };
-        // Fixed x avoids align_right()'s bbox approximation, which breaks for
-        // Bravura's narrow PUA glyphs.
-        let label_x = -hs * 0.55;
+        // Left-handed: labels go on the right side of the neck.
+        let label_x = if style.left_handed { board_w + hs * 0.55 } else { -hs * 0.55 };
 
         (0..n_frets).fold(Diagram::empty(), |acc, i| {
             let name = display_note(offset + lowest + i as i32 + 1, note_names);
@@ -570,6 +576,7 @@ fn empty_board_h(
     n_str: usize,
     offset: usize,
     board_w: f64,
+    left_handed: bool,
 ) -> Diagram {
     let h_str = (n_str as f64 - 1.0).max(0.0) * hs;
     let pad = hs * NECK_PAD;
@@ -587,13 +594,18 @@ fn empty_board_h(
     let string_lw = lw_base * STRING_W;
     let border_lw = lw_base * NECK_BORDER_W;
 
-    // Trapezoid background: spans y=[0, board_h] at nut, flaring by `taper`
-    // on each side toward the body end (x=board_w).
+    // Left-handed: mirror everything around x = board_w/2.
+    let fx = |x: f64| if left_handed { board_w - x } else { x };
+    // Nut is at x=0 (right-handed) or x=board_w (left-handed).
+    let nut_x = fx(0.0);
+    let body_x = fx(board_w);
+
+    // Trapezoid background: nut end is narrow, body end flares by `taper`.
     let verts = [
-        Point::new(0.0, 0.0),
-        Point::new(board_w, -taper),
-        Point::new(board_w, board_h + taper),
-        Point::new(0.0, board_h),
+        Point::new(nut_x, 0.0),
+        Point::new(body_x, -taper),
+        Point::new(body_x, board_h + taper),
+        Point::new(nut_x, board_h),
     ];
     let cx = board_w / 2.0;
     let cy = (0.0 + (-taper) + (board_h + taper) + board_h) / 4.0;
@@ -606,14 +618,12 @@ fn empty_board_h(
     // Fret lines at logarithmically-spaced x positions, tapering in height.
     let fret_lines: Diagram = (0..=n_frets)
         .map(|k| {
-            let x = fret_pos(k as f64, n_f, edo_f, period) * board_w;
-            let y_top = -(taper * x / board_w);
-            let y_bot = board_h + taper * x / board_w;
-            let lw = if k == 0 && offset == 0 {
-                nut_lw
-            } else {
-                fret_lw
-            };
+            let x = fx(fret_pos(k as f64, n_f, edo_f, period) * board_w);
+            let taper_frac = if left_handed { 1.0 - x / board_w } else { x / board_w };
+            let y_top = -(taper * taper_frac);
+            let y_bot = board_h + taper * taper_frac;
+            let is_nut = k == 0 && offset == 0;
+            let lw = if is_nut { nut_lw } else { fret_lw };
             polyline(&[Point::new(x, y_top), Point::new(x, y_bot)])
                 .lc(GRID_COLOR)
                 .lw(lw)
@@ -621,8 +631,8 @@ fn empty_board_h(
         .fold(Diagram::empty(), |acc, d| acc + d);
 
     // Strings: angled lines following the neck taper.
-    // String 0 (lowest pitch) is at the BOTTOM (y = board_h - pad) so that the
-    // diagram matches a player's eye view: low strings near them, high strings away.
+    // String 0 (lowest pitch) is at the BOTTOM so the diagram matches a player's
+    // eye view: low strings near them, high strings away.
     let strings: Diagram = (0..n_str)
         .map(|i| {
             let j = (n_str - 1 - i) as f64; // flip: i=0 → bottom
@@ -632,7 +642,7 @@ fn empty_board_h(
             } else {
                 pad - taper + j * (h_str + 2.0 * taper) / (n_str as f64 - 1.0)
             };
-            polyline(&[Point::new(0.0, y_nut), Point::new(board_w, y_body)])
+            polyline(&[Point::new(nut_x, y_nut), Point::new(body_x, y_body)])
                 .lc(GRID_COLOR)
                 .lw(string_lw)
         })
@@ -653,14 +663,15 @@ fn fretting_dot_h(
     vs: f64,
     hs: f64,
     note: &Note,
-    // y position of this string at the nut (x=0) and body end (x=board_w),
-    // so the dot can sit exactly on the angled string.
+    // y position of this string at the nut and body end (x=0 / x=board_w
+    // before any left-handed flip), so the dot sits on the angled string.
     y_nut: f64,
     y_body: f64,
     n_frets: usize,
     edo: u32,
     period: f64,
     board_w: f64,
+    left_handed: bool,
 ) -> Diagram {
     let color = note_color(
         note.scale_degree,
@@ -673,13 +684,15 @@ fn fretting_dot_h(
     // Size dots by hs (string spacing) so they stay consistent as EDO changes.
     let radius = hs * DOT_R * 0.82;
 
-    // Interpolate string y at a given x position.
-    let string_y_at = |x: f64| y_nut + (y_body - y_nut) * (x / board_w);
+    let fx = |x: f64| if left_handed { board_w - x } else { x };
 
-    // Open-string note: dot to the left of the nut.
+    // Interpolate string y at a given pre-flip x.
+    let string_y_at = |x_raw: f64| y_nut + (y_body - y_nut) * (x_raw / board_w);
+
+    // Open-string note: dot outside the nut (left for right-handed, right for left-handed).
     if original_offset == 0 && note.pitch == 0 {
-        let dot_x = -vs * 0.5;
-        let sy = y_nut; // extrapolating tiny distance, just use nut y
+        let dot_x = fx(if left_handed { board_w + vs * 0.5 } else { -vs * 0.5 });
+        let sy = y_nut;
         let dot = circle(radius).fc(color).lw(0.0).translate(dot_x, sy);
         let label_size = radius * 1.1;
         let label = text(format!("{}", note.scale_degree + 1), label_size)
@@ -693,14 +706,15 @@ fn fretting_dot_h(
     let k = note.pitch as f64;
     let n = n_frets as f64;
     let edo_f = edo as f64;
-    let dot_x = if display_markers_on_frets {
+    let dot_x_raw = if display_markers_on_frets {
         fret_pos(k, n, edo_f, period) * board_w
     } else {
-        // Midpoint between fret k-1 and fret k.
         let x_prev = fret_pos((k - 1.0).max(0.0), n, edo_f, period) * board_w;
         let x_curr = fret_pos(k, n, edo_f, period) * board_w;
         (x_prev + x_curr) / 2.0
     };
+    let dot_x = fx(dot_x_raw);
+    let sy = string_y_at(dot_x_raw);
 
     let sy = string_y_at(dot_x);
     let dot = circle(radius).fc(color).lw(0.0).translate(dot_x, sy);
@@ -781,10 +795,12 @@ fn fret_marker_dots_h(
     board_w: f64,
     edo: u32,
     period: f64,
+    left_handed: bool,
 ) -> Diagram {
     if n_str < 2 {
         return Diagram::empty();
     }
+    let fx = |x: f64| if left_handed { board_w - x } else { x };
     let pad = hs * NECK_PAD;
     let cy = pad + (n_str as f64 - 1.0) * hs / 2.0; // vertical centre of neck
     let r = hs * 0.15;
@@ -799,13 +815,13 @@ fn fret_marker_dots_h(
                 return None;
             }
             let a = adjusted as f64;
-            let dot_x = if display_markers_on_frets {
+            let dot_x = fx(if display_markers_on_frets {
                 fret_pos(a, n_f, edo_f, period) * board_w
             } else {
                 let x0 = fret_pos(a - 1.0, n_f, edo_f, period) * board_w;
                 let x1 = fret_pos(a, n_f, edo_f, period) * board_w;
                 (x0 + x1) / 2.0
-            };
+            });
             Some(match kind {
                 FretMarker::Single => circle(r).fc(MARKER_COLOR).lw(0.0).translate(dot_x, cy),
                 FretMarker::Double => {
@@ -845,6 +861,7 @@ fn board_horizontal(
     let n_frets = style.num_frets as usize;
     let offset = style.fret_offset as i32;
     let n_str = tuning.string_tunings.len();
+    let left_handed = style.left_handed;
 
     if n_str == 0 || n_frets == 0 {
         return Diagram::empty();
@@ -914,6 +931,7 @@ fn board_horizontal(
                     style.edo,
                     style.period,
                     board_w,
+                    left_handed,
                 )
             })
         })
@@ -930,6 +948,7 @@ fn board_horizontal(
         board_w,
         style.edo,
         style.period,
+        left_handed,
     );
     let fretboard_body = empty_board_h(
         board_color,
@@ -942,12 +961,18 @@ fn board_horizontal(
         n_str,
         offset as usize,
         board_w,
+        left_handed,
     ) + neck_markers
         + dots;
 
-    // ── String markers (left of nut) ──────────────────────────────────────────
-    // Open-string dots sit at x = -0.5·vs; push string names further left.
-    let string_name_x = if has_open_dots { -vs * 1.0 } else { -vs * 0.65 };
+    // ── String markers (outside the nut) ─────────────────────────────────────
+    // Open-string dots sit just outside the nut; push string names further out.
+    // For left-handed, "outside" is to the right (x > board_w).
+    let string_name_x = if left_handed {
+        if has_open_dots { board_w + vs * 1.0 } else { board_w + vs * 0.65 }
+    } else {
+        if has_open_dots { -vs * 1.0 } else { -vs * 0.65 }
+    };
     let string_markers: Diagram = if has_names {
         tuning
             .string_tunings
@@ -977,11 +1002,14 @@ fn board_horizontal(
         let n_f = n_frets as f64;
         let per = style.period;
 
+        let fx = |x: f64| if left_handed { board_w - x } else { x };
         (0..n_frets).fold(Diagram::empty(), |acc, i| {
-            let name = display_note(offset + lowest + i as i32 + 1, note_names);
+            // For left-handed, fret labels are mirrored: fret 1 is near the right end.
+            let fret_idx = if left_handed { n_frets - 1 - i } else { i };
+            let name = display_note(offset + lowest + fret_idx as i32 + 1, note_names);
             // Center the label in the fret cell between fret i and fret i+1.
-            let x_lo = fret_pos(i as f64, n_f, edo_f, per) * board_w;
-            let x_hi = fret_pos((i + 1) as f64, n_f, edo_f, per) * board_w;
+            let x_lo = fx(fret_pos(i as f64, n_f, edo_f, per) * board_w);
+            let x_hi = fx(fret_pos((i + 1) as f64, n_f, edo_f, per) * board_w);
             let x = (x_lo + x_hi) / 2.0;
             acc + text(name.clone(), note_fs)
                 .fc(label_color)
