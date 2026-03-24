@@ -1447,7 +1447,7 @@ input, select, textarea { font: inherit; }
 /* ── Home page ──────────────────────────────────────────────── */
 .home-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 1fr 300px;
   grid-template-rows: 1fr;
   height: 100%;
   min-height: 0;
@@ -1456,7 +1456,7 @@ input, select, textarea { font: inherit; }
 
 .controls-panel {
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1739,99 +1739,6 @@ input, select, textarea { font: inherit; }
 /*    On mobile the diagram is hidden anyway, so this layout      */
 /*    only activates above the 768px breakpoint.                  */
 @media (min-width: 769px) {
-
-.home-layout--h {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr auto;
-}
-
-/* DOM order is controls-first, so use explicit placement to put
-   preview on top and controls on the bottom. */
-.home-layout--h .preview-panel {
-  grid-row: 1;
-  grid-column: 1;
-}
-
-.home-layout--h .controls-panel {
-  grid-row: 2;
-  grid-column: 1;
-  border-right: none;
-  border-top: 1px solid var(--border);
-}
-
-/* 4-column grid fills both rows with no empty cells:
-   Row 1 → Temperament | Tuning | Diagram Type | Orientation
-   Row 2 → Scale | Key+Fret Offset (span 2) | Export SVG       */
-.home-layout--h .controls-body {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px 16px;
-  padding: 10px 16px;
-  overflow-y: auto;
-  align-items: center;
-}
-
-/* Each form-group: label inline to the left of its control. */
-.home-layout--h .form-group {
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.home-layout--h .form-label {
-  white-space: nowrap;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-/* Control fills remaining width in its grid cell. */
-.home-layout--h .form-select,
-.home-layout--h .form-input {
-  flex: 1;
-  width: auto;
-  min-width: 0;
-}
-
-/* Key + Fret Offset: one grid cell spanning 2 columns. */
-.home-layout--h .form-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  grid-column: span 2;
-}
-
-/* Actions sit in the grid normally. */
-.home-layout--h .controls-actions {
-  flex-direction: row;
-  border-top: none;
-  border-left: none;
-  padding: 0;
-  margin: 0;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Preview: vertically centered, diagram fills available width. */
-.home-layout--h .preview-body {
-  align-items: center;
-  padding: 12px 20px;
-}
-
-.home-layout--h .fretboard-card {
-  display: flex;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.home-layout--h .fretboard-container {
-  width: 100%;
-}
-
-.home-layout--h .fretboard-container svg {
-  height: auto;
-}
 
 } /* end @media (min-width: 769px) */
 

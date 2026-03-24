@@ -21,8 +21,15 @@ pub fn build_config(app_fn: fn() -> dioxus::prelude::Element) -> ! {
             .with_inner_size(LogicalSize::new(g.width as f64, g.height as f64));
     }
 
+    // Apply platform-specific window builder settings (e.g. transparent titlebar on macOS).
+    wb = crate::platform::configure_window(wb);
+
+    let cfg = Config::new().with_window(wb);
+    // Apply platform-specific Config settings (e.g. custom CSS head on macOS).
+    let cfg = crate::platform::configure_desktop(cfg);
+
     dioxus::LaunchBuilder::new()
-        .with_cfg(Config::new().with_window(wb))
+        .with_cfg(cfg)
         .launch(app_fn);
 
     // LaunchBuilder::launch() blocks; this is unreachable but satisfies the
@@ -67,7 +74,11 @@ pub fn use_window_geometry_tracker() {
             // tao's inner_size() is broken on macOS — use outer_size() minus
             // the title bar height (28 px), matching Dioxus's own workaround.
             let phys_size = win.outer_size();
-            let title_bar: u32 = if win.is_decorated() { 28 } else { 0 };
+            let title_bar: u32 = if win.is_decorated() {
+                crate::platform::TITLEBAR_HEIGHT_OFFSET
+            } else {
+                0
+            };
             let logical_pos = phys_pos.to_logical::<f64>(scale);
             let logical_size = phys_size.to_logical::<u32>(scale);
             let geo = WindowGeometry {
