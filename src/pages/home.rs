@@ -665,9 +665,96 @@ pub fn Home() -> Element {
     };
 
     rsx! {
-        div { class: if effective_horizontal { "home-layout home-layout--h" } else { "home-layout" },
+        div { class: "home-layout",
 
-            // ── Controls panel ──────────────────────────────────────────────
+            // ── Preview panel (center — renders first in DOM for grid placement) ──
+            div { class: "preview-panel",
+                div { class: "preview-header",
+                    div { class: "preview-header-info",
+                        h2 { class: "preview-title",
+                            {
+                                let s = APP_STATE.read();
+                                let temp_name = s.current_temperament()
+                                    .map(|t| t.name.clone())
+                                    .unwrap_or_default();
+                                let item_name = if is_scale_mode {
+                                    s.current_scale().map(|sc| sc.name.clone())
+                                } else {
+                                    s.current_chord().map(|ch| ch.name.clone())
+                                }.unwrap_or_default();
+                                format!("{} · {}", temp_name, item_name)
+                            }
+                        }
+                        span { class: "preview-subtitle",
+                            {
+                                let s = APP_STATE.read();
+                                s.current_instrument()
+                                    .map(|i| {
+                                        let tuning_name = s.current_tuning()
+                                            .map(|t| t.name.clone())
+                                            .unwrap_or_default();
+                                        format!("{} — {}", i.name, tuning_name)
+                                    })
+                                    .unwrap_or_default()
+                            }
+                        }
+                    }
+                    div { class: "preview-header-actions",
+                        if has_freqs {
+                            div { class: "octave-selector",
+                                button {
+                                    class: "btn-octave",
+                                    title: "Lower octave",
+                                    onclick: move |_| {
+                                        APP_STATE.write().diagram_settings.playback_octave -= 1;
+                                    },
+                                    "−"
+                                }
+                                span { class: "octave-label",
+                                    {if playback_octave == 0 { "Oct 0".to_string() } else { format!("Oct {:+}", playback_octave) }}
+                                }
+                                button {
+                                    class: "btn-octave",
+                                    title: "Higher octave",
+                                    onclick: move |_| {
+                                        APP_STATE.write().diagram_settings.playback_octave += 1;
+                                    },
+                                    "+"
+                                }
+                            }
+                            button {
+                                class: if is_playing() { "btn-play playing" } else { "btn-play" },
+                                title: if is_playing() { "Playing…" } else { "Play scale" },
+                                onclick: on_play,
+                                // U+25B6 + U+FE0E = text-presentation play triangle
+                                if is_playing() { "■" } else { "▶\u{FE0E}" }
+                            }
+                        }
+                        button {
+                            class: if mic_active() { "btn-mic listening" } else { "btn-mic" },
+                            title: if mic_active() { "Stop listening" } else { "Listen to mic" },
+                            onclick: on_mic_toggle,
+                            span {
+                                class: "toolbar-icon",
+                                dangerous_inner_html: if mic_active() {
+                                    "■"
+                                } else {
+                                    r#"<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="1" width="6" height="9" rx="3"/><path d="M3 7.5a5 5 0 0 0 10 0"/><line x1="8" y1="12.5" x2="8" y2="15"/><line x1="5.5" y1="15" x2="10.5" y2="15"/></svg>"#
+                                },
+                            }
+                        }
+                    }
+                }
+                div { class: "preview-body",
+                    FretboardPreview {
+                        playing_degrees: effective_degrees.clone(),
+                        playing_steps: effective_steps.clone(),
+                        horizontal_override: Some(effective_horizontal),
+                    }
+                }
+            }
+
+            // ── Inspector panel (right side) ─────────────────────────────────
             div {
                 class: if *drawer_open.read() { "controls-panel drawer-open" } else { "controls-panel" },
 
@@ -707,7 +794,7 @@ pub fn Home() -> Element {
                     if has_instrument {
                         // Tuning
                         div { class: "form-group",
-                            if !effective_horizontal { label { class: "form-label", "Tuning" } }
+                            label { class: "form-label", "Tuning" }
                             if tuning_options.is_empty() {
                                 p { class: "form-empty", "No compatible tunings for this instrument." }
                             } else {
@@ -743,7 +830,7 @@ pub fn Home() -> Element {
 
                         // Diagram type
                         div { class: "form-group",
-                            if !effective_horizontal { label { class: "form-label", "Diagram Type" } }
+                            label { class: "form-label", "Diagram Type" }
                             div { class: "segmented-control",
                                 button {
                                     class: if is_scale_mode { "seg-btn active" } else { "seg-btn" },
@@ -764,7 +851,7 @@ pub fn Home() -> Element {
 
                         // Orientation
                         div { class: "form-group hide-mobile",
-                            if !effective_horizontal { label { class: "form-label", "Orientation" } }
+                            label { class: "form-label", "Orientation" }
                             div { class: "segmented-control",
                                 button {
                                     class: if !is_horizontal { "seg-btn active" } else { "seg-btn" },
@@ -1019,85 +1106,6 @@ pub fn Home() -> Element {
                                 "Add Instrument"
                             }
                         }
-                    }
-                }
-            }
-
-            // ── Preview panel ───────────────────────────────────────────────
-            div { class: "preview-panel",
-                div { class: "preview-header",
-                    div { class: "preview-header-info",
-                        h2 { class: "preview-title",
-                            {
-                                let s = APP_STATE.read();
-                                let temp_name = s.current_temperament()
-                                    .map(|t| t.name.clone())
-                                    .unwrap_or_default();
-                                let item_name = if is_scale_mode {
-                                    s.current_scale().map(|sc| sc.name.clone())
-                                } else {
-                                    s.current_chord().map(|ch| ch.name.clone())
-                                }.unwrap_or_default();
-                                format!("{} · {}", temp_name, item_name)
-                            }
-                        }
-                        span { class: "preview-subtitle",
-                            {
-                                let s = APP_STATE.read();
-                                s.current_instrument()
-                                    .map(|i| {
-                                        let tuning_name = s.current_tuning()
-                                            .map(|t| t.name.clone())
-                                            .unwrap_or_default();
-                                        format!("{} — {}", i.name, tuning_name)
-                                    })
-                                    .unwrap_or_default()
-                            }
-                        }
-                    }
-                    div { class: "preview-header-actions",
-                        if has_freqs {
-                            div { class: "octave-selector",
-                                button {
-                                    class: "btn-octave",
-                                    title: "Lower octave",
-                                    onclick: move |_| {
-                                        APP_STATE.write().diagram_settings.playback_octave -= 1;
-                                    },
-                                    "−"
-                                }
-                                span { class: "octave-label",
-                                    {if playback_octave == 0 { "Oct 0".to_string() } else { format!("Oct {:+}", playback_octave) }}
-                                }
-                                button {
-                                    class: "btn-octave",
-                                    title: "Higher octave",
-                                    onclick: move |_| {
-                                        APP_STATE.write().diagram_settings.playback_octave += 1;
-                                    },
-                                    "+"
-                                }
-                            }
-                            button {
-                                class: if is_playing() { "btn-play playing" } else { "btn-play" },
-                                title: if is_playing() { "Playing…" } else { "Play scale" },
-                                onclick: on_play,
-                                if is_playing() { "■" } else { "▶" }
-                            }
-                        }
-                        button {
-                            class: if mic_active() { "btn-mic listening" } else { "btn-mic" },
-                            title: if mic_active() { "Stop listening" } else { "Listen to mic" },
-                            onclick: on_mic_toggle,
-                            if mic_active() { "■" } else { "🎤" }
-                        }
-                    }
-                }
-                div { class: "preview-body",
-                    FretboardPreview {
-                        playing_degrees: effective_degrees.clone(),
-                        playing_steps: effective_steps.clone(),
-                        horizontal_override: Some(effective_horizontal),
                     }
                 }
             }

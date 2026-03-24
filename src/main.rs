@@ -15,6 +15,8 @@ pub mod pitch_tracking;
 mod theme;
 #[cfg(not(target_arch = "wasm32"))]
 mod geometry_tracker;
+#[cfg(not(target_arch = "wasm32"))]
+mod platform;
 
 use dioxus::prelude::*;
 use routes::Route;

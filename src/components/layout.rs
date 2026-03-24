@@ -4,6 +4,17 @@ use crate::state::APP_STATE;
 use crate::theme::use_system_dark_watcher;
 use dioxus::prelude::*;
 
+/// Start a native window drag on mousedown (desktop only).
+/// This is the Dioxus-recommended way — CSS `-webkit-app-region: drag`
+/// does not work reliably in the webview.
+#[cfg(not(target_arch = "wasm32"))]
+fn start_drag(_evt: MouseEvent) {
+    dioxus::desktop::window().drag();
+}
+
+#[cfg(target_arch = "wasm32")]
+fn start_drag(_evt: MouseEvent) {}
+
 #[component]
 pub fn Layout() -> Element {
     use_system_dark_watcher();
@@ -21,6 +32,13 @@ pub fn Layout() -> Element {
                     div { class: "sidebar-logo",
                         span { class: "logo-icon", "♩" }
                         span { class: "logo-text", "Xen Fret" }
+                    }
+                }
+                // Native: drag region for the titlebar area above sidebar nav
+                if !cfg!(target_arch = "wasm32") {
+                    div {
+                        class: "titlebar-drag-region sidebar-drag",
+                        onmousedown: start_drag,
                     }
                 }
 
@@ -68,6 +86,13 @@ pub fn Layout() -> Element {
 
             // Main content
             main { class: "main-content",
+                // Native: drag region for the titlebar area across main content
+                if !cfg!(target_arch = "wasm32") {
+                    div {
+                        class: "titlebar-drag-region main-drag",
+                        onmousedown: start_drag,
+                    }
+                }
                 Outlet::<Route> {}
             }
 
