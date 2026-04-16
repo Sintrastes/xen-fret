@@ -1,6 +1,25 @@
 use dioxus::desktop::{Config, WindowBuilder};
 use dioxus::desktop::tao::dpi::{LogicalPosition, LogicalSize};
+use dioxus::desktop::tao::window::Icon;
 use crate::storage;
+
+/// Rasterize the bundled SVG icon at 256×256 and return a tao `Icon`.
+/// Not used on macOS — the Dock icon comes from the app bundle (.icns), and
+/// tao's with_window_icon() has no well-defined effect on that platform.
+#[cfg(not(target_os = "macos"))]
+fn load_window_icon() -> Option<Icon> {
+    let svg_bytes = include_bytes!("../assets/xen-fret-icon.svg");
+    let options = usvg::Options::default();
+    let tree = usvg::Tree::from_data(svg_bytes, &options).ok()?;
+
+    let size = 256u32;
+    let mut pixmap = tiny_skia::Pixmap::new(size, size)?;
+    let sx = size as f32 / tree.size().width();
+    let sy = size as f32 / tree.size().height();
+    resvg::render(&tree, tiny_skia::Transform::from_scale(sx, sy), &mut pixmap.as_mut());
+
+    Icon::from_rgba(pixmap.take(), size, size).ok()
+}
 
 /// Build a `Config` with the saved window geometry applied to the `WindowBuilder`.
 /// Position is set in the builder to prevent Dioxus's debug-mode state restoration
@@ -8,6 +27,9 @@ use crate::storage;
 pub fn build_config(app_fn: fn() -> dioxus::prelude::Element) -> ! {
     let geo = storage::load_window_geometry();
     let mut wb = WindowBuilder::new().with_title("Xen Fret");
+
+    #[cfg(not(target_os = "macos"))]
+    { wb = wb.with_window_icon(load_window_icon()); }
 
     // In debug mode, keep the window on top so it isn't hidden behind
     // the terminal during `dx serve` (matches `Config::new()` default).
@@ -75,7 +97,7 @@ pub fn use_window_geometry_tracker() {
             // the title bar height (28 px), matching Dioxus's own workaround.
             let phys_size = win.outer_size();
             let title_bar: u32 = if win.is_decorated() {
-                crate::platform::TITLEBAR_HEIGHT_OFFSET
+                crate::platform::titlebar_height_offset()
             } else {
                 0
             };

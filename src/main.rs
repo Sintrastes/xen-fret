@@ -11,6 +11,8 @@ mod routes;
 pub mod fretboard;
 pub mod theory;
 pub mod audio;
+pub mod sequencer;
+pub mod soundfont;
 pub mod pitch_tracking;
 mod theme;
 #[cfg(not(target_arch = "wasm32"))]
@@ -38,11 +40,22 @@ fn App() -> Element {
         storage::save(&*APP_STATE.read());
     });
 
+    // Pre-load the soundfont so first playback is instant.
+    use_effect(move || {
+        let _ = soundfont::get_soundfont();
+    });
+
     #[cfg(not(target_arch = "wasm32"))]
     geometry_tracker::use_window_geometry_tracker();
 
     rsx! {
-        document::Stylesheet { href: asset!("/assets/style.css") }
+        // On web, load CSS via document::Stylesheet so dx bundles the files.
+        // On desktop, CSS is already injected inline in <head> by platform::configure_desktop.
+        if cfg!(target_arch = "wasm32") {
+            document::Stylesheet { href: asset!("/assets/base.css") }
+            document::Stylesheet { href: asset!("/assets/web.css") }
+            document::Link { rel: "icon", r#type: "image/svg+xml", href: asset!("/assets/xen-fret-icon.svg") }
+        }
         Router::<Route> {}
     }
 }

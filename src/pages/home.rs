@@ -332,6 +332,8 @@ pub fn Home() -> Element {
     let mut mic_active = use_signal(|| false);
     let mut mic_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
     let mut mic_steps: Signal<Vec<i32>> = use_signal(Vec::new);
+    let mut metro_active = use_signal(|| false);
+    let mut metro_bpm = use_signal(|| 120u32);
 
     let do_export_svg = move |_| {
         show_export_modal.set(false);
@@ -492,11 +494,20 @@ pub fn Home() -> Element {
 
     let has_freqs = !play_freqs.is_empty();
     let n_degrees = play_freqs.len().saturating_sub(1).max(1);
+    let play_freqs_mobile = play_freqs.clone();
+    let play_abs_steps_mobile = play_abs_steps.clone();
     let on_play = {
         let freqs = play_freqs;
         let abs_steps = play_abs_steps;
         move |_| {
-            if is_playing() || freqs.is_empty() { return; }
+            // If already playing scale/chord, stop it.
+            if is_playing() {
+                audio::stop_all();
+                is_playing.set(false);
+                playing_steps.set(vec![]);
+                return;
+            }
+            if freqs.is_empty() { return; }
             let f = freqs.clone();
             let steps = abs_steps.clone();
             spawn(async move {
@@ -516,6 +527,7 @@ pub fn Home() -> Element {
             });
         }
     };
+
 
     let on_mic_toggle = move |_| {
         if mic_active() {
@@ -665,11 +677,120 @@ pub fn Home() -> Element {
     };
 
     rsx! {
+        // ── Mobile home header (injected into top bar on small screens) ──
+        div { class: "mobile-home-header",
+            div { class: "preview-header-actions",
+                if has_freqs {
+                    div { class: "octave-selector",
+                        button {
+                            class: "btn-octave",
+                            onclick: move |_| { APP_STATE.write().diagram_settings.playback_octave -= 1; },
+                            "−"
+                        }
+                        span { class: "octave-label",
+                            {if playback_octave == 0 { "Oct 0".to_string() } else { format!("Oct {:+}", playback_octave) }}
+                        }
+                        button {
+                            class: "btn-octave",
+                            onclick: move |_| { APP_STATE.write().diagram_settings.playback_octave += 1; },
+                            "+"
+                        }
+                    }
+                    button {
+                        class: if is_playing() { "btn-play playing" } else { "btn-play" },
+                        title: if is_playing() { "Playing…" } else { "Play scale" },
+                        onclick: {
+                            let freqs = play_freqs_mobile;
+                            let abs_steps = play_abs_steps_mobile;
+                            move |_| {
+                                if is_playing() {
+                                    audio::stop_all();
+                                    is_playing.set(false);
+                                    playing_steps.set(vec![]);
+                                    return;
+                                }
+                                if freqs.is_empty() { return; }
+                                let f = freqs.clone();
+                                let steps = abs_steps.clone();
+                                spawn(async move {
+                                    is_playing.set(true);
+                                    if is_scale_mode {
+                                        let mut pb = audio::start_scale(&f);
+                                        while let Some(note_idx) = pb.next_note().await {
+                                            if let Some(&step) = steps.get(note_idx) {
+                                                playing_steps.set(vec![step]);
+                                            }
+                                        }
+                                        playing_steps.set(vec![]);
+                                    } else {
+                                        audio::play_chord(&f).await;
+                                    }
+                                    is_playing.set(false);
+                                });
+                            }
+                        },
+                        if is_playing() { "■" } else { "▶\u{FE0E}" }
+                    }
+                }
+                div { class: "metro-controls",
+                    input {
+                        class: "form-input metro-bpm-input",
+                        r#type: "number",
+                        min: "20",
+                        max: "300",
+                        title: "Metronome BPM",
+                        value: format!("{}", metro_bpm()),
+                        onchange: move |evt: Event<FormData>| {
+                            if let Ok(v) = evt.value().parse::<u32>() {
+                                let v = v.clamp(20, 300);
+                                metro_bpm.set(v);
+                                if metro_active() { audio::metronome_start(v as f64, 4); }
+                            }
+                        },
+                    }
+                    button {
+                        class: if metro_active() { "btn-play playing" } else { "btn-play" },
+                        title: if metro_active() { "Metronome on" } else { "Metronome off" },
+                        onclick: move |_| {
+                            if metro_active() {
+                                audio::metronome_stop();
+                                metro_active.set(false);
+                            } else {
+                                audio::metronome_start(metro_bpm() as f64, 4);
+                                metro_active.set(true);
+                            }
+                        },
+                        span { dangerous_inner_html: r#"<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10L14.5 4h-5L7 21z"/><line x1="8.8" y1="15" x2="15.2" y2="15"/><line x1="12" y1="4.5" x2="17.5" y2="14"/><circle cx="12" cy="4.5" r="1.4" fill="currentColor" stroke="none"/></svg>"#, }
+                    }
+                }
+                button {
+                    class: if mic_active() { "btn-mic listening" } else { "btn-mic" },
+                    title: if mic_active() { "Stop listening" } else { "Listen to mic" },
+                    onclick: move |_| {
+                        if mic_active() {
+                            let _ = eval(pitch_tracking::mic_web::MIC_STOP_JS);
+                            mic_active.set(false);
+                            mic_degrees.set(vec![]);
+                            mic_steps.set(vec![]);
+                        } else {
+                            mic_active.set(true);
+                        }
+                    },
+                    span {
+                        class: "toolbar-icon",
+                        dangerous_inner_html: if mic_active() { "■" } else {
+                            r#"<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="1" width="6" height="9" rx="3"/><path d="M3 7.5a5 5 0 0 0 10 0"/><line x1="8" y1="12.5" x2="8" y2="15"/><line x1="5.5" y1="15" x2="10.5" y2="15"/></svg>"#
+                        },
+                    }
+                }
+            }
+        }
+
         div { class: "home-layout",
 
             // ── Preview panel (center — renders first in DOM for grid placement) ──
             div { class: "preview-panel",
-                div { class: "preview-header",
+                div { class: "preview-header hide-mobile",
                     div { class: "preview-header-info",
                         h2 { class: "preview-title",
                             {
@@ -728,6 +849,42 @@ pub fn Home() -> Element {
                                 onclick: on_play,
                                 // U+25B6 + U+FE0E = text-presentation play triangle
                                 if is_playing() { "■" } else { "▶\u{FE0E}" }
+                            }
+                        }
+                        // BPM input + metronome toggle
+                        div { class: "metro-controls",
+                            input {
+                                class: "form-input metro-bpm-input",
+                                r#type: "number",
+                                min: "20",
+                                max: "300",
+                                title: "Metronome BPM",
+                                value: format!("{}", metro_bpm()),
+                                onchange: move |evt: Event<FormData>| {
+                                    if let Ok(v) = evt.value().parse::<u32>() {
+                                        let v = v.clamp(20, 300);
+                                        metro_bpm.set(v);
+                                        if metro_active() {
+                                            audio::metronome_start(v as f64, 4);
+                                        }
+                                    }
+                                },
+                            }
+                            button {
+                                class: if metro_active() { "btn-play playing" } else { "btn-play" },
+                                title: if metro_active() { "Metronome on" } else { "Metronome off" },
+                                onclick: move |_| {
+                                    if metro_active() {
+                                        audio::metronome_stop();
+                                        metro_active.set(false);
+                                    } else {
+                                        audio::metronome_start(metro_bpm() as f64, 4);
+                                        metro_active.set(true);
+                                    }
+                                },
+                                span {
+                                    dangerous_inner_html: r#"<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10L14.5 4h-5L7 21z"/><line x1="8.8" y1="15" x2="15.2" y2="15"/><line x1="12" y1="4.5" x2="17.5" y2="14"/><circle cx="12" cy="4.5" r="1.4" fill="currentColor" stroke="none"/></svg>"#,
+                                }
                             }
                         }
                         button {

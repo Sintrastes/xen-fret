@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use crate::components::Layout;
-use crate::pages::{Home, Temperaments, Tunings, Scales, Chords, Preferences};
+use crate::pages::{Home, Temperaments, Tunings, Scales, Chords, Preferences, BackingTrack};
 
 #[derive(Routable, Clone, Debug, PartialEq)]
 #[rustfmt::skip]
@@ -16,6 +16,8 @@ pub enum Route {
         Scales {},
         #[route("/chords")]
         Chords {},
+        #[route("/backing-track")]
+        BackingTrack {},
         #[route("/preferences")]
         Preferences {},
     #[end_layout]

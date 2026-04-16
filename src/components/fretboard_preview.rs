@@ -97,7 +97,7 @@ pub fn FretboardPreview(
 
     rsx! {
         div {
-            class: "fretboard-card",
+            class: if is_horizontal { "fretboard-card horizontal" } else { "fretboard-card" },
             div {
                 class: "fretboard-container",
                 style: if is_horizontal {

@@ -8,11 +8,48 @@ use crate::state::AppState;
 
 static DB: OnceLock<DbInstance> = OnceLock::new();
 
+/// Returns the directory where the app's database should live.
+/// On Android, `dirs::data_dir()` resolves to an inaccessible path; use JNI instead.
+#[cfg(target_os = "android")]
+fn db_dir() -> std::path::PathBuf {
+    use jni::objects::JString;
+    use jni::JavaVM;
+
+    let ctx = unsafe { ndk_context::android_context() };
+    let vm = unsafe { JavaVM::from_raw(ctx.vm().cast()) }.expect("JavaVM");
+    let mut env = vm.attach_current_thread().expect("JNI env");
+    let activity = unsafe { jni::objects::JObject::from_raw(ctx.context().cast()) };
+
+    let files_dir = env
+        .call_method(&activity, "getFilesDir", "()Ljava/io/File;", &[])
+        .expect("getFilesDir")
+        .l()
+        .expect("File object");
+
+    let path_jstring = env
+        .call_method(&files_dir, "getAbsolutePath", "()Ljava/lang/String;", &[])
+        .expect("getAbsolutePath")
+        .l()
+        .expect("String object");
+
+    let path: String = env
+        .get_string(&JString::from(path_jstring))
+        .expect("getString")
+        .into();
+
+    std::path::PathBuf::from(path)
+}
+
+#[cfg(not(target_os = "android"))]
+fn db_dir() -> std::path::PathBuf {
+    dirs::data_dir()
+        .unwrap_or_else(|| std::path::PathBuf::from("."))
+        .join("xen-fret")
+}
+
 fn get_db() -> &'static DbInstance {
     DB.get_or_init(|| {
-        let dir = dirs::data_dir()
-            .unwrap_or_else(|| std::path::PathBuf::from("."))
-            .join("xen-fret");
+        let dir = db_dir();
         std::fs::create_dir_all(&dir).ok();
         let db_path = dir.join("xen-fret.db");
         let db = DbInstance::new("sqlite", db_path.to_str().unwrap_or("."), "")
