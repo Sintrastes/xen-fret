@@ -1,0 +1,18 @@
+[package]
+name = "icon-gen"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "icon-gen"
+path = "src/main.rs"
+
+[dependencies]
+hagoromo = "0.2"
+kurbo = "0.11"
+color-hex = "0.2"
+clap = { version = "4", features = ["derive"] }
+resvg = "0.45"
+usvg = "0.45"
+tiny-skia = "0.11"
+image = { version = "0.25", default-features = false, features = ["webp"] }
