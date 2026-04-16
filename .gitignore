@@ -16,3 +16,6 @@ target
 node_modules
 
 .claude/
+
+# Large binary assets (bundled at compile time via include_bytes!)
+assets/soundfont.sf2
