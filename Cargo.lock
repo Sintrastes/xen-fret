@@ -122,6 +122,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
+name = "app-common"
+version = "0.1.0"
+dependencies = [
+ "cozo",
+ "dirs 5.0.1",
+ "fretboard-diagrams",
+ "jni",
+ "ndk-context",
+ "serde",
+ "serde_json",
+ "web-sys",
+ "xen-theory",
+]
+
+[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2377,6 +2392,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fretboard-diagrams"
+version = "0.1.0"
+dependencies = [
+ "hagoromo 0.1.0",
+ "serde",
+ "xen-theory",
 ]
 
 [[package]]
@@ -8055,24 +8079,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "xen-dsp"
+version = "0.1.0"
+dependencies = [
+ "realfft",
+ "rustfft",
+]
+
+[[package]]
 name = "xen-fret"
 version = "0.1.0"
 dependencies = [
+ "app-common",
  "core-foundation-sys",
- "cozo",
  "dark-light",
  "dioxus",
- "dirs 5.0.1",
+ "fretboard-diagrams",
  "futures-util",
- "hagoromo 0.1.0",
  "icon-gen",
- "jni",
  "miniz_oxide 0.8.9",
- "ndk-context",
  "rayon",
- "realfft",
  "resvg",
- "rustfft",
  "rustysynth",
  "serde",
  "serde_json",
@@ -8081,8 +8108,25 @@ dependencies = [
  "tokio",
  "ttf-parser",
  "usvg",
- "web-sys",
+ "xen-dsp",
+ "xen-sequencer",
+ "xen-theory",
  "zbus",
+]
+
+[[package]]
+name = "xen-sequencer"
+version = "0.1.0"
+dependencies = [
+ "dioxus",
+ "xen-theory",
+]
+
+[[package]]
+name = "xen-theory"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

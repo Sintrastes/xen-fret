@@ -41,9 +41,11 @@ jobs:
         run: cargo install dioxus-cli --version "^0.7" --locked
 
       - name: Use GitHub Pages config
+        working-directory: app/dioxus_frontend
         run: cp Dioxus.gh-pages.toml Dioxus.toml
 
       - name: Build
+        working-directory: app/dioxus_frontend
         run: dx build --release --platform web
 
       - uses: actions/configure-pages@v5
@@ -98,6 +100,7 @@ jobs:
         run: cargo install dioxus-cli --version "^0.7" --locked
 
       - name: Build
+        working-directory: app/dioxus_frontend
         run: dx build --release --platform desktop
 
       - uses: actions/upload-artifact@v4
@@ -128,6 +131,7 @@ jobs:
         run: cargo install dioxus-cli --version "^0.7" --locked
 
       - name: Build
+        working-directory: app/dioxus_frontend
         run: dx build --release --platform desktop
 
       - uses: actions/upload-artifact@v4
@@ -158,6 +162,7 @@ jobs:
         run: cargo install dioxus-cli --version "^0.7" --locked
 
       - name: Build
+        working-directory: app/dioxus_frontend
         run: dx build --release --platform desktop
 
       - uses: actions/upload-artifact@v4
@@ -190,6 +195,7 @@ jobs:
         run: cargo install dioxus-cli --version "^0.7" --locked
 
       - name: Build (simulator)
+        working-directory: app/dioxus_frontend
         run: dx build --release --platform ios
 
       - uses: actions/upload-artifact@v4
@@ -227,6 +233,7 @@ jobs:
         run: cargo install dioxus-cli --version "^0.7" --locked
 
       - name: Build
+        working-directory: app/dioxus_frontend
         run: dx build --release --platform android
 
       - uses: actions/upload-artifact@v4

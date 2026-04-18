@@ -1,0 +1,8 @@
+[package]
+name = "xen-sequencer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+xen-theory = { path = "../xen-theory", features = ["serde"] }
+dioxus = { version = "0.7", features = ["document"] }

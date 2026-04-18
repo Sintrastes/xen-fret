@@ -1,67 +1,14 @@
 [workspace]
-members = [".", "icon-gen"]
+members = [
+    "app/dioxus_frontend",
+    "app/common",
+    "icon-gen",
+    "xen-theory",
+    "xen-dsp",
+    "xen-sequencer",
+    "fretboard-diagrams",
+]
 resolver = "2"
-
-[package]
-name = "xen-fret"
-version = "0.1.0"
-edition = "2021"
-
-
-[[bin]]
-name = "xen-fret"
-path = "src/main.rs"
-
-[dependencies]
-dioxus = { version = "0.7", features = ["web", "router", "document"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-rustfft = "6"
-realfft = "3"
-
-rustysynth = "1.3"
-hagoromo = "0.1"
-svg2pdf = "0.13.0"
-miniz_oxide = "0.8"
-
-# For developing locally
-# hagoromo = { path = "../hagoromo" }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-cozo = { version = "0.7", features = ["storage-sqlite"] }
-dirs = "5"
-rayon = "~1.8"  # pin below 1.9 to avoid graph_builder breakage in cozo's dep tree
-tokio = { version = "1", features = ["sync", "time"] }
-resvg = "0.45"
-usvg = "0.45"
-tiny-skia = "0.11"
-# dioxus desktop feature + tao (windowing) for native builds only.
-# Cargo merges this with the [dependencies] entry above, so on native targets
-# dioxus gets web + desktop + router + document features.
-dioxus = { version = "0.7", features = ["desktop"] }
-
-[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
-dark-light = "1"
-
-[target.'cfg(target_os = "linux")'.dependencies]
-zbus = { version = "4", default-features = false, features = ["tokio"] }
-futures-util = { version = "0.3", default-features = false, features = ["std"] }
-
-[target.'cfg(target_os = "macos")'.dependencies]
-core-foundation-sys = "0.8"
-
-[target.'cfg(target_os = "android")'.dependencies]
-jni = { version = "0.21", default-features = false }
-ndk-context = "0.1"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = { version = "0.3", features = ["Window", "Storage"] }
-
-[build-dependencies]
-icon-gen = { path = "icon-gen" }
-
-[dev-dependencies]
-ttf-parser = "0.25"
 
 [profile.wasm-release]
 inherits = "release"
