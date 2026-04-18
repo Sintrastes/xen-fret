@@ -1,0 +1,18 @@
+[package]
+name = "xen-fret-gtk"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "xen-fret-gtk"
+path = "src/main.rs"
+
+[dependencies]
+app-common = { path = "../common" }
+xen-theory  = { path = "../../xen-theory", features = ["serde"] }
+
+relm4      = { version = "0.9", features = ["macros", "libadwaita", "gnome_44"] }
+libadwaita = { version = "0.7", features = ["v1_6"] }
+resvg      = "0.45"
+usvg       = "0.45"
+tiny-skia  = "0.11"

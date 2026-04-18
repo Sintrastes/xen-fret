@@ -2,6 +2,7 @@
 members = [
     "app/dioxus_frontend",
     "app/common",
+    "app/gtk_frontend",
     "icon-gen",
     "xen-theory",
     "xen-dsp",
