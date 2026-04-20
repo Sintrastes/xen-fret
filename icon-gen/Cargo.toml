@@ -8,7 +8,7 @@ name = "icon-gen"
 path = "src/main.rs"
 
 [dependencies]
-hagoromo = "0.2"
+hagoromo = "0.3"
 kurbo = "0.11"
 color-hex = "0.2"
 clap = { version = "4", features = ["derive"] }

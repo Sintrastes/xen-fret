@@ -13,29 +13,17 @@
 //!   diagram scales uniformly when the user changes spacing.
 
 use hagoromo::{
-    circle, hrule, polygon, polyline, rect, render_svg, stroke_trail,
-    style::Color as HagColor, text, vrule, Diagram, Point, RenderOptions, WHITE,
+    circle, hrule, polygon, polyline, rect, render_svg, stroke_trail, strut_y, text, vcat, vrule,
+    Diagram, Point, RenderOptions, WHITE,
 };
 use xen_theory::fretboard::{fret_pos, get_notes, Note as TheoryNote};
 use xen_theory::scale::Scale;
+use xen_theory::temperament::Temperament;
 use xen_theory::tuning::{FretMarker, Tuning};
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
-/// An sRGB color with 8-bit channels.
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-}
-
-impl Color {
-    pub fn to_hex(&self) -> String {
-        format!("#{:02x}{:02x}{:02x}", self.r, self.g, self.b)
-    }
-}
+pub use hagoromo::style::Color;
 
 /// Style of fret lines drawn on the diagram.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -54,45 +42,95 @@ pub struct DiagramColors {
     pub label: Color,
 }
 
+impl DiagramColors {
+    pub fn default_light() -> Self {
+        DiagramColors {
+            root: Color::rgb_bytes(51, 92, 255),
+            scale: Color::rgb_bytes(57, 112, 217),
+            board: Color::rgb_bytes(255, 255, 255),
+            label: Color::rgb_bytes(38, 38, 38),
+        }
+    }
+
+    pub fn default_dark() -> Self {
+        todo!()
+    }
+}
+
 // ── Design tokens (relative to `vs`) ─────────────────────────────────────────
 
-const GRID_COLOR: HagColor = HagColor::rgb(0.20, 0.20, 0.20);
+const GRID_COLOR: Color = Color::rgb_bytes(201, 201, 201);
 
-const NUT_W: f64 = 0.12;        // nut line width / vs
-const LINE_W: f64 = 0.055;      // fret line width / vs
-const STRING_W: f64 = 0.018;    // string line width / vs
+const NUT_W: f64 = 0.12; // nut line width / vs
+const LINE_W: f64 = 0.055; // fret line width / vs
+const STRING_W: f64 = 0.018; // string line width / vs
 const NECK_BORDER_W: f64 = 0.055; // neck outline width / vs
-const DOT_R: f64 = 0.21;        // note dot radius / vs
-const NECK_PAD: f64 = 0.45;     // side inset between outer string and neck edge / hs
+const DOT_R: f64 = 0.31; // note dot radius / vs
+const NECK_PAD: f64 = 0.45; // side inset between outer string and neck edge / hs
 
 // ── Public style struct ───────────────────────────────────────────────────────
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct FretboardStyle {
-    pub display_markers_on_frets: bool,
+    pub colors: DiagramColors,
+    pub scale_dots: ScaleDotStyle,
+    pub display_string_names: bool,
+    pub fret_markers: FretMarkerStyle,
+    pub title: TitleStyle,
+    pub fret: FretStyle,
     pub fret_offset: u32,
     pub num_frets: u32,
     pub vertical_spacing: f64,
     pub horizontal_spacing: f64,
     pub horizontal: bool,
-    pub edo: u32,
-    /// Period ratio (e.g. 2.0 for octave, 3.0 for tritave/Bohlen-Pierce).
-    pub period: f64,
     /// Mirror the diagram for left-handed players.
     pub left_handed: bool,
 }
 
-impl Default for FretboardStyle {
-    fn default() -> Self {
-        Self {
-            display_markers_on_frets: false,
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum FretMarkerStyle {
+    None,
+    DisplayNoteNames,
+    DisplayFretNumber,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct ScaleDotStyle {
+    pub display_markers_on_frets: bool,
+    pub degree_labels: DegreeLabel,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum TitleStyle {
+    None,
+    AboveFretboard,
+    BelowFretboard,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum DegreeLabel {
+    None,
+    Degree,
+    NoteName,
+}
+
+impl FretboardStyle {
+    pub fn default(colors: DiagramColors) -> Self {
+        FretboardStyle {
+            colors: colors,
+            scale_dots: ScaleDotStyle {
+                display_markers_on_frets: false,
+                degree_labels: DegreeLabel::None,
+            },
+            display_string_names: false,
+            fret_markers: FretMarkerStyle::None,
+            fret: FretStyle::Solid,
+            title: TitleStyle::BelowFretboard,
             fret_offset: 0,
             num_frets: 12,
             vertical_spacing: 0.2,
             horizontal_spacing: 0.2,
             horizontal: false,
-            edo: 12,
-            period: 2.0,
             left_handed: false,
         }
     }
@@ -102,10 +140,6 @@ impl Default for FretboardStyle {
 type Note = TheoryNote;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-fn to_hag(c: &Color) -> HagColor {
-    HagColor::rgb(c.r as f32 / 255.0, c.g as f32 / 255.0, c.b as f32 / 255.0)
-}
 
 fn display_note(pitch: i32, note_names: &[String]) -> String {
     if note_names.is_empty() {
@@ -127,16 +161,16 @@ fn note_font(name: &str) -> &'static str {
 
 // ── frettingDot ───────────────────────────────────────────────────────────────
 
-const PLAYING_COLOR: HagColor = HagColor::rgb(0.90, 0.18, 0.18);
+const PLAYING_COLOR: Color = Color::rgb(0.90, 0.18, 0.18);
 
 fn note_color(
     scale_degree: usize,
     absolute_step: i32,
-    root_color: HagColor,
-    scale_color: HagColor,
+    root_color: Color,
+    scale_color: Color,
     playing_degrees: &[usize],
     playing_steps: &[i32],
-) -> HagColor {
+) -> Color {
     if playing_steps.contains(&absolute_step) || playing_degrees.contains(&scale_degree) {
         PLAYING_COLOR
     } else if scale_degree == 0 {
@@ -147,11 +181,11 @@ fn note_color(
 }
 
 fn fretting_dot(
-    root_color: HagColor,
-    scale_color: HagColor,
+    root_color: Color,
+    scale_color: Color,
     playing_degrees: &[usize],
     playing_steps: &[i32],
-    display_markers_on_frets: bool,
+    scale_dot_style: ScaleDotStyle,
     original_offset: i32,
     vs: f64,
     note: &Note,
@@ -181,7 +215,11 @@ fn fretting_dot(
         return dot + label;
     }
 
-    let offset_y = if display_markers_on_frets { 0.0 } else { 0.5 * vs };
+    let offset_y = if scale_dot_style.display_markers_on_frets {
+        0.0
+    } else {
+        0.5 * vs
+    };
     let dot_y = n * vs - offset_y;
     let radius = vs * DOT_R;
 
@@ -199,8 +237,7 @@ fn fretting_dot(
 // ── emptyBoard ────────────────────────────────────────────────────────────────
 
 fn empty_board(
-    board_color: HagColor,
-    _fret_style: FretStyle,
+    board_color: Color,
     n_frets: usize,
     vs: f64,
     hs: f64,
@@ -251,9 +288,6 @@ fn empty_board(
 // ── render_board ──────────────────────────────────────────────────────────────
 
 pub fn render_board(
-    colors: &DiagramColors,
-    fret_style: FretStyle,
-    scale_name: &str,
     key: i32,
     scale: &Scale,
     skip_frets: u32,
@@ -267,9 +301,7 @@ pub fn render_board(
     let names = note_names.unwrap_or(&[]);
     let diagram = if style.horizontal {
         board_horizontal(
-            colors,
-            fret_style,
-            scale_name,
+            scale.name.as_str(),
             key,
             scale,
             skip_frets,
@@ -281,9 +313,7 @@ pub fn render_board(
         )
     } else {
         board_vertical(
-            colors,
-            fret_style,
-            scale_name,
+            scale.name.as_str(),
             key,
             scale,
             skip_frets,
@@ -316,7 +346,11 @@ pub fn render_board(
 }
 
 fn inject_bravura_font(svg: String, font_url: &str) -> String {
-    let fmt = if font_url.ends_with(".woff2") { "woff2" } else { "woff" };
+    let fmt = if font_url.ends_with(".woff2") {
+        "woff2"
+    } else {
+        "woff"
+    };
     let defs = format!(
         "\n  <defs><style>@font-face{{font-family:'Bravura';src:url('{}') format('{}');font-display:swap}}</style></defs>",
         font_url, fmt
@@ -330,8 +364,6 @@ fn inject_bravura_font(svg: String, font_url: &str) -> String {
 // ── board_vertical ────────────────────────────────────────────────────────────
 
 fn board_vertical(
-    colors: &DiagramColors,
-    fret_style: FretStyle,
     scale_name: &str,
     key: i32,
     scale: &Scale,
@@ -352,10 +384,10 @@ fn board_vertical(
         return Diagram::empty();
     }
 
-    let root_color = to_hag(&colors.root);
-    let scale_color = to_hag(&colors.scale);
-    let board_color = to_hag(&colors.board);
-    let label_color = to_hag(&colors.label);
+    let root_color = style.colors.root;
+    let scale_color = style.colors.scale;
+    let board_color = style.colors.board;
+    let label_color = style.colors.label;
     let w = (n_str as f64 - 1.0) * hs;
     let pad = hs * NECK_PAD;
     let board_w = w + 2.0 * pad;
@@ -400,7 +432,7 @@ fn board_vertical(
                     scale_color,
                     playing_degrees,
                     playing_steps,
-                    style.display_markers_on_frets,
+                    style.scale_dots,
                     offset,
                     vs,
                     note,
@@ -417,24 +449,16 @@ fn board_vertical(
         n_frets,
         style.fret_offset,
         n_str,
-        style.display_markers_on_frets,
+        style.scale_dots,
     );
-    let fretboard_body = empty_board(
-        board_color,
-        fret_style,
-        n_frets,
-        vs,
-        hs,
-        n_str,
-        offset as usize,
-    ) + neck_markers
-        + dots;
+    let fretboard_body =
+        empty_board(board_color, n_frets, vs, hs, n_str, offset as usize) + neck_markers + dots;
 
     // ── String markers (above nut) ────────────────────────────────────────────
     // When open-string dots are present they sit at -0.5·vs; push string names
     // high enough to clear them.
     let string_name_y = if has_open_dots { -vs * 1.0 } else { -vs * 0.65 };
-    let string_markers: Diagram = if has_names {
+    let string_markers: Diagram = if has_names && style.display_string_names {
         tuning
             .string_tunings
             .iter()
@@ -453,20 +477,35 @@ fn board_vertical(
     };
 
     // ── Fret markers (left or right column depending on handedness) ───────────
-    let fret_markers: Diagram = if has_names {
+    let fret_markers: Diagram = if has_names && style.fret_markers != FretMarkerStyle::None {
         let lowest = tuning.string_tunings.first().copied().unwrap_or(0);
         let leading_y = if offset == 0 {
-            if style.display_markers_on_frets { vs } else { vs * 0.5 }
-        } else if style.display_markers_on_frets {
+            if style.scale_dots.display_markers_on_frets {
+                vs
+            } else {
+                vs * 0.5
+            }
+        } else if style.scale_dots.display_markers_on_frets {
             vs * 0.5
         } else {
             0.0
         };
         // Left-handed: labels go on the right side of the neck.
-        let label_x = if style.left_handed { board_w + hs * 0.55 } else { -hs * 0.55 };
+        let label_x = if style.left_handed {
+            board_w + hs * 0.55
+        } else {
+            -hs * 0.55
+        };
 
         (0..n_frets).fold(Diagram::empty(), |acc, i| {
-            let name = display_note(offset + lowest + i as i32 + 1, note_names);
+            let fret_number = offset + lowest + i as i32 + 1;
+
+            let name = if style.fret_markers == FretMarkerStyle::DisplayNoteNames {
+                display_note(fret_number, note_names)
+            } else {
+                fret_number.to_string()
+            };
+
             let y = leading_y + i as f64 * vs;
             acc + text(name.clone(), note_fs)
                 .fc(label_color)
@@ -486,7 +525,11 @@ fn board_vertical(
     };
     let title_font = note_font(&title_text);
     let title_y = if has_names {
-        if has_open_dots { -vs * 1.6 } else { -vs * 1.25 }
+        if has_open_dots {
+            -vs * 1.6
+        } else {
+            -vs * 1.25
+        }
     } else {
         -vs * 0.65
     };
@@ -496,18 +539,25 @@ fn board_vertical(
         .font_family(title_font)
         .translate(board_w / 2.0, title_y);
 
-    title + string_markers + fret_markers + fretboard_body
+    match style.title {
+        TitleStyle::None => string_markers + fret_markers + fretboard_body,
+        TitleStyle::AboveFretboard => vcat!(title, string_markers + fret_markers + fretboard_body),
+        TitleStyle::BelowFretboard => vcat!(
+            string_markers + fret_markers + fretboard_body,
+            strut_y(vs * 0.8),
+            title,
+        ),
+    }
 }
 
 // ── empty_board_h ─────────────────────────────────────────────────────────────
 // Horizontal orientation: nut on left, fret lines vertical, strings horizontal.
 
 fn empty_board_h(
-    board_color: HagColor,
+    board_color: Color,
     _fret_style: FretStyle,
     n_frets: usize,
-    edo: u32,
-    period: f64,
+    temperament: Temperament,
     vs: f64,
     hs: f64,
     n_str: usize,
@@ -520,7 +570,7 @@ fn empty_board_h(
     let board_h = h_str + 2.0 * pad;
     // Neck widens by `taper` on each side from nut to body end.
     let taper = h_str * 0.04;
-    let edo_f = edo as f64;
+    let edo_f = temperament.divisions as f64;
     let n_f = n_frets as f64;
 
     // Line widths: mostly based on hs (EDO-independent) with a small vs
@@ -555,8 +605,12 @@ fn empty_board_h(
     // Fret lines at logarithmically-spaced x positions, tapering in height.
     let fret_lines: Diagram = (0..=n_frets)
         .map(|k| {
-            let x = fx(fret_pos(k as f64, n_f, edo_f, period) * board_w);
-            let taper_frac = if left_handed { 1.0 - x / board_w } else { x / board_w };
+            let x = fx(fret_pos(k as f64, n_f, edo_f, temperament.period_f64()) * board_w);
+            let taper_frac = if left_handed {
+                1.0 - x / board_w
+            } else {
+                x / board_w
+            };
             let y_top = -(taper * taper_frac);
             let y_bot = board_h + taper * taper_frac;
             let is_nut = k == 0 && offset == 0;
@@ -591,11 +645,11 @@ fn empty_board_h(
 // ── fretting_dot_h ────────────────────────────────────────────────────────────
 
 fn fretting_dot_h(
-    root_color: HagColor,
-    scale_color: HagColor,
+    root_color: Color,
+    scale_color: Color,
     playing_degrees: &[usize],
     playing_steps: &[i32],
-    display_markers_on_frets: bool,
+    scale_dot_rendering: ScaleDotStyle,
     original_offset: i32,
     vs: f64,
     hs: f64,
@@ -605,8 +659,7 @@ fn fretting_dot_h(
     y_nut: f64,
     y_body: f64,
     n_frets: usize,
-    edo: u32,
-    period: f64,
+    temperament: Temperament,
     board_w: f64,
     left_handed: bool,
 ) -> Diagram {
@@ -628,7 +681,11 @@ fn fretting_dot_h(
 
     // Open-string note: dot outside the nut (left for right-handed, right for left-handed).
     if original_offset == 0 && note.pitch == 0 {
-        let dot_x = fx(if left_handed { board_w + vs * 0.5 } else { -vs * 0.5 });
+        let dot_x = fx(if left_handed {
+            board_w + vs * 0.5
+        } else {
+            -vs * 0.5
+        });
         let sy = y_nut;
         let dot = circle(radius).fc(color).lw(0.0).translate(dot_x, sy);
         let label_size = radius * 1.1;
@@ -642,8 +699,9 @@ fn fretting_dot_h(
 
     let k = note.pitch as f64;
     let n = n_frets as f64;
-    let edo_f = edo as f64;
-    let dot_x_raw = if display_markers_on_frets {
+    let edo_f = temperament.divisions as f64;
+    let period = temperament.period_f64();
+    let dot_x_raw = if scale_dot_rendering.display_markers_on_frets {
         fret_pos(k, n, edo_f, period) * board_w
     } else {
         let x_prev = fret_pos((k - 1.0).max(0.0), n, edo_f, period) * board_w;
@@ -665,7 +723,7 @@ fn fretting_dot_h(
 
 // ── fret_marker_dots ─────────────────────────────────────────────────────────
 
-const MARKER_COLOR: HagColor = HagColor::rgb(0.72, 0.72, 0.72);
+const MARKER_COLOR: Color = Color::rgb(0.72, 0.72, 0.72);
 
 /// Render neck position markers (inlays) for a vertical board.
 /// Markers sit centered horizontally between adjacent fret lines.
@@ -676,7 +734,7 @@ fn fret_marker_dots_v(
     n_frets: usize,
     offset: u32,
     n_str: usize,
-    display_markers_on_frets: bool,
+    scale_dot_rendering: ScaleDotStyle,
 ) -> Diagram {
     if n_str < 2 {
         return Diagram::empty();
@@ -694,7 +752,7 @@ fn fret_marker_dots_v(
                 return None;
             }
             let a = adjusted as f64;
-            let dot_y = if display_markers_on_frets {
+            let dot_y = if scale_dot_rendering.display_markers_on_frets {
                 a * vs
             } else {
                 (a - 0.5) * vs
@@ -726,10 +784,9 @@ fn fret_marker_dots_h(
     n_frets: usize,
     offset: u32,
     n_str: usize,
-    display_markers_on_frets: bool,
+    scale_dot_rendering: ScaleDotStyle,
     board_w: f64,
-    edo: u32,
-    period: f64,
+    temperament: Temperament,
     left_handed: bool,
 ) -> Diagram {
     if n_str < 2 {
@@ -740,7 +797,7 @@ fn fret_marker_dots_h(
     let cy = pad + (n_str as f64 - 1.0) * hs / 2.0; // vertical centre of neck
     let r = hs * 0.15;
     let n_f = n_frets as f64;
-    let edo_f = edo as f64;
+    let edo_f = temperament.divisions as f64;
 
     markers
         .iter()
@@ -750,11 +807,11 @@ fn fret_marker_dots_h(
                 return None;
             }
             let a = adjusted as f64;
-            let dot_x = fx(if display_markers_on_frets {
-                fret_pos(a, n_f, edo_f, period) * board_w
+            let dot_x = fx(if scale_dot_rendering.display_markers_on_frets {
+                fret_pos(a, n_f, edo_f, temperament.period_f64()) * board_w
             } else {
-                let x0 = fret_pos(a - 1.0, n_f, edo_f, period) * board_w;
-                let x1 = fret_pos(a, n_f, edo_f, period) * board_w;
+                let x0 = fret_pos(a - 1.0, n_f, edo_f, temperament.period_f64()) * board_w;
+                let x1 = fret_pos(a, n_f, edo_f, temperament.period_f64()) * board_w;
                 (x0 + x1) / 2.0
             });
             Some(match kind {
@@ -778,8 +835,6 @@ fn fret_marker_dots_h(
 // ── board_horizontal ──────────────────────────────────────────────────────────
 
 fn board_horizontal(
-    colors: &DiagramColors,
-    fret_style: FretStyle,
     scale_name: &str,
     key: i32,
     scale: &Scale,
@@ -802,10 +857,10 @@ fn board_horizontal(
         return Diagram::empty();
     }
 
-    let root_color = to_hag(&colors.root);
-    let scale_color = to_hag(&colors.scale);
-    let board_color = to_hag(&colors.board);
-    let label_color = to_hag(&colors.label);
+    let root_color = style.colors.root;
+    let scale_color = style.colors.scale;
+    let board_color = style.colors.board;
+    let label_color = style.colors.label;
     let pad = hs * NECK_PAD;
     let board_w = n_frets as f64 * vs;
     let h_str = (n_str as f64 - 1.0).max(0.0) * hs;
@@ -854,7 +909,7 @@ fn board_horizontal(
                     scale_color,
                     playing_degrees,
                     playing_steps,
-                    style.display_markers_on_frets,
+                    style.scale_dots,
                     offset,
                     vs,
                     hs,
@@ -862,8 +917,7 @@ fn board_horizontal(
                     y_nut,
                     y_body,
                     n_frets,
-                    style.edo,
-                    style.period,
+                    tuning.temperament.clone(),
                     board_w,
                     left_handed,
                 )
@@ -878,18 +932,16 @@ fn board_horizontal(
         n_frets,
         style.fret_offset,
         n_str,
-        style.display_markers_on_frets,
+        style.scale_dots,
         board_w,
-        style.edo,
-        style.period,
+        tuning.temperament.clone(),
         left_handed,
     );
     let fretboard_body = empty_board_h(
         board_color,
-        fret_style,
+        style.fret,
         n_frets,
-        style.edo,
-        style.period,
+        tuning.temperament.clone(),
         vs,
         hs,
         n_str,
@@ -903,9 +955,17 @@ fn board_horizontal(
     // Open-string dots sit just outside the nut; push string names further out.
     // For left-handed, "outside" is to the right (x > board_w).
     let string_name_x = if left_handed {
-        if has_open_dots { board_w + vs * 1.0 } else { board_w + vs * 0.65 }
+        if has_open_dots {
+            board_w + vs * 1.0
+        } else {
+            board_w + vs * 0.65
+        }
     } else {
-        if has_open_dots { -vs * 1.0 } else { -vs * 0.65 }
+        if has_open_dots {
+            -vs * 1.0
+        } else {
+            -vs * 0.65
+        }
     };
     let string_markers: Diagram = if has_names {
         tuning
@@ -932,9 +992,9 @@ fn board_horizontal(
         // Place labels above the highest point of the tapered top edge (-taper)
         // with enough clearance for the text height (note_fs).
         let label_y = -(taper + note_fs * 1.0);
-        let edo_f = style.edo as f64;
+        let edo_f = tuning.temperament.divisions as f64;
         let n_f = n_frets as f64;
-        let per = style.period;
+        let per = tuning.temperament.period_f64();
 
         let fx = |x: f64| if left_handed { board_w - x } else { x };
         (0..n_frets).fold(Diagram::empty(), |acc, i| {
@@ -955,7 +1015,7 @@ fn board_horizontal(
         Diagram::empty()
     };
 
-    // ── Title (centered above the diagram) ────────────────────────────────────
+    // ── Title ────────────────────────────────────
     let title_text = if has_names {
         format!("{} {}", display_note(key, note_names), scale_name)
     } else {
@@ -963,7 +1023,11 @@ fn board_horizontal(
     };
     let title_font = note_font(&title_text);
     let title_y = if has_names {
-        if has_open_dots { -hs * 1.6 } else { -hs * 1.1 }
+        if has_open_dots {
+            -hs * 1.6
+        } else {
+            -hs * 1.1
+        }
     } else {
         -hs * 0.55
     };
@@ -973,5 +1037,13 @@ fn board_horizontal(
         .font_family(title_font)
         .translate(board_w / 2.0, title_y);
 
-    title + string_markers + fret_markers + fretboard_body
+    match style.title {
+        TitleStyle::None => string_markers + fret_markers + fretboard_body,
+        TitleStyle::AboveFretboard => vcat!(title, string_markers + fret_markers + fretboard_body),
+        TitleStyle::BelowFretboard => vcat!(
+            string_markers + fret_markers + fretboard_body,
+            strut_y(vs * 0.8),
+            title,
+        ),
+    }
 }

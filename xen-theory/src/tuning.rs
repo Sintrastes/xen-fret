@@ -1,3 +1,5 @@
+use crate::temperament::Temperament;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum FretMarker {
@@ -24,8 +26,7 @@ pub fn guitar_markers() -> Vec<(u32, FretMarker)> {
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Tuning {
-    #[cfg_attr(feature = "serde", serde(default))]
-    pub temperament_name: String,
+    pub temperament: Temperament,
     pub name: String,
     pub instrument: String,
     /// Pitch of each string in EDO steps from root
@@ -41,7 +42,9 @@ pub struct Tuning {
     pub root_octave: i32,
 }
 
-fn default_root_octave() -> i32 { 2 }
+fn default_root_octave() -> i32 {
+    2
+}
 
 impl Tuning {
     /// Compute the Hz of EDO step 0 (A in 12-TET) for this tuning's register.

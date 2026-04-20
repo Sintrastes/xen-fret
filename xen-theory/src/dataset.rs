@@ -1,7 +1,7 @@
 use crate::chord::Chord;
 use crate::notation::{Accidental, AccidentalPosition, Natural, NotationSystem};
 use crate::scale::Scale;
-use crate::temperament::Temperament;
+use crate::temperament::{Temperament, edo};
 use crate::tuning::{guitar_markers, Tuning};
 
 ///
@@ -23,11 +23,7 @@ impl TemperamentBundle {
 fn default_bundles() -> Vec<TemperamentBundle> {
     vec![
         TemperamentBundle {
-            temperament: Temperament {
-                name: "11-TET".into(),
-                divisions: 11,
-                period: (2, 1),
-            },
+            temperament: edo(11),
             notation_systems: vec![NotationSystem {
                 temperament_name: "11-TET".into(),
                 // 11edo: 6 naturals spanning the octave, each 2 steps apart (except last gap of 1).
@@ -60,7 +56,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "11-TET".into(),
+                    temperament: edo(11),
                     name: "Wide Fourths Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     string_tunings: vec![0, 5, 10, 15, 20, 25],
@@ -69,7 +65,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "11-TET".into(),
+                    temperament: edo(11),
                     name: "Major Thirds Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     string_tunings: vec![0, 4, 8, 12, 16, 20],
@@ -78,7 +74,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "11-TET".into(),
+                    temperament: edo(11),
                     name: "Wide Fourths Tuning".into(),
                     instrument: "Four-String Bass Guitar".into(),
                     string_tunings: vec![0, 5, 10, 15],
@@ -87,7 +83,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "11-TET".into(),
+                    temperament: edo(11),
                     name: "Major Thirds Tuning".into(),
                     instrument: "Four-String Bass Guitar".into(),
                     string_tunings: vec![0, 4, 8, 120],
@@ -98,11 +94,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "12-TET".into(),
-                divisions: 12,
-                period: (2, 1),
-            },
+            temperament: edo(12),
             notation_systems: vec![NotationSystem {
                 temperament_name: "12-TET".into(),
                 name: "".into(),
@@ -145,7 +137,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "Standard Tuning".into(),
                     instrument: "Mandolin".into(),
                     // fmap (+10) $ 0 :| [7, 14, 21]
@@ -155,7 +147,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 3, // G3
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "Standard Tuning".into(),
                     instrument: "Ukulele".into(),
                     // fmap (+3) $ 7 :| [0, 4, 9]
@@ -165,7 +157,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 4, // re-entrant G tuning; lowest sounding is C4
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "Standard Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+7) $ 0 :| [5, 10, 15, 19, 24]
@@ -175,7 +167,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2, // E2
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "Standard Tuning".into(),
                     instrument: "Four-String Bass Guitar".into(),
                     // fmap (+7) $ 0 :| [5, 10, 15]
@@ -185,7 +177,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 1, // E1
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "Standard Tuning".into(),
                     instrument: "Seven-String Guitar".into(),
                     // fmap (+2) $ 0 :| [5, 10, 15, 20, 14, 29]
@@ -195,7 +187,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 1, // B1
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "Drop D".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+5) $ 0 :| [7, 12, 17, 21, 26]
@@ -205,7 +197,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2, // D2
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "DADGAD".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+5) $ 0 :| [7, 12, 17, 19, 24]
@@ -215,7 +207,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2, // D2
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "All Fourths".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+7) $ 0 :| [5, 10, 15, 20, 25]
@@ -225,7 +217,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2, // E2
                 },
                 Tuning {
-                    temperament_name: "12-TET".into(),
+                    temperament: edo(12),
                     name: "All Fifths".into(),
                     instrument: "Six-String Guitar".into(),
                     string_tunings: vec![0, 7, 14, 21, 28, 35],
@@ -236,11 +228,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "13-TET".into(),
-                divisions: 13,
-                period: (2, 1),
-            },
+            temperament: edo(13),
             notation_systems: vec![NotationSystem {
                 temperament_name: "13-TET".into(),
                 // 13edo: 8 naturals (Oneirotonic / Dylathian notation from Xen Wiki).
@@ -276,7 +264,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 },
             ],
             tunings: vec![Tuning {
-                temperament_name: "13-TET".into(),
+                temperament: edo(13),
                 name: "Oneirotonic Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 string_tunings: vec![3, 8, 14, 19, 24, 29],
@@ -286,11 +274,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "14-TET".into(),
-                divisions: 14,
-                period: (2, 1),
-            },
+            temperament: edo(14),
             notation_systems: vec![NotationSystem {
                 temperament_name: "14-TET".into(),
                 // 14edo: 7 naturals from A=0, each 2 steps apart (whole-tone EDO character).
@@ -320,7 +304,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "14-TET".into(), name: "Semiquartal".into(), intervals: vec![2, 1, 2, 1, 2, 1, 2, 1, 2] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "14-TET".into(),
+                temperament: edo(14),
                 name: "Wide Fourths Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 string_tunings: vec![0, 5, 10, 15, 20, 25],
@@ -330,11 +314,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "15-TET".into(),
-                divisions: 15,
-                period: (2, 1),
-            },
+            temperament: edo(15),
             notation_systems: vec![
                 NotationSystem {
                     temperament_name: "15-TET".into(),
@@ -399,7 +379,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "15-TET".into(), name: "Porcupine bright harmonic 11th".into(), intervals: vec![3, 2, 2, 2, 2, 1, 3] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "15-TET".into(),
+                temperament: edo(15),
                 name: "All Fourths Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 string_tunings: vec![0, 5, 10, 15, 20, 25],
@@ -409,11 +389,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "16-TET".into(),
-                divisions: 16,
-                period: (2, 1),
-            },
+            temperament: edo(16),
             notation_systems: vec![NotationSystem {
                 temperament_name: "16-TET".into(),
                 name: "Standard".into(),
@@ -447,7 +423,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "16-TET".into(),
+                    temperament: edo(16),
                     name: "Wide Fourths Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+9) $ 0 :| [7, 14, 21, 28, 35]
@@ -457,7 +433,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "16-TET".into(),
+                    temperament: edo(16),
                     name: "Diminished Fourths Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+9) $ 0 :| [6, 12, 18, 24, 30]
@@ -467,7 +443,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "16-TET".into(),
+                    temperament: edo(16),
                     name: "Wide Fourths Tuning (7 String)".into(),
                     instrument: "Seven-String Guitar".into(),
                     // fmap (+9) $ 0 :| [7, 14, 21, 28, 35, 40]
@@ -477,7 +453,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "16-TET".into(),
+                    temperament: edo(16),
                     name: "Diminished Fourths Tuning (7 String)".into(),
                     instrument: "Seven-String Guitar".into(),
                     // fmap (+2) $ 0 :| [6, 12, 18, 24, 30, 36]
@@ -489,11 +465,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "17-TET".into(),
-                divisions: 17,
-                period: (2, 1),
-            },
+            temperament: edo(17),
             notation_systems: vec![NotationSystem {
                 temperament_name: "17-TET".into(),
                 name: "Standard".into(),
@@ -540,7 +512,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "17-TET".into(),
+                    temperament: edo(17),
                     name: "Standard Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+10) $ 0 :| [7, 14, 21, 27, 34]
@@ -550,7 +522,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "17-TET".into(),
+                    temperament: edo(17),
                     name: "All Fourths".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+10) $ 0 :| [7, 14, 21, 28, 35]
@@ -562,11 +534,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "18-TET".into(),
-                divisions: 18,
-                period: (2, 1),
-            },
+            temperament: edo(18),
             notation_systems: vec![NotationSystem {
                 temperament_name: "18-TET".into(),
                 name: "".into(),
@@ -599,7 +567,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "18-TET".into(), name: "Taric".into(), intervals: vec![2, 2, 1, 2, 2, 2, 2, 1, 2, 2] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "18-TET".into(),
+                temperament: edo(18),
                 name: "Wide Fourths".into(),
                 instrument: "Six-String Guitar".into(),
                 string_tunings: vec![0, 8, 16, 24, 32, 40],
@@ -609,11 +577,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "19-TET".into(),
-                divisions: 19,
-                period: (2, 1),
-            },
+            temperament: edo(19),
             notation_systems: vec![NotationSystem {
                 temperament_name: "19-TET".into(),
                 name: "Standard".into(),
@@ -652,7 +616,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "19-TET".into(), name: "liese[9]".into(), intervals: vec![6, 1, 1, 1, 6, 1, 1, 1, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "19-TET".into(),
+                temperament: edo(19),
                 name: "Standard Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 // fmap (+11) $ 0 :| [8, 16, 24, 30, 38]
@@ -663,11 +627,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "20-TET".into(),
-                divisions: 20,
-                period: (2, 1),
-            },
+            temperament: edo(20),
             notation_systems: vec![NotationSystem {
                 temperament_name: "20-TET".into(),
                 // 20edo standard diatonic notation.
@@ -713,7 +673,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "20-TET".into(), name: "Mavilla[7]".into(), intervals: vec![5, 2, 2, 5, 2, 2, 2] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "20-TET".into(),
+                temperament: edo(20),
                 name: "Flat Forths".into(),
                 instrument: "Six-String Guitar".into(),
                 string_tunings: vec![0, 8, 16, 24, 32, 40],
@@ -723,11 +683,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "21-TET".into(),
-                divisions: 21,
-                period: (2, 1),
-            },
+            temperament: edo(21),
             notation_systems: vec![NotationSystem {
                 temperament_name: "21-TET".into(),
                 // 21edo: 7 naturals using the oneirotonic/smitonic diatonic structure.
@@ -778,7 +734,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "21-TET".into(), name: "RH Diasem Locrian".into(), intervals: vec![2, 3, 1, 3, 2, 3, 1, 3, 3] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "21-TET".into(),
+                temperament: edo(21),
                 name: "Standard Tuning".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 9, 18, 27, 33, 42],
@@ -788,11 +744,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "22-TET".into(),
-                divisions: 22,
-                period: (2, 1),
-            },
+            temperament: edo(22),
             notation_systems: vec![
                 NotationSystem {
                     temperament_name: "22-TET".into(),
@@ -920,7 +872,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "22-TET".into(),
+                    temperament: edo(22),
                     name: "Standard Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+13) $ 0 :| [9, 18, 27, 35, 44]
@@ -930,7 +882,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "22-TET".into(),
+                    temperament: edo(22),
                     name: "Drop D".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+13) $ 0 :| [5, 18, 27, 35, 44]
@@ -940,7 +892,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "22-TET".into(),
+                    temperament: edo(22),
                     name: "All Fourths Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+13) $ 0 :| [9, 18, 27, 36, 45]
@@ -950,7 +902,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "22-TET".into(),
+                    temperament: edo(22),
                     name: "Narrow Fourths Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+13) $ 0 :| [8, 16, 24, 32, 40]
@@ -960,7 +912,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "22-TET".into(),
+                    temperament: edo(22),
                     name: "Wide Fourths Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+13) $ 0 :| [10, 20, 30, 40, 50]
@@ -972,11 +924,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "23-TET".into(),
-                divisions: 23,
-                period: (2, 1),
-            },
+            temperament: edo(23),
             notation_systems: vec![NotationSystem {
                 temperament_name: "23-TET".into(),
                 // 23edo: 8 naturals using the oneirotonic 5L3s structure [4,1,4,4,1,4,4,1].
@@ -1014,7 +962,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "23-TET".into(), name: "3L 7s (sephiroid)".into(), intervals: vec![3, 2, 2, 3, 2, 2, 3, 2, 2, 2] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "23-TET".into(),
+                temperament: edo(23),
                 name: "Wide Fourths".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 10, 20, 30, 40, 50],
@@ -1024,11 +972,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "24-TET".into(),
-                divisions: 24,
-                period: (2, 1),
-            },
+            temperament: edo(24),
             notation_systems: vec![NotationSystem {
                 temperament_name: "24-TET".into(),
                 name: "Stein (half-sharps)".into(),
@@ -1061,7 +1005,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "24-TET".into(),
+                    temperament: edo(24),
                     name: "Standard Tuning".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+14) $ 0 :| [10, 20, 30, 38, 48]
@@ -1071,7 +1015,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "24-TET".into(),
+                    temperament: edo(24),
                     name: "Drop D".into(),
                     instrument: "Six-String Guitar".into(),
                     // fmap (+12) $ 0 :| [14, 24, 34, 42, 52]
@@ -1083,11 +1027,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "25-TET".into(),
-                divisions: 25,
-                period: (2, 1),
-            },
+            temperament: edo(25),
             notation_systems: vec![NotationSystem {
                 temperament_name: "25-TET".into(),
                 // 25edo: 7-note diatonic mapping. Fifth ≈ 15 steps.
@@ -1129,7 +1069,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "25-TET".into(), name: "Triton[9]".into(), intervals: vec![9, 1, 1, 1, 9, 1, 1, 1, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "25-TET".into(),
+                temperament: edo(25),
                 name: "Standard Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 // E2-A2-D3-G3-B3-E4: P4=10, P4=10, P4=10, M3=8, P4=10
@@ -1141,11 +1081,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "26-TET".into(),
-                divisions: 26,
-                period: (2, 1),
-            },
+            temperament: edo(26),
             notation_systems: vec![NotationSystem {
                 temperament_name: "26-TET".into(),
                 // 26edo flattone meantone notation.  Fifth = 15 steps.
@@ -1174,7 +1110,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "26-TET".into(), name: "Lemba".into(), intervals: vec![5, 5, 3, 5, 5, 3] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "26-TET".into(),
+                temperament: edo(26),
                 name: "All Fourths".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 11, 22, 33, 44, 55],
@@ -1184,11 +1120,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "27-TET".into(),
-                divisions: 27,
-                period: (2, 1),
-            },
+            temperament: edo(27),
             notation_systems: vec![NotationSystem {
                 temperament_name: "27-TET".into(),
                 // 27edo superpyth notation.  Fifth = 16 steps.
@@ -1227,7 +1159,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "27-TET".into(), name: "Fervor[9]".into(), intervals: vec![10, 1, 1, 1, 10, 1, 1, 1, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "27-TET".into(),
+                temperament: edo(27),
                 name: "Standard Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 // E2-A2-D3-G3-B3-E4: P4=11, P4=11, P4=11, M3≈9, P4=11
@@ -1241,11 +1173,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "28-TET".into(),
-                divisions: 28,
-                period: (2, 1),
-            },
+            temperament: edo(28),
             notation_systems: vec![NotationSystem {
                 temperament_name: "28-TET".into(),
                 // 28edo standard diatonic notation.
@@ -1284,7 +1212,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
             tunings: vec![
                 Tuning {
-                    temperament_name: "28-TET".into(),
+                    temperament: edo(28),
                     name: "Wide Fourths".into(),
                     instrument: "Six String Guitar".into(),
                     string_tunings: vec![0, 12, 24, 36, 48, 69],
@@ -1293,7 +1221,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                     root_octave: 2,
                 },
                 Tuning {
-                    temperament_name: "28-TET".into(),
+                    temperament: edo(28),
                     name: "Narrow Fourths".into(),
                     instrument: "Six String Guitar".into(),
                     string_tunings: vec![0, 11, 22, 33, 44, 55],
@@ -1304,11 +1232,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             ],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "29-TET".into(),
-                divisions: 29,
-                period: (2, 1),
-            },
+            temperament: edo(29),
             notation_systems: vec![NotationSystem {
                 temperament_name: "29-TET".into(),
                 // 29edo meantone notation.  Fifth = 17 steps.
@@ -1342,7 +1266,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "29-TET".into(), name: "Leapfrog[7]".into(), intervals: vec![5, 5, 5, 2, 5, 5, 2] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "29-TET".into(),
+                temperament: edo(29),
                 name: "Standard Tuning".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 12, 24, 36, 46, 58],
@@ -1352,11 +1276,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "30-TET".into(),
-                divisions: 30,
-                period: (2, 1),
-            },
+            temperament: edo(30),
             notation_systems: vec![NotationSystem {
                 temperament_name: "30-TET".into(),
                 // 30edo standard diatonic notation (meantone).
@@ -1388,7 +1308,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "30-TET".into(), name: "Mavila[9]".into(), intervals: vec![4, 4, 4, 4, 1, 4, 4, 4, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "30-TET".into(),
+                temperament: edo(30),
                 name: "Narrow Fourths".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 12, 24, 36, 48, 60],
@@ -1398,11 +1318,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "31-TET".into(),
-                divisions: 31,
-                period: (2, 1),
-            },
+            temperament: edo(31),
             notation_systems: vec![NotationSystem {
                 temperament_name: "31-TET".into(),
                 // 31edo meantone notation (Xen Wiki standard).
@@ -1461,7 +1377,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "31-TET".into(), name: "Casablanca[9]".into(), intervals: vec![5, 3, 3, 3, 5, 3, 3, 3, 3] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "31-TET".into(),
+                temperament: edo(31),
                 name: "Standard Tuning".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 13, 26, 39, 49, 62],
@@ -1471,11 +1387,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "32-TET".into(),
-                divisions: 32,
-                period: (2, 1),
-            },
+            temperament: edo(32),
             notation_systems: vec![NotationSystem {
                 temperament_name: "32-TET".into(),
                 // 32edo pajara notation.
@@ -1507,7 +1419,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "32-TET".into(), name: "Antidiatonic".into(), intervals: vec![4, 4, 4, 6, 4, 4, 6] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "32-TET".into(),
+                temperament: edo(32),
                 name: "Wide Fourths".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 14, 28, 42, 56, 70],
@@ -1517,11 +1429,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "33-TET".into(),
-                divisions: 33,
-                period: (2, 1),
-            },
+            temperament: edo(33),
             notation_systems: vec![NotationSystem {
                 temperament_name: "33-TET".into(),
                 // 33edo diatonic notation.
@@ -1557,7 +1465,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "33-TET".into(), name: "5L 3s".into(), intervals: vec![6, 6, 1, 6, 6, 1, 6, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "33-TET".into(),
+                temperament: edo(33),
                 name: "All Fourths".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 14, 28, 42, 56, 70],
@@ -1567,11 +1475,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "34-TET".into(),
-                divisions: 34,
-                period: (2, 1),
-            },
+            temperament: edo(34),
             notation_systems: vec![NotationSystem {
                 temperament_name: "34-TET".into(),
                 // 34edo meantone notation.  Fifth = 20 steps.
@@ -1607,7 +1511,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "34-TET".into(), name: "Mabila[7]".into(), intervals: vec![7, 4, 4, 7, 4, 4, 4] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "34-TET".into(),
+                temperament: edo(34),
                 name: "Standard Tuning".into(),
                 instrument: "Six-String Guitar".into(),
                 // E2-A2-D3-G3-B3-E4: P4=14, P4=14, P4=14, M3≈11, P4=14
@@ -1621,11 +1525,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "35-TET".into(),
-                divisions: 35,
-                period: (2, 1),
-            },
+            temperament: edo(35),
             notation_systems: vec![NotationSystem {
                 temperament_name: "35-TET".into(),
                 // 35edo ups-and-downs notation.  Fifth = 20 steps (close to 34edo meantone).
@@ -1669,7 +1569,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "35-TET".into(), name: "Sensi[11]".into(), intervals: vec![4, 4, 4, 1, 4, 4, 4, 1, 4, 4, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "35-TET".into(),
+                temperament: edo(35),
                 name: "Wide Fourths".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 15, 30, 45, 60, 75],
@@ -1679,11 +1579,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "36-TET".into(),
-                divisions: 36,
-                period: (2, 1),
-            },
+            temperament: edo(36),
             notation_systems: vec![NotationSystem {
                 temperament_name: "36-TET".into(),
                 // 36edo standard diatonic notation (12-TET × 3 = every third step matches 12-TET).
@@ -1711,7 +1607,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "36-TET".into(), name: "Lydian".into(), intervals: vec![6, 6, 6, 3, 6, 6, 3] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "36-TET".into(),
+                temperament: edo(36),
                 name: "Standard Tuning".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 15, 30, 45, 57, 72],
@@ -1721,11 +1617,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "41-TET".into(),
-                divisions: 41,
-                period: (2, 1),
-            },
+            temperament: edo(41),
             notation_systems: vec![NotationSystem {
                 temperament_name: "41-TET".into(),
                 // 41edo ups-and-downs notation (Kite Giedraitis / Xen Wiki standard).
@@ -1767,7 +1659,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "41-TET".into(), name: "Down Locrian".into(), intervals: vec![2, 8, 7, 3, 6, 8, 7] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "41-TET".into(),
+                temperament: edo(41),
                 name: "Standard Tuning".into(),
                 instrument: "Kite Guitar".into(),
                 string_tunings: vec![0, 13, 26, 39, 52, 65],
@@ -1777,11 +1669,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
             }],
         },
         TemperamentBundle {
-            temperament: Temperament {
-                name: "Bohlen Pierce".into(),
-                divisions: 13,
-                period: (3, 1),
-            },
+            temperament: Temperament::bohlen_pierce(),
             notation_systems: vec![NotationSystem {
                 temperament_name: "Bohlen Pierce".into(),
                 name: "Standard".into(),
@@ -1820,7 +1708,7 @@ fn default_bundles() -> Vec<TemperamentBundle> {
                 Scale { temperament_name: "Bohlen Pierce".into(), name: "Arcturus[7]".into(), intervals: vec![4, 1, 1, 4, 1, 1, 1] },
             ],
             tunings: vec![Tuning {
-                temperament_name: "Bohlen Pierce".into(),
+                temperament: Temperament::bohlen_pierce(),
                 name: "Bohlen's Tuning".into(),
                 instrument: "Six String Guitar".into(),
                 string_tunings: vec![0, 3, 6, 9, 13, 16],

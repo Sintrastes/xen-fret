@@ -3,6 +3,7 @@ members = [
     "app/dioxus_frontend",
     "app/common",
     "app/gtk_frontend",
+    "app/uniffi_frontend_lib",
     "icon-gen",
     "xen-theory",
     "xen-dsp",

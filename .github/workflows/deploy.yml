@@ -52,7 +52,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: target/dx/xen-fret-app/release/web/public
+          path: target/dx/xen-fret/release/web/public
 
   deploy-web:
     name: Deploy (GitHub Pages)
@@ -89,24 +89,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libxdo-dev
-
-      - name: Install dioxus-cli
-        run: cargo install dioxus-cli --version "^0.7" --locked
+            libgtk-4-dev \
+            libadwaita-1-dev \
+            librsvg2-dev
 
       - name: Build
-        working-directory: app/dioxus_frontend
-        run: dx build --release --platform desktop
+        run: cargo build --release -p xen-fret-gtk
 
       - uses: actions/upload-artifact@v4
         with:
           name: xen-fret-linux
-          path: target/dx/xen-fret-app/release/desktop/
+          path: target/release/xen-fret-gtk
 
   # ── Desktop — Windows ─────────────────────────────────────────────────────────
 
@@ -137,7 +130,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: xen-fret-windows
-          path: target/dx/xen-fret-app/release/desktop/
+          path: target/dx/xen-fret/release/desktop/
 
   # ── Desktop — macOS ───────────────────────────────────────────────────────────
 
@@ -168,7 +161,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: xen-fret-macos
-          path: target/dx/xen-fret-app/release/desktop/
+          path: target/dx/xen-fret/release/desktop/
 
   # ── Mobile — iOS ──────────────────────────────────────────────────────────────
 
@@ -201,7 +194,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: xen-fret-ios
-          path: target/dx/xen-fret-app/release/ios/
+          path: target/dx/xen-fret/release/ios/
 
   # ── Mobile — Android ──────────────────────────────────────────────────────────
 
@@ -218,7 +211,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@nightly
         with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
       - uses: actions/cache@v4
         with:
@@ -229,14 +222,14 @@ jobs:
           key: android-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: android-
 
-      - name: Install dioxus-cli
-        run: cargo install dioxus-cli --version "^0.7" --locked
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
 
       - name: Build
-        working-directory: app/dioxus_frontend
-        run: dx build --release --platform android
+        working-directory: app/android
+        run: ./gradlew assembleRelease
 
       - uses: actions/upload-artifact@v4
         with:
           name: xen-fret-android
-          path: target/dx/xen-fret-app/release/android/
+          path: app/android/app/build/outputs/apk/release/

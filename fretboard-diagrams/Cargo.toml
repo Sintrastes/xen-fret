@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:serde", "hagoromo/serde"]
 
 [dependencies]
-hagoromo = "0.1"
+hagoromo = "0.3.0"
 xen-theory = { path = "../xen-theory" }
 serde = { version = "1", features = ["derive"], optional = true }

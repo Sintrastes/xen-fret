@@ -17,7 +17,16 @@ pub struct Instrument {
 }
 
 pub fn default_instrument_types() -> &'static [&'static str] {
-    &["Guitar", "Bass Guitar", "Mandolin", "Ukulele", "Banjo", "Oud", "Koto", "Other"]
+    &[
+        "Guitar",
+        "Bass Guitar",
+        "Mandolin",
+        "Ukulele",
+        "Banjo",
+        "Oud",
+        "Koto",
+        "Other",
+    ]
 }
 
 pub fn default_string_count(instrument_type: &str) -> u32 {
@@ -43,9 +52,12 @@ pub fn suggest_tuning(
     num_strings: u32,
 ) -> Vec<i32> {
     if let Some(tu) = tunings.iter().find(|tu| {
-        tu.temperament_name == temp_name
+        tu.temperament.name == temp_name
             && tu.string_tunings.len() == num_strings as usize
-            && tu.instrument.to_lowercase().contains(&instrument_type.to_lowercase())
+            && tu
+                .instrument
+                .to_lowercase()
+                .contains(&instrument_type.to_lowercase())
     }) {
         return tu.string_tunings.clone();
     }
