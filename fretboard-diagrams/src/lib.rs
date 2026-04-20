@@ -967,7 +967,7 @@ fn board_horizontal(
             -vs * 0.65
         }
     };
-    let string_markers: Diagram = if has_names {
+    let string_markers: Diagram = if has_names && style.display_string_names {
         tuning
             .string_tunings
             .iter()
@@ -987,7 +987,7 @@ fn board_horizontal(
     };
 
     // ── Fret markers (above neck) ─────────────────────────────────────────────
-    let fret_markers: Diagram = if has_names {
+    let fret_markers: Diagram = if has_names && style.fret_markers != FretMarkerStyle::None {
         let lowest = tuning.string_tunings.first().copied().unwrap_or(0);
         // Place labels above the highest point of the tapered top edge (-taper)
         // with enough clearance for the text height (note_fs).
@@ -1000,7 +1000,12 @@ fn board_horizontal(
         (0..n_frets).fold(Diagram::empty(), |acc, i| {
             // For left-handed, fret labels are mirrored: fret 1 is near the right end.
             let fret_idx = if left_handed { n_frets - 1 - i } else { i };
-            let name = display_note(offset + lowest + fret_idx as i32 + 1, note_names);
+            let fret_number = offset + lowest + fret_idx as i32 + 1;
+            let name = if style.fret_markers == FretMarkerStyle::DisplayNoteNames {
+                display_note(fret_number, note_names)
+            } else {
+                fret_number.to_string()
+            };
             // Center the label in the fret cell between fret i and fret i+1.
             let x_lo = fx(fret_pos(i as f64, n_f, edo_f, per) * board_w);
             let x_hi = fx(fret_pos((i + 1) as f64, n_f, edo_f, per) * board_w);
