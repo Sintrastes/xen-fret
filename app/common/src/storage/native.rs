@@ -8,10 +8,21 @@ use crate::state::AppState;
 
 static DB: OnceLock<DbInstance> = OnceLock::new();
 
+/// Explicit data-dir override — set this before first DB access (e.g. from UniFFI init on Android)
+/// to bypass ndk_context / JNI entirely.
+static DATA_DIR_OVERRIDE: OnceLock<std::path::PathBuf> = OnceLock::new();
+
+pub fn set_data_dir(path: std::path::PathBuf) {
+    let _ = DATA_DIR_OVERRIDE.set(path);
+}
+
 /// Returns the directory where the app's database should live.
 /// On Android, `dirs::data_dir()` resolves to an inaccessible path; use JNI instead.
 #[cfg(target_os = "android")]
 fn db_dir() -> std::path::PathBuf {
+    if let Some(dir) = DATA_DIR_OVERRIDE.get() {
+        return dir.clone();
+    }
     use jni::objects::JString;
     use jni::JavaVM;
 
@@ -42,6 +53,9 @@ fn db_dir() -> std::path::PathBuf {
 
 #[cfg(not(target_os = "android"))]
 fn db_dir() -> std::path::PathBuf {
+    if let Some(dir) = DATA_DIR_OVERRIDE.get() {
+        return dir.clone();
+    }
     dirs::data_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
         .join("xen-fret")

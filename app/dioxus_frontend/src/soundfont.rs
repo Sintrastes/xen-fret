@@ -44,8 +44,13 @@ pub fn is_available() -> bool {
 
 /// Load the SF2 that was embedded at compile time via `include_bytes!`.
 fn load_bundled() -> Option<Arc<SoundFont>> {
-    let bytes: &[u8] = include_bytes!("../assets/soundfont.sf2");
-    load_from_bytes(bytes)
+    #[cfg(has_soundfont)]
+    {
+        let bytes: &[u8] = include_bytes!("../assets/soundfont.sf2");
+        return load_from_bytes(bytes);
+    }
+    #[cfg(not(has_soundfont))]
+    None
 }
 
 /// Parse an SF2 from raw bytes.  Returns `None` if too small or invalid.

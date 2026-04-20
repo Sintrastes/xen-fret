@@ -5,9 +5,10 @@ use app_common::{
 use glib::SignalHandlerId;
 use relm4::{
     adw::{self, prelude::*},
-    gtk::{self, glib, prelude::*},
+    gtk::{self, glib},
     ComponentParts, ComponentSender, SimpleComponent,
 };
+use xen_theory::instrument::{default_instrument_types, default_string_count, Instrument};
 
 pub struct AppModel {
     state: AppState,
@@ -28,6 +29,7 @@ pub enum AppMsg {
     KeyChanged(f64),
     FretOffsetChanged(f64),
     DiagramReady(Vec<u8>, u32, u32),
+    AddInstrumentConfirmed(Instrument),
 }
 
 impl AppModel {
@@ -80,8 +82,8 @@ impl AppModel {
 
 pub struct AppWidgets {
     #[allow(dead_code)]
+    window: adw::ApplicationWindow,
     instrument_dd: gtk::DropDown,
-    #[allow(dead_code)]
     instrument_sig: SignalHandlerId,
     sc_label: gtk::Label,
     sc_dd: gtk::DropDown,
@@ -111,7 +113,10 @@ impl SimpleComponent for AppModel {
         root: Self::Root,
         sender: ComponentSender<Self>,
     ) -> ComponentParts<Self> {
-        let state = storage::load();
+        let mut state = storage::load();
+        if state.selected_instrument_idx.is_none() && !state.instruments.is_empty() {
+            state.select_instrument(0);
+        }
         let mut model = AppModel {
             state,
             instrument_names: vec![],
@@ -146,7 +151,19 @@ impl SimpleComponent for AppModel {
         let instrument_label = gtk::Label::builder()
             .label("Instrument")
             .halign(gtk::Align::Start)
+            .hexpand(true)
             .build();
+        let add_instrument_btn = gtk::Button::builder()
+            .icon_name("list-add-symbolic")
+            .tooltip_text("Add instrument")
+            .css_classes(["flat", "circular"])
+            .build();
+        let instrument_header = gtk::Box::builder()
+            .orientation(gtk::Orientation::Horizontal)
+            .build();
+        instrument_header.append(&instrument_label);
+        instrument_header.append(&add_instrument_btn);
+
         let instrument_dd = gtk::DropDown::builder().hexpand(true).build();
 
         let sep1 = gtk::Separator::new(gtk::Orientation::Horizontal);
@@ -229,7 +246,7 @@ impl SimpleComponent for AppModel {
             .margin_start(12)
             .margin_end(12)
             .build();
-        sidebar_box.append(&instrument_label);
+        sidebar_box.append(&instrument_header);
         sidebar_box.append(&instrument_dd);
         sidebar_box.append(&sep1);
         sidebar_box.append(&mode_box);
@@ -339,6 +356,95 @@ impl SimpleComponent for AppModel {
 
         root.set_content(Some(&toolbar_view));
 
+        // ── Add-instrument dialog ─────────────────────────────────────────
+
+        {
+            let root_ref = root.clone();
+            let temperament_names: Vec<String> = model
+                .state
+                .temperaments
+                .iter()
+                .map(|t| t.name.clone())
+                .collect();
+            let s = sender.clone();
+            add_instrument_btn.connect_clicked(move |_| {
+                let dialog = adw::AlertDialog::new(Some("Add Instrument"), None);
+                dialog.add_response("cancel", "Cancel");
+                dialog.add_response("add", "Add");
+                dialog.set_default_response(Some("add"));
+                dialog.set_response_appearance("add", adw::ResponseAppearance::Suggested);
+
+                let prefs = adw::PreferencesGroup::new();
+
+                let name_row = adw::EntryRow::builder().title("Name").build();
+
+                let type_strs: Vec<&str> = default_instrument_types().to_vec();
+                let type_model = gtk::StringList::new(&type_strs);
+                let type_row = adw::ComboRow::builder().title("Type").build();
+                type_row.set_model(Some(&type_model));
+
+                let strings_row = adw::SpinRow::with_range(1.0, 20.0, 1.0);
+                strings_row.set_title("Strings");
+                strings_row.set_value(6.0);
+
+                let frets_row = adw::SpinRow::with_range(1.0, 48.0, 1.0);
+                frets_row.set_title("Frets");
+                frets_row.set_value(24.0);
+
+                let temp_strs: Vec<&str> = temperament_names.iter().map(|t| t.as_str()).collect();
+                let temp_model = gtk::StringList::new(&temp_strs);
+                let temp_row = adw::ComboRow::builder().title("Temperament").build();
+                temp_row.set_model(Some(&temp_model));
+
+                // Auto-update string count when instrument type changes.
+                {
+                    let strings_row2 = strings_row.clone();
+                    type_row.connect_selected_notify(move |row| {
+                        let types = default_instrument_types();
+                        if let Some(t) = types.get(row.selected() as usize) {
+                            strings_row2.set_value(default_string_count(t) as f64);
+                        }
+                    });
+                }
+
+                prefs.add(&name_row);
+                prefs.add(&type_row);
+                prefs.add(&temp_row);
+                prefs.add(&strings_row);
+                prefs.add(&frets_row);
+                dialog.set_extra_child(Some(&prefs));
+
+                let s2 = s.clone();
+                let temp_names2 = temperament_names.clone();
+                dialog.connect_response(None, move |_, response| {
+                    if response != "add" {
+                        return;
+                    }
+                    let types = default_instrument_types();
+                    let type_idx = type_row.selected() as usize;
+                    let temp_idx = temp_row.selected() as usize;
+                    s2.input(AppMsg::AddInstrumentConfirmed(Instrument {
+                        name: name_row.text().to_string(),
+                        instrument_type: types
+                            .get(type_idx)
+                            .copied()
+                            .unwrap_or("Other")
+                            .to_string(),
+                        temperament_name: temp_names2
+                            .get(temp_idx)
+                            .cloned()
+                            .unwrap_or_default(),
+                        num_strings: strings_row.value() as u32,
+                        num_frets: frets_row.value() as u32,
+                        fret_markers: vec![],
+                        left_handed: None,
+                    }));
+                });
+
+                dialog.present(Some(&root_ref));
+            });
+        }
+
         // ── Wire dropdown signals ─────────────────────────────────────────
 
         let instrument_sig = instrument_dd.connect_selected_notify(glib::clone!(
@@ -421,6 +527,7 @@ impl SimpleComponent for AppModel {
         }
 
         let widgets = AppWidgets {
+            window: root.clone(),
             instrument_dd,
             instrument_sig,
             sc_label,
@@ -464,12 +571,26 @@ impl SimpleComponent for AppModel {
             AppMsg::FretOffsetChanged(v) => {
                 self.state.diagram_settings.fret_offset = v as u32;
             }
+            AppMsg::AddInstrumentConfirmed(instrument) => {
+                self.state.instruments.push(instrument);
+                self.state.selected_instrument_idx =
+                    Some(self.state.instruments.len() - 1);
+                self.rebuild_derived();
+            }
         }
         storage::save(&self.state);
         self.needs_render.set(true);
     }
 
     fn update_view(&self, widgets: &mut Self::Widgets, sender: ComponentSender<Self>) {
+        // Repopulate instrument dropdown
+        Self::repopulate(
+            &widgets.instrument_dd,
+            &widgets.instrument_sig,
+            &self.instrument_names,
+            self.state.selected_instrument_idx.unwrap_or(0),
+        );
+
         // Sync mode label
         widgets
             .sc_label

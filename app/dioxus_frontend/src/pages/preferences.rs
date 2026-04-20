@@ -1,6 +1,6 @@
 use crate::components::{ColorPicker, Combobox, Select};
-use app_common::preferences::{FretStyle, PitchDetectorKind, ThemeMode};
 use crate::state::APP_STATE;
+use app_common::preferences::{FretStyle, PitchDetectorKind, ThemeMode};
 use dioxus::prelude::*;
 
 #[component]
@@ -332,10 +332,10 @@ pub fn Preferences() -> Element {
                                 r#type: "number",
                                 min: "1",
                                 max: "24",
-                                value: "{settings.num_frets}",
+                                value: "{settings.fretboard_style.num_frets}",
                                 onchange: move |e| {
                                     if let Ok(v) = e.value().parse::<u32>() {
-                                        APP_STATE.write().diagram_settings.num_frets = v;
+                                        APP_STATE.write().diagram_settings.fretboard_style.num_frets = v;
                                     }
                                 }
                             }
@@ -350,10 +350,11 @@ pub fn Preferences() -> Element {
                                 r#type: "number",
                                 min: "50",
                                 max: "500",
-                                value: "{settings.vertical_spacing}",
+                                value: "{settings.fretboard_style.vertical_spacing}",
                                 onchange: move |e| {
                                     if let Ok(v) = e.value().parse::<u32>() {
-                                        APP_STATE.write().diagram_settings.vertical_spacing = v;
+
+                                        // APP_STATE.write().fretboard_style.vertical_spacing = v;
                                     }
                                 }
                             }
@@ -365,10 +366,11 @@ pub fn Preferences() -> Element {
                                 r#type: "number",
                                 min: "50",
                                 max: "500",
-                                value: "{settings.horizontal_spacing}",
+                                value: "{settings.fretboard_style.horizontal_spacing}",
                                 onchange: move |e| {
                                     if let Ok(v) = e.value().parse::<u32>() {
-                                        APP_STATE.write().diagram_settings.horizontal_spacing = v;
+                                        // TODO
+                                        // APP_STATE.write().fretboard_style.horizontal_spacing = v;
                                     }
                                 }
                             }
@@ -380,9 +382,10 @@ pub fn Preferences() -> Element {
                         label { class: "toggle",
                             input {
                                 r#type: "checkbox",
-                                checked: settings.display_markers,
+                                checked: settings.fretboard_style.scale_dots.display_markers_on_frets,
                                 onchange: move |e| {
-                                    APP_STATE.write().diagram_settings.display_markers = e.checked();
+                                    // TODO
+                                    // APP_STATE.write().diagram_settings.fretboard_style.display_markers = e.checked();
                                 }
                             }
                             span { class: "toggle-slider" }
@@ -418,4 +421,3 @@ pub fn Preferences() -> Element {
         }
     }
 }
-

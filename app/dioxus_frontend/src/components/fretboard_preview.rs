@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
+use crate::state::{DiagramMode, APP_STATE};
 use fretboard_diagrams::{render_board, FretboardStyle};
 use xen_theory::scale::Scale;
-use crate::state::{APP_STATE, DiagramMode};
 
 // Ensure Bravura is bundled and served. asset!() registers the file with the
 // dev server and gives a content-hashed URL in release builds.
@@ -19,13 +19,15 @@ pub fn FretboardPreview(
     let state = APP_STATE.read();
 
     let prefs = state.preferences.clone();
-    let settings = state.diagram_settings.clone();
+    let settings = state.diagram_settings.fretboard_style.clone();
+    let diagram_settings = state.diagram_settings.clone();
+
     let dark = state.effective_dark_mode();
     let is_horizontal = horizontal_override.unwrap_or(settings.horizontal);
 
     // Resolve the current item (scale or chord) as a Scale for rendering.
     // Both types have identical fields so the conversion is free.
-    let maybe_item: Option<Scale> = match settings.mode {
+    let maybe_item: Option<Scale> = match state.diagram_settings.mode {
         DiagramMode::Scale => state.current_scale().cloned(),
         DiagramMode::Chord => state.current_chord().map(|c| Scale {
             temperament_name: String::new(),
@@ -35,16 +37,27 @@ pub fn FretboardPreview(
     };
     let maybe_tuning = state.current_tuning().cloned();
     // Resolve effective handedness: instrument override takes priority over global preference.
-    let left_handed = state.current_instrument()
+    let left_handed = state
+        .current_instrument()
         .and_then(|i| i.left_handed)
         .unwrap_or(prefs.left_handed);
-    let edo = state.current_temperament().map(|t| t.divisions).unwrap_or(12);
+    let edo = state
+        .current_temperament()
+        .map(|t| t.divisions)
+        .unwrap_or(12);
     let note_names: Vec<String> = state
         .current_notation_system()
-        .map(|ns| ns.note_names_for_key(edo, settings.key_natural_idx, settings.key_accidental_idx))
+        .map(|ns| {
+            ns.note_names_for_key(
+                edo,
+                state.diagram_settings.key_natural_idx,
+                state.diagram_settings.key_accidental_idx,
+            )
+        })
         .unwrap_or_default();
-    let period = state.current_temperament()
-        .map(|t| t.period.0 as f64 / t.period.1 as f64)
+    let period = state
+        .current_temperament()
+        .map(|t| t.period_f64())
         .unwrap_or(2.0);
     drop(state);
 
@@ -54,30 +67,38 @@ pub fn FretboardPreview(
         let n = (edo as f64 * 4_f64.ln() / period.ln()).round() as u32;
         n.clamp(8, 72)
     };
-    let default_vs = settings.vertical_spacing as f64 / 1000.0;
+    let default_vs = settings.vertical_spacing;
     let vs_h = default_vs * 24.0 / n_frets_h as f64;
 
     let fret_style = FretboardStyle {
-        display_markers_on_frets: settings.display_markers,
+        title: settings.title,
+        colors: prefs.diagram_colors(dark),
+        scale_dots: settings.scale_dots,
+        fret_markers: settings.fret_markers,
+        display_string_names: settings.display_string_names,
+        fret: settings.fret,
         fret_offset: settings.fret_offset,
-        num_frets: if is_horizontal { n_frets_h } else { settings.num_frets },
+        num_frets: if is_horizontal {
+            n_frets_h
+        } else {
+            settings.num_frets
+        },
         vertical_spacing: if is_horizontal { vs_h } else { default_vs },
-        horizontal_spacing: settings.horizontal_spacing as f64 / 1000.0,
+        horizontal_spacing: settings.horizontal_spacing,
         horizontal: is_horizontal,
-        edo,
-        period,
         left_handed,
     };
 
-    let note_names_ref: Option<&[String]> = if note_names.is_empty() { None } else { Some(&note_names) };
+    let note_names_ref: Option<&[String]> = if note_names.is_empty() {
+        None
+    } else {
+        Some(&note_names)
+    };
     let font_url = BRAVURA_FONT.to_string();
 
     let svg = match (maybe_item, maybe_tuning) {
         (Some(scale), Some(tuning)) => render_board(
-            &prefs.diagram_colors(dark),
-            prefs.fret_style,
-            &scale.name.clone(),
-            settings.key as i32,
+            diagram_settings.key as i32,
             &scale,
             tuning.skip_frets,
             &tuning,
@@ -103,7 +124,7 @@ pub fn FretboardPreview(
                 style: if is_horizontal {
                     "width: 100%;".to_string()
                 } else {
-                    format!("width: {}px; max-width: 100%;", settings.display_size)
+                    format!("width: {}px; max-width: 100%;", diagram_settings.display_size)
                 },
                 dangerous_inner_html: "{svg}"
             }

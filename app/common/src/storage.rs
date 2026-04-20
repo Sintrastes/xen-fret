@@ -6,6 +6,9 @@ mod native;
 mod web;
 
 #[cfg(not(target_arch = "wasm32"))]
+pub fn set_data_dir(path: std::path::PathBuf) { native::set_data_dir(path); }
+
+#[cfg(not(target_arch = "wasm32"))]
 pub fn load() -> AppState { native::load() }
 #[cfg(target_arch = "wasm32")]
 pub fn load() -> AppState { web::load() }

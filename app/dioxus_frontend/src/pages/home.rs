@@ -1,13 +1,13 @@
-use crate::components::{Combobox, FretboardPreview, Modal, Select};
 use crate::components::InstrumentPicker;
-use xen_theory::notation::NotationSystem;
-use xen_theory::scale::Scale;
+use crate::components::{Combobox, FretboardPreview, Modal, Select};
 use crate::pitch_tracking;
 use crate::state::{DiagramMode, APP_STATE};
-use xen_sequencer::audio;
-use xen_theory::theory;
-use dioxus::prelude::*;
 use dioxus::document::eval;
+use dioxus::prelude::*;
+use xen_sequencer::audio;
+use xen_theory::notation::NotationSystem;
+use xen_theory::scale::Scale;
+use xen_theory::theory;
 
 static BRAVURA_FONT: Asset = asset!("/assets/Bravura.woff2");
 
@@ -33,8 +33,16 @@ fn to_base64(bytes: &[u8]) -> String {
         let n = (b[0] << 16) | (b[1] << 8) | b[2];
         out.push(TABLE[((n >> 18) & 63) as usize] as char);
         out.push(TABLE[((n >> 12) & 63) as usize] as char);
-        out.push(if chunk.len() > 1 { TABLE[((n >> 6) & 63) as usize] as char } else { '=' });
-        out.push(if chunk.len() > 2 { TABLE[(n & 63) as usize] as char } else { '=' });
+        out.push(if chunk.len() > 1 {
+            TABLE[((n >> 6) & 63) as usize] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            TABLE[(n & 63) as usize] as char
+        } else {
+            '='
+        });
     }
     out
 }
@@ -49,8 +57,15 @@ fn svg_with_explicit_size(svg: &str) -> String {
         .nth(1)
         .and_then(|s| s.split('"').next())
         .and_then(|s| {
-            let v: Vec<f32> = s.split_whitespace().filter_map(|n| n.parse().ok()).collect();
-            if v.len() == 4 { Some((v[2], v[3])) } else { None }
+            let v: Vec<f32> = s
+                .split_whitespace()
+                .filter_map(|n| n.parse().ok())
+                .collect();
+            if v.len() == 4 {
+                Some((v[2], v[3]))
+            } else {
+                None
+            }
         });
     match vb_dims {
         Some((vw, vh)) if vw > 0.0 && vh > 0.0 => {
@@ -78,25 +93,44 @@ mod tests {
     #[test]
     fn woff1_converts_and_loads() {
         let sfnt = woff1_to_sfnt(BRAVURA_BYTES).expect("woff1_to_sfnt should return Some");
-        assert_eq!(&sfnt[0..4], &[0x00, 0x01, 0x00, 0x00], "SFNT must start with TrueType magic");
+        assert_eq!(
+            &sfnt[0..4],
+            &[0x00, 0x01, 0x00, 0x00],
+            "SFNT must start with TrueType magic"
+        );
 
         let mut db = svg2pdf::usvg::fontdb::Database::new();
-        let ids = db.load_font_source(svg2pdf::usvg::fontdb::Source::Binary(
-            std::sync::Arc::new(sfnt),
-        ));
-        assert!(!ids.is_empty(), "fontdb must load at least one face from converted SFNT");
+        let ids = db.load_font_source(svg2pdf::usvg::fontdb::Source::Binary(std::sync::Arc::new(
+            sfnt,
+        )));
+        assert!(
+            !ids.is_empty(),
+            "fontdb must load at least one face from converted SFNT"
+        );
 
-        let face_id = db.faces().find(|f| {
-            f.families.iter().any(|(n, _)| n.to_lowercase().contains("bravura"))
-        }).map(|f| f.id).expect("fontdb must find a Bravura face");
+        let face_id = db
+            .faces()
+            .find(|f| {
+                f.families
+                    .iter()
+                    .any(|(n, _)| n.to_lowercase().contains("bravura"))
+            })
+            .map(|f| f.id)
+            .expect("fontdb must find a Bravura face");
 
         // Verify the natural sign glyph (U+E261) is present using ttf_parser directly.
-        let has_natural = db.with_face_data(face_id, |font_data, face_index| {
-            ttf_parser::Face::parse(font_data, face_index)
-                .ok()
-                .and_then(|face| face.glyph_index('\u{E261}').map(|_| true))
-        }).flatten().unwrap_or(false);
-        assert!(has_natural, "Bravura face must have SMuFL natural sign (U+E261)");
+        let has_natural = db
+            .with_face_data(face_id, |font_data, face_index| {
+                ttf_parser::Face::parse(font_data, face_index)
+                    .ok()
+                    .and_then(|face| face.glyph_index('\u{E261}').map(|_| true))
+            })
+            .flatten()
+            .unwrap_or(false);
+        assert!(
+            has_natural,
+            "Bravura face must have SMuFL natural sign (U+E261)"
+        );
     }
 
     #[test]
@@ -108,11 +142,14 @@ mod tests {
             face.families.iter().any(|(n, _)| n == "Noto Sans"),
             "font must register as 'Noto Sans'"
         );
-        let has_a = db.with_face_data(face.id, |data, idx| {
-            ttf_parser::Face::parse(data, idx)
-                .ok()
-                .and_then(|f| f.glyph_index('A').map(|_| true))
-        }).flatten().unwrap_or(false);
+        let has_a = db
+            .with_face_data(face.id, |data, idx| {
+                ttf_parser::Face::parse(data, idx)
+                    .ok()
+                    .and_then(|f| f.glyph_index('A').map(|_| true))
+            })
+            .flatten()
+            .unwrap_or(false);
         assert!(has_a, "Noto Sans subset must have Latin 'A'");
     }
 }
@@ -128,12 +165,30 @@ fn build_pdf() -> Option<(String, Vec<u8>)> {
     //
     // On native, load_system_fonts() provides additional sans-serif coverage.
     // On WASM, Noto Sans (embedded 10 KB subset) is the only Latin source.
-    let raw = raw.replace("font-family=\"Bravura, sans-serif\"", "font-family=\"Bravura Text, Noto Sans, sans-serif\"");
-    let raw = raw.replace("font-family='Bravura, sans-serif'", "font-family='Bravura Text, Noto Sans, sans-serif'");
-    let raw = raw.replace("font-family=\"Bravura\"", "font-family=\"Bravura Text, Noto Sans, sans-serif\"");
-    let raw = raw.replace("font-family='Bravura'", "font-family='Bravura Text, Noto Sans, sans-serif'");
-    let raw = raw.replace("font-family=\"sans-serif\"", "font-family=\"Noto Sans, sans-serif\"");
-    let raw = raw.replace("font-family='sans-serif'", "font-family='Noto Sans, sans-serif'");
+    let raw = raw.replace(
+        "font-family=\"Bravura, sans-serif\"",
+        "font-family=\"Bravura Text, Noto Sans, sans-serif\"",
+    );
+    let raw = raw.replace(
+        "font-family='Bravura, sans-serif'",
+        "font-family='Bravura Text, Noto Sans, sans-serif'",
+    );
+    let raw = raw.replace(
+        "font-family=\"Bravura\"",
+        "font-family=\"Bravura Text, Noto Sans, sans-serif\"",
+    );
+    let raw = raw.replace(
+        "font-family='Bravura'",
+        "font-family='Bravura Text, Noto Sans, sans-serif'",
+    );
+    let raw = raw.replace(
+        "font-family=\"sans-serif\"",
+        "font-family=\"Noto Sans, sans-serif\"",
+    );
+    let raw = raw.replace(
+        "font-family='sans-serif'",
+        "font-family='Noto Sans, sans-serif'",
+    );
     let svg = svg_with_explicit_size(&raw);
     let filename = {
         let s = APP_STATE.read();
@@ -149,7 +204,9 @@ fn build_pdf() -> Option<(String, Vec<u8>)> {
     }
     // Load embedded Noto Sans subset for Latin coverage (critical on WASM where
     // load_system_fonts() is a no-op).
-    options.fontdb_mut().load_font_data(NOTO_SANS_BYTES.to_vec());
+    options
+        .fontdb_mut()
+        .load_font_data(NOTO_SANS_BYTES.to_vec());
     options.fontdb_mut().set_sans_serif_family("Noto Sans");
     let tree = svg2pdf::usvg::Tree::from_str(&svg, &options).ok()?;
     let pdf = svg2pdf::to_pdf(
@@ -194,7 +251,10 @@ pub fn Home() -> Element {
                 .map(|sc| format!("{}.svg", sc.name.to_lowercase().replace(' ', "_")))
                 .unwrap_or_else(|| "fretboard.svg".to_string())
         };
-        let escaped = svg.replace('\\', "\\\\").replace('`', "\\`").replace("${", "\\${");
+        let escaped = svg
+            .replace('\\', "\\\\")
+            .replace('`', "\\`")
+            .replace("${", "\\${");
         let js = format!(
             "const b=new Blob([`{escaped}`],{{type:'image/svg+xml'}});\
              const u=URL.createObjectURL(b);\
@@ -207,7 +267,9 @@ pub fn Home() -> Element {
 
     let do_export_pdf = move |_| {
         show_export_modal.set(false);
-        let Some((filename, bytes)) = build_pdf() else { return };
+        let Some((filename, bytes)) = build_pdf() else {
+            return;
+        };
         let b64 = to_base64(&bytes);
         let js = format!(
             "const s=atob({b64:?});\
@@ -224,8 +286,13 @@ pub fn Home() -> Element {
 
     let do_export_scl = move |_| {
         show_export_modal.set(false);
-        let Some((filename, content)) = build_scl() else { return };
-        let escaped = content.replace('\\', "\\\\").replace('`', "\\`").replace("${", "\\${");
+        let Some((filename, content)) = build_scl() else {
+            return;
+        };
+        let escaped = content
+            .replace('\\', "\\\\")
+            .replace('`', "\\`")
+            .replace("${", "\\${");
         let js = format!(
             "const b=new Blob([`{escaped}`],{{type:'text/plain'}});\
              const u=URL.createObjectURL(b);\
@@ -238,10 +305,12 @@ pub fn Home() -> Element {
 
     let state = APP_STATE.read();
     let has_instrument = state.selected_instrument_idx.is_some();
-    let instrument_label = state.current_instrument()
+    let instrument_label = state
+        .current_instrument()
         .map(|i| format!("{} ({})", i.name, i.temperament_name))
         .unwrap_or_default();
-    let instrument_type_label = state.current_instrument()
+    let instrument_type_label = state
+        .current_instrument()
         .map(|i| i.instrument_type.clone())
         .unwrap_or_default();
 
@@ -252,8 +321,12 @@ pub fn Home() -> Element {
     let concert_hz = state.preferences.concert_hz;
     let concert_octave = state.preferences.concert_octave;
     let is_scale_mode = matches!(settings.mode, DiagramMode::Scale);
-    let is_horizontal = settings.horizontal;
-    let effective_horizontal = if *is_mobile.read() { *is_landscape.read() } else { is_horizontal };
+    let is_horizontal = settings.fretboard_style.horizontal;
+    let effective_horizontal = if *is_mobile.read() {
+        *is_landscape.read()
+    } else {
+        is_horizontal
+    };
 
     let maybe_item: Option<Scale> = if is_scale_mode {
         state.current_scale().cloned()
@@ -269,12 +342,20 @@ pub fn Home() -> Element {
         .current_temperament()
         .zip(maybe_item.as_ref())
         .map(|(temp, item)| {
-            let period_ratio = temp.period.0 as f64 / temp.period.1 as f64;
-            let step0_hz = state.current_tuning()
-                .map(|tu| tu.step0_hz(concert_hz, concert_octave, temp.divisions, temp.period))
+            let period_ratio = temp.period_f64();
+            let period_tuple = (*temp.period.numer(), *temp.period.denom());
+            let step0_hz = state
+                .current_tuning()
+                .map(|tu| tu.step0_hz(concert_hz, concert_octave, temp.divisions, period_tuple))
                 .unwrap_or(440.0);
             let root_hz = step0_hz * period_ratio.powi(playback_octave);
-            let freqs = theory::scale_to_hz_sequence(item, settings.key as i32, temp.divisions, temp.period, root_hz);
+            let freqs = theory::scale_to_hz_sequence(
+                item,
+                settings.key as i32,
+                temp.divisions,
+                period_tuple,
+                root_hz,
+            );
             let abs = theory::scale_absolute_steps(item, settings.key as i32)
                 .into_iter()
                 .map(|s| s + (temp.divisions as i32) * playback_octave)
@@ -283,7 +364,8 @@ pub fn Home() -> Element {
         })
         .unwrap_or_default();
 
-    let tuning_options: Vec<(usize, String)> = state.compatible_tunings()
+    let tuning_options: Vec<(usize, String)> = state
+        .compatible_tunings()
         .iter()
         .enumerate()
         .map(|(i, (_, tu))| (i, tu.name.clone()))
@@ -292,7 +374,9 @@ pub fn Home() -> Element {
     let scale_options: Vec<(usize, String)> = state
         .current_temperament()
         .map(|t| {
-            let mut opts: Vec<(usize, String, usize)> = state.scales.iter()
+            let mut opts: Vec<(usize, String, usize)> = state
+                .scales
+                .iter()
                 .filter(|s| s.temperament_name == t.name)
                 .enumerate()
                 .map(|(i, s)| (i, s.name.clone(), s.intervals.len()))
@@ -305,7 +389,9 @@ pub fn Home() -> Element {
     let chord_options: Vec<(usize, String)> = state
         .current_temperament()
         .map(|t| {
-            state.chords.iter()
+            state
+                .chords
+                .iter()
                 .filter(|c| c.temperament_name == t.name)
                 .enumerate()
                 .map(|(i, c)| (i, c.name.clone()))
@@ -317,25 +403,45 @@ pub fn Home() -> Element {
         .current_temperament()
         .map(|t| t.divisions)
         .unwrap_or(12);
-    let notation_system: Option<NotationSystem> = state
-        .current_notation_system()
-        .cloned();
+    let notation_system: Option<NotationSystem> = state.current_notation_system().cloned();
     let notation_options: Vec<(String, String)> = state
         .current_temperament()
         .map(|t| {
-            state.notation_systems.iter()
+            state
+                .notation_systems
+                .iter()
                 .filter(|ns| ns.temperament_name == t.name)
-                .map(|ns| (ns.name.clone(), if ns.name.is_empty() { "Default".to_string() } else { ns.name.clone() }))
+                .map(|ns| {
+                    (
+                        ns.name.clone(),
+                        if ns.name.is_empty() {
+                            "Default".to_string()
+                        } else {
+                            ns.name.clone()
+                        },
+                    )
+                })
                 .collect()
         })
         .unwrap_or_default();
-    let current_ns_name = notation_system.as_ref().map(|ns| ns.name.clone()).unwrap_or_default();
-    let current_temp_name = state.current_temperament().map(|t| t.name.clone()).unwrap_or_default();
-    let effective_nat_idx: Option<usize> = settings.key_natural_idx
-        .or_else(|| notation_system.as_ref()
-            .and_then(|ns| ns.naturals.iter().position(|n| n.degree == settings.key)))
+    let current_ns_name = notation_system
+        .as_ref()
+        .map(|ns| ns.name.clone())
+        .unwrap_or_default();
+    let current_temp_name = state
+        .current_temperament()
+        .map(|t| t.name.clone())
+        .unwrap_or_default();
+    let effective_nat_idx: Option<usize> = settings
+        .key_natural_idx
+        .or_else(|| {
+            notation_system
+                .as_ref()
+                .and_then(|ns| ns.naturals.iter().position(|n| n.degree == settings.key))
+        })
         .or(Some(0));
-    let concert_ref_name = notation_system.as_ref()
+    let concert_ref_name = notation_system
+        .as_ref()
         .and_then(|ns| ns.naturals.iter().find(|n| n.degree == 0))
         .map(|n| n.name.clone())
         .unwrap_or_else(|| "Step 0".to_string());
@@ -357,7 +463,9 @@ pub fn Home() -> Element {
                 playing_steps.set(vec![]);
                 return;
             }
-            if freqs.is_empty() { return; }
+            if freqs.is_empty() {
+                return;
+            }
             let f = freqs.clone();
             let steps = abs_steps.clone();
             spawn(async move {
@@ -378,7 +486,6 @@ pub fn Home() -> Element {
         }
     };
 
-
     let on_mic_toggle = move |_| {
         if mic_active() {
             let _ = eval(pitch_tracking::mic_web::MIC_STOP_JS);
@@ -391,10 +498,12 @@ pub fn Home() -> Element {
             spawn(async move {
                 let mut stream = pitch_tracking::MicStream::start(4096);
                 let mut detector: Box<dyn pitch_tracking::PitchDetector> = match detector_kind {
-                    app_common::preferences::PitchDetectorKind::Yin =>
-                        Box::new(pitch_tracking::YinDetector::new(0.15, 50.0, 4000.0)),
-                    app_common::preferences::PitchDetectorKind::IterF0 =>
-                        Box::new(pitch_tracking::IterF0Detector::new(6, 8, 70.0, 2000.0, 0.15)),
+                    app_common::preferences::PitchDetectorKind::Yin => {
+                        Box::new(pitch_tracking::YinDetector::new(0.15, 50.0, 4000.0))
+                    }
+                    app_common::preferences::PitchDetectorKind::IterF0 => Box::new(
+                        pitch_tracking::IterF0Detector::new(6, 8, 70.0, 2000.0, 0.15),
+                    ),
                 };
                 let mut holdoff_degs: std::collections::HashMap<usize, u8> =
                     std::collections::HashMap::new();
@@ -403,7 +512,9 @@ pub fn Home() -> Element {
                 const HOLDOFF_FRAMES: u8 = 12;
 
                 while let Some(event) = stream.next_event().await {
-                    if !mic_active() { break; }
+                    if !mic_active() {
+                        break;
+                    }
                     match event {
                         pitch_tracking::MicEvent::Samples { rate, data } => {
                             let pitches = detector.detect(&data, rate);
@@ -411,23 +522,28 @@ pub fn Home() -> Element {
                             let concert_hz = state.preferences.concert_hz;
 
                             let (fresh_degs, fresh_steps): (Vec<usize>, Vec<i32>) =
-                                if let (Some(temp), Some(scale), Some(tuning)) =
-                                    (state.current_temperament(), state.current_scale(), state.current_tuning())
-                                {
+                                if let (Some(temp), Some(scale), Some(tuning)) = (
+                                    state.current_temperament(),
+                                    state.current_scale(),
+                                    state.current_tuning(),
+                                ) {
                                     let key = state.diagram_settings.key as i32;
+                                    let period_tuple = (*temp.period.numer(), *temp.period.denom());
                                     let step0_hz = tuning.step0_hz(
                                         concert_hz,
                                         state.preferences.concert_octave,
                                         temp.divisions,
-                                        temp.period,
+                                        period_tuple,
                                     );
-                                    let period_ratio =
-                                        temp.period.0 as f64 / temp.period.1 as f64;
-                                    let lowest_step = tuning.string_tunings.iter().min().copied().unwrap_or(0);
-                                    let lowest_hz = step0_hz * period_ratio.powf(lowest_step as f64 / temp.divisions as f64);
-                                    let lowest_abs = (temp.divisions as f64
-                                        * (lowest_hz / concert_hz).ln()
-                                        / period_ratio.ln())
+                                    let period_ratio = temp.period_f64();
+                                    let lowest_step =
+                                        tuning.string_tunings.iter().min().copied().unwrap_or(0);
+                                    let lowest_hz = step0_hz
+                                        * period_ratio
+                                            .powf(lowest_step as f64 / temp.divisions as f64);
+                                    let lowest_abs =
+                                        (temp.divisions as f64 * (lowest_hz / concert_hz).ln()
+                                            / period_ratio.ln())
                                         .round() as i32;
                                     let offset = lowest_step - lowest_abs;
                                     let steps = pitches
@@ -437,7 +553,7 @@ pub fn Home() -> Element {
                                             pitch_tracking::hz_to_absolute_step(
                                                 p.hz,
                                                 temp.divisions,
-                                                temp.period,
+                                                period_tuple,
                                                 concert_hz,
                                                 key,
                                                 &scale.intervals,
@@ -452,10 +568,28 @@ pub fn Home() -> Element {
                                 };
                             drop(state);
 
-                            holdoff_degs.retain(|_, c| { if *c == 0 { false } else { *c -= 1; true } });
-                            holdoff_steps.retain(|_, c| { if *c == 0 { false } else { *c -= 1; true } });
-                            for &d in &fresh_degs { holdoff_degs.insert(d, HOLDOFF_FRAMES); }
-                            for &s in &fresh_steps { holdoff_steps.insert(s, HOLDOFF_FRAMES); }
+                            holdoff_degs.retain(|_, c| {
+                                if *c == 0 {
+                                    false
+                                } else {
+                                    *c -= 1;
+                                    true
+                                }
+                            });
+                            holdoff_steps.retain(|_, c| {
+                                if *c == 0 {
+                                    false
+                                } else {
+                                    *c -= 1;
+                                    true
+                                }
+                            });
+                            for &d in &fresh_degs {
+                                holdoff_degs.insert(d, HOLDOFF_FRAMES);
+                            }
+                            for &s in &fresh_steps {
+                                holdoff_steps.insert(s, HOLDOFF_FRAMES);
+                            }
                             mic_degrees.set(holdoff_degs.keys().copied().collect());
                             mic_steps.set(holdoff_steps.keys().copied().collect());
                         }
@@ -474,7 +608,8 @@ pub fn Home() -> Element {
 
     use_effect(move || {
         spawn(async move {
-            let mut e = eval(r#"
+            let mut e = eval(
+                r#"
                 function sendOrientation() {
                     dioxus.send({type: 'orientation', mobile: window.innerWidth <= 768, landscape: window.innerWidth > window.innerHeight});
                 }
@@ -492,24 +627,27 @@ pub fn Home() -> Element {
                     if (delta < -50) dioxus.send({type: 'swipe', dir: 'open'});
                     else if (delta > 50) dioxus.send({type: 'swipe', dir: 'close'});
                 }, {passive: true});
-            "#);
+            "#,
+            );
             loop {
                 match e.recv().await {
                     Ok(serde_json::Value::Object(obj)) => {
                         match obj.get("type").and_then(|t| t.as_str()) {
                             Some("orientation") => {
-                                let mobile = obj.get("mobile").and_then(|v| v.as_bool()).unwrap_or(false);
-                                let landscape = obj.get("landscape").and_then(|v| v.as_bool()).unwrap_or(false);
+                                let mobile =
+                                    obj.get("mobile").and_then(|v| v.as_bool()).unwrap_or(false);
+                                let landscape = obj
+                                    .get("landscape")
+                                    .and_then(|v| v.as_bool())
+                                    .unwrap_or(false);
                                 is_mobile.set(mobile);
                                 is_landscape.set(landscape);
                             }
-                            Some("swipe") => {
-                                match obj.get("dir").and_then(|v| v.as_str()) {
-                                    Some("open") => drawer_open.set(true),
-                                    Some("close") => drawer_open.set(false),
-                                    _ => {}
-                                }
-                            }
+                            Some("swipe") => match obj.get("dir").and_then(|v| v.as_str()) {
+                                Some("open") => drawer_open.set(true),
+                                Some("close") => drawer_open.set(false),
+                                _ => {}
+                            },
                             _ => {}
                         }
                     }
@@ -863,14 +1001,14 @@ pub fn Home() -> Element {
                                 button {
                                     class: if !is_horizontal { "seg-btn active" } else { "seg-btn" },
                                     onclick: move |_| {
-                                        APP_STATE.write().diagram_settings.horizontal = false;
+                                        APP_STATE.write().diagram_settings.fretboard_style.horizontal = false;
                                     },
                                     "Vertical"
                                 }
                                 button {
                                     class: if is_horizontal { "seg-btn active" } else { "seg-btn" },
                                     onclick: move |_| {
-                                        APP_STATE.write().diagram_settings.horizontal = true;
+                                        APP_STATE.write().diagram_settings.fretboard_style.horizontal = true;
                                     },
                                     "Horizontal"
                                 }
@@ -1043,10 +1181,10 @@ pub fn Home() -> Element {
                                     class: "form-input",
                                     r#type: "number",
                                     min: "0",
-                                    value: "{settings.fret_offset}",
+                                    value: "{settings.fretboard_style.fret_offset}",
                                     onchange: move |e| {
                                         if let Ok(v) = e.value().parse::<u32>() {
-                                            APP_STATE.write().diagram_settings.fret_offset = v;
+                                            APP_STATE.write().diagram_settings.fretboard_style.fret_offset = v;
                                         }
                                     }
                                 }

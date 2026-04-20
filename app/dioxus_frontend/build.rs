@@ -6,9 +6,16 @@
 fn main() {
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
 
+    // Emit cfg flag so soundfont.rs can conditionally compile include_bytes!.
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into());
+    let sf2 = std::path::Path::new(&manifest_dir).join("assets").join("soundfont.sf2");
+    if sf2.exists() {
+        println!("cargo:rustc-cfg=has_soundfont");
+    }
+    println!("cargo:rerun-if-changed=assets/soundfont.sf2");
+
     // Always re-run on every build.
 
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".into());
     let manifest  = std::path::Path::new(&manifest_dir);
     let target_dx = manifest.join("target").join("dx");
     let svg_path  = manifest.join("assets").join("xen-fret-icon.svg");

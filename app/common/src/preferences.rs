@@ -55,15 +55,33 @@ pub struct Preferences {
     pub left_handed: bool,
 }
 
-fn default_scale_note_color()      -> Color { Color { r: 57,  g: 112, b: 217 } }
-fn default_dark_root_note_color()  -> Color { Color { r: 167, g: 139, b: 250 } }
-fn default_dark_scale_note_color() -> Color { Color { r: 96,  g: 165, b: 250 } }
-fn default_dark_fretboard_color()  -> Color { Color { r: 30,  g: 30,  b: 46  } }
-fn default_label_color()           -> Color { Color { r: 38,  g: 38,  b: 38  } }
-fn default_dark_label_color()      -> Color { Color { r: 220, g: 220, b: 230 } }
-fn default_concert_hz()            -> f64   { 440.0 }
-fn default_concert_octave()        -> i32   { 4 }
-fn default_pitch_detector()        -> PitchDetectorKind { PitchDetectorKind::Yin }
+fn default_scale_note_color() -> Color {
+    Color::rgb_bytes(57, 112, 217)
+}
+fn default_dark_root_note_color() -> Color {
+    Color::rgb_bytes(167, 139, 250)
+}
+fn default_dark_scale_note_color() -> Color {
+    Color::rgb_bytes(96, 165, 250)
+}
+fn default_dark_fretboard_color() -> Color {
+    Color::rgb_bytes(30, 30, 46)
+}
+fn default_label_color() -> Color {
+    Color::rgb_bytes(38, 38, 38)
+}
+fn default_dark_label_color() -> Color {
+    Color::rgb_bytes(220, 220, 230)
+}
+fn default_concert_hz() -> f64 {
+    440.0
+}
+fn default_concert_octave() -> i32 {
+    4
+}
+fn default_pitch_detector() -> PitchDetectorKind {
+    PitchDetectorKind::Yin
+}
 
 impl Preferences {
     /// Returns the four diagram colors for the given dark/light mode.
@@ -92,14 +110,14 @@ impl Default for Preferences {
             theme_mode: ThemeMode::System,
             note_name_size: 12,
             dot_size: 1.0,
-            root_note_color: Color { r: 51, g: 92, b: 255 },
-            scale_note_color: Color { r: 57, g: 112, b: 217 },
-            fretboard_color: Color { r: 255, g: 255, b: 255 },
-            dark_root_note_color: Color { r: 167, g: 139, b: 250 },
-            dark_scale_note_color: Color { r: 96, g: 165, b: 250 },
-            dark_fretboard_color: Color { r: 30, g: 30, b: 46 },
-            label_color: Color { r: 38, g: 38, b: 38 },
-            dark_label_color: Color { r: 220, g: 220, b: 230 },
+            root_note_color: DiagramColors::default_light().root, // Color::rgb_bytes(51, 92, 255),
+            scale_note_color: DiagramColors::default_light().scale, // Color::rgb_bytes(57, 112, 217),
+            fretboard_color: DiagramColors::default_light().board,  // ::rgb_bytes(255, 255, 255),
+            dark_root_note_color: Color::rgb_bytes(167, 139, 250),
+            dark_scale_note_color: Color::rgb_bytes(96, 165, 250),
+            dark_fretboard_color: Color::rgb_bytes(30, 30, 46),
+            label_color: Color::rgb_bytes(38, 38, 38),
+            dark_label_color: Color::rgb_bytes(220, 220, 230),
             fret_style: FretStyle::Solid,
             fret_thickness: 1.0,
             default_temperament: "12-TET".into(),

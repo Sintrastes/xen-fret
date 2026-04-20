@@ -4,10 +4,10 @@ use app_common::preferences::Color;
 
 // ── HSL ↔ RGB conversion helpers ─────────────────────────────────────────────
 
-fn rgb_to_hsl(r: u8, g: u8, b: u8) -> (f64, f64, f64) {
-    let r = r as f64 / 255.0;
-    let g = g as f64 / 255.0;
-    let b = b as f64 / 255.0;
+fn rgb_to_hsl(r: f32, g: f32, b: f32) -> (f64, f64, f64) {
+    let r = r as f64;
+    let g = g as f64;
+    let b = b as f64;
     let max = r.max(g).max(b);
     let min = r.min(g).min(b);
     let l = (max + min) / 2.0;
@@ -40,16 +40,15 @@ fn hsl_to_rgb(h: f64, s: f64, l: f64) -> Color {
     let s = s / 100.0;
     let l = l / 100.0;
     if s < 1e-10 {
-        let v = (l * 255.0).round() as u8;
-        return Color { r: v, g: v, b: v };
+        return Color::rgb(l as f32, l as f32, l as f32);
     }
     let q = if l < 0.5 { l * (1.0 + s) } else { l + s - l * s };
     let p = 2.0 * l - q;
-    Color {
-        r: (hue_channel(p, q, h + 1.0 / 3.0) * 255.0).round() as u8,
-        g: (hue_channel(p, q, h) * 255.0).round() as u8,
-        b: (hue_channel(p, q, h - 1.0 / 3.0) * 255.0).round() as u8,
-    }
+    Color::rgb(
+        hue_channel(p, q, h + 1.0 / 3.0) as f32,
+        hue_channel(p, q, h) as f32,
+        hue_channel(p, q, h - 1.0 / 3.0) as f32,
+    )
 }
 
 fn parse_hex(hex: &str) -> Option<Color> {
@@ -58,7 +57,7 @@ fn parse_hex(hex: &str) -> Option<Color> {
     let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
     let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
     let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
-    Some(Color { r, g, b })
+    Some(Color::rgb_bytes(r, g, b))
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -69,14 +68,14 @@ pub fn ColorPicker(value: Color, on_change: EventHandler<Color>) -> Element {
     let mut hue = use_signal(|| ih);
     let mut sat = use_signal(|| is);
     let mut lit = use_signal(|| il);
-    let mut hex_text = use_signal(|| value.to_hex().trim_start_matches('#').to_string());
+    let mut hex_text = use_signal(|| value.to_svg_color().trim_start_matches('#').to_string());
     let mut open = use_signal(|| false);
 
     let h = *hue.read();
     let s = *sat.read();
     let l = *lit.read();
     let hex = hex_text.read().clone();
-    let swatch_hex = hsl_to_rgb(h, s, l).to_hex();
+    let swatch_hex = hsl_to_rgb(h, s, l).to_svg_color();
 
     let sat_gradient = format!(
         "linear-gradient(to right, hsl({h:.0},0%,{l:.0}%), hsl({h:.0},100%,{l:.0}%))"
@@ -126,7 +125,7 @@ pub fn ColorPicker(value: Color, on_change: EventHandler<Color>) -> Element {
                                 if let Ok(v) = e.value().parse::<f64>() {
                                     hue.set(v);
                                     let c = hsl_to_rgb(v, *sat.read(), *lit.read());
-                                    hex_text.set(c.to_hex().trim_start_matches('#').to_string());
+                                    hex_text.set(c.to_svg_color().trim_start_matches('#').to_string());
                                     on_change.call(c);
                                 }
                             }
@@ -147,7 +146,7 @@ pub fn ColorPicker(value: Color, on_change: EventHandler<Color>) -> Element {
                                 if let Ok(v) = e.value().parse::<f64>() {
                                     sat.set(v);
                                     let c = hsl_to_rgb(*hue.read(), v, *lit.read());
-                                    hex_text.set(c.to_hex().trim_start_matches('#').to_string());
+                                    hex_text.set(c.to_svg_color().trim_start_matches('#').to_string());
                                     on_change.call(c);
                                 }
                             }
@@ -168,7 +167,7 @@ pub fn ColorPicker(value: Color, on_change: EventHandler<Color>) -> Element {
                                 if let Ok(v) = e.value().parse::<f64>() {
                                     lit.set(v);
                                     let c = hsl_to_rgb(*hue.read(), *sat.read(), v);
-                                    hex_text.set(c.to_hex().trim_start_matches('#').to_string());
+                                    hex_text.set(c.to_svg_color().trim_start_matches('#').to_string());
                                     on_change.call(c);
                                 }
                             }
@@ -191,7 +190,7 @@ pub fn ColorPicker(value: Color, on_change: EventHandler<Color>) -> Element {
                                     hue.set(nh);
                                     sat.set(ns);
                                     lit.set(nl);
-                                    hex_text.set(c.to_hex().trim_start_matches('#').to_string());
+                                    hex_text.set(c.to_svg_color().trim_start_matches('#').to_string());
                                     on_change.call(c);
                                 }
                             }

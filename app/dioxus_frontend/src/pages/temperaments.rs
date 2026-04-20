@@ -1,8 +1,8 @@
 use crate::components::Modal;
-use xen_theory::temperament::Temperament;
 use crate::state::APP_STATE;
-use dioxus::cli_config::APP_TITLE_ENV;
 use dioxus::prelude::*;
+use num::rational::Ratio;
+use xen_theory::temperament::Temperament;
 
 #[component]
 pub fn Temperaments() -> Element {
@@ -46,14 +46,20 @@ pub fn Temperaments() -> Element {
         let name = form_name.read().trim().to_string();
         let divisions: u32 = form_divisions.read().trim().parse().unwrap_or(12);
         let period_str = form_period.read().trim().to_string();
-        let period = parse_ratio(&period_str).unwrap_or((2, 1));
+        let period = parse_ratio(&period_str)
+            .map(|(n, d)| Ratio::new(n, d))
+            .unwrap_or(Ratio::new(2, 1));
 
         {
             let mut s = APP_STATE.write();
             if let Some(idx) = *edit_idx.read() {
                 s.update_temperament(idx, name, divisions, period);
             } else {
-                s.add_temperament(Temperament { name, divisions, period });
+                s.add_temperament(Temperament {
+                    name,
+                    divisions,
+                    period,
+                });
             }
         }
         app_common::storage::save(&*APP_STATE.read());

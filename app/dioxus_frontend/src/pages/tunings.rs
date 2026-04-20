@@ -33,7 +33,7 @@ pub fn Tunings() -> Element {
         let mut result = vec![];
         for t in &s.temperaments {
             let rows: Vec<_> = s.tunings.iter().enumerate()
-                .filter(|(_, tu)| tu.temperament_name == t.name)
+                .filter(|(_, tu)| tu.temperament.name == t.name)
                 .map(|(ui, tu)| {
                     let tuning_str = tu.string_tunings.iter()
                         .map(|n| n.to_string())
@@ -69,7 +69,7 @@ pub fn Tunings() -> Element {
             );
             form_skip.set(tu.skip_frets.to_string());
             form_root_octave.set(tu.root_octave.to_string());
-            selected_temp.set(tu.temperament_name.clone());
+            selected_temp.set(tu.temperament.name.clone());
             drop(s);
             edit_key.set(Some(ui));
             show_modal.set(true);
@@ -93,15 +93,22 @@ pub fn Tunings() -> Element {
             if let Some(ui) = *edit_key.read() {
                 s.update_tuning(ui, name, instrument, string_tunings, skip_frets, root_octave);
             } else {
-                s.add_tuning(Tuning {
-                    temperament_name: temp_name,
-                    name,
-                    instrument,
-                    string_tunings,
-                    skip_frets,
-                    fret_markers: vec![],
-                    root_octave,
-                });
+                let temperament = s
+                    .temperaments
+                    .iter()
+                    .find(|t| t.name == temp_name)
+                    .cloned();
+                if let Some(temperament) = temperament {
+                    s.add_tuning(Tuning {
+                        temperament,
+                        name,
+                        instrument,
+                        string_tunings,
+                        skip_frets,
+                        fret_markers: vec![],
+                        root_octave,
+                    });
+                }
             }
         }
         app_common::storage::save(&*APP_STATE.read());
