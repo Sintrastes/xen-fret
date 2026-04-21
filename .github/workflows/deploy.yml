@@ -74,7 +74,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
 
       - uses: actions/cache@v4
         with:
@@ -85,16 +87,8 @@ jobs:
           key: linux-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: linux-
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-4-dev \
-            libadwaita-1-dev \
-            librsvg2-dev
-
       - name: Build
-        run: cargo build --release -p xen-fret-gtk
+        run: nix develop ${{ github.workspace }}#default --command cargo build --release -p xen-fret-gtk
 
       - uses: actions/upload-artifact@v4
         with:

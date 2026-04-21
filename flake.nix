@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -10,7 +11,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, rust-overlay, flake-utils }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, rust-overlay, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
@@ -19,6 +20,7 @@
           config.android_sdk.accept_license = true;
           config.allowUnfree = true;
         };
+        pkgs-unstable = import nixpkgs-unstable { inherit system; };
 
         rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
 
@@ -38,7 +40,7 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             rustToolchain
-            wasm-bindgen-cli
+            pkgs-unstable.wasm-bindgen-cli
           ];
 
           buildInputs = with pkgs; [
@@ -55,8 +57,7 @@
           ];
 
           packages = with pkgs; [
-            # Dioxus CLI — must be 0.7.x; if nixpkgs lags: cargo install dioxus-cli@0.7.3
-            dioxus-cli
+            pkgs-unstable.dioxus-cli
 
             # Android / Gradle
             jdk17
@@ -80,11 +81,9 @@
 
           shellHook = ''
             echo "xen-fret dev shell (nightly Rust + GTK4 + Dioxus + Android)"
-            echo "  dx serve                                         — web dev server"
+            echo "  dx serve --package xen-fret                      — web dev server"
             echo "  cargo run -p xen-fret-gtk                        — GTK frontend"
             echo "  cd app/android && ./gradlew assembleDebug        — Android APK"
-            echo "  cargo ndk -t arm64-v8a build -p uniffi_frontend_lib — Rust Android lib"
-            echo "  cd app/android && ./gradlew generateUniFFIBindings  — generate Kotlin bindings"
           '';
         };
       }
