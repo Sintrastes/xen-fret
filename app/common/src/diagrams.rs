@@ -1,13 +1,24 @@
 use crate::state::{AppState, DiagramMode};
 use fretboard_diagrams::{
-    render_board, DegreeLabel, FretMarkerStyle, FretStyle, FretboardStyle, ScaleDotStyle,
-    TitleStyle,
+    render_board_with_layout, DiagramLayout, FretMarkerStyle, FretboardStyle,
 };
 use xen_theory::scala;
 
 /// Generate the current diagram SVG from app state, or None if no scale/tuning is selected.
 /// `font_path` is the path/URL to the Bravura font (platform-specific).
 pub fn build_svg(state: &AppState, font_path: &str) -> Option<String> {
+    build_svg_with_layout(state, font_path, &[], &[]).map(|(svg, _)| svg)
+}
+
+/// Generate the diagram SVG and its structured layout (used for click/tap hit
+/// testing). `playing_degrees`/`playing_steps` drive red-highlighting of
+/// currently-playing notes (e.g. Play button or tap feedback).
+pub fn build_svg_with_layout(
+    state: &AppState,
+    font_path: &str,
+    playing_degrees: &[usize],
+    playing_steps: &[i32],
+) -> Option<(String, DiagramLayout)> {
     let prefs = &state.preferences;
     let dark = state.effective_dark_mode();
     let settings = &state.diagram_settings.fretboard_style;
@@ -75,7 +86,7 @@ pub fn build_svg(state: &AppState, font_path: &str) -> Option<String> {
     } else {
         Some(&note_names)
     };
-    Some(render_board(
+    Some(render_board_with_layout(
         state.diagram_settings.key as i32,
         &scale,
         tuning.skip_frets,
@@ -83,8 +94,8 @@ pub fn build_svg(state: &AppState, font_path: &str) -> Option<String> {
         &fret_style,
         note_names_ref,
         font_path,
-        &[],
-        &[],
+        playing_degrees,
+        playing_steps,
     ))
 }
 

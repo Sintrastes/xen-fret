@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -150,6 +151,18 @@ class XenFretViewModel(application: Application) : AndroidViewModel(application)
             _selectedInstrumentIdx.value = newIdx
             api.save()
             refreshLists()
+            regenerateDiagram()
+        }
+    }
+
+    fun onDiagramTap(x: Double, y: Double, elemW: Double, elemH: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val hit = api.hitTestDiagram(elemW, elemH, x, y) ?: return@launch
+            api.pushFlashStep(hit.absoluteStep)
+            api.playStep(hit.absoluteStep)
+            regenerateDiagram()
+            delay(180)
+            api.popFlashStep(hit.absoluteStep)
             regenerateDiagram()
         }
     }

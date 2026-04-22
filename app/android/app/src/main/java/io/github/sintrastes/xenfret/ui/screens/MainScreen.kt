@@ -16,9 +16,11 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -89,7 +91,17 @@ fun MainScreen(vm: XenFretViewModel = viewModel()) {
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(16.dp),
+                                .padding(16.dp)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(onPress = { offset ->
+                                        vm.onDiagramTap(
+                                            offset.x.toDouble(),
+                                            offset.y.toDouble(),
+                                            size.width.toDouble(),
+                                            size.height.toDouble(),
+                                        )
+                                    })
+                                },
                         )
                     } else {
                         Text("Unable to render diagram", style = MaterialTheme.typography.bodyMedium)

@@ -1,11 +1,21 @@
 uniffi::setup_scaffolding!();
 
-use app_common::diagrams::build_svg;
-use app_common::state::{AppState, DiagramMode, DiagramSettings};
+use app_common::diagrams::build_svg_with_layout;
+use app_common::hit_test::hit_test;
+use app_common::state::{AppState, DiagramMode};
 use app_common::storage;
+use fretboard_diagrams::DiagramLayout;
 use std::sync::Mutex;
 use xen_theory::dataset::{default_scales, default_temperaments, default_tunings};
 use xen_theory::instrument::Instrument;
+
+#[derive(uniffi::Record)]
+pub struct HitTargetRecord {
+    pub string_idx: u32,
+    pub fret: i32,
+    pub scale_degree: u32,
+    pub absolute_step: i32,
+}
 
 // ── Mirror types ─────────────────────────────────────────────────────────────
 
@@ -188,19 +198,31 @@ pub fn get_default_tunings() -> Vec<TuningRecord> {
 
 // ── XenFretApi — stateful object ──────────────────────────────────────────────
 
+static SF2_BYTES: &[u8] = include_bytes!(
+    "../../dioxus_frontend/assets/soundfont.sf2"
+);
+
 #[derive(uniffi::Object)]
 pub struct XenFretApi {
     state: Mutex<AppState>,
     usvg_opts: usvg::Options<'static>,
+    layout: Mutex<Option<DiagramLayout>>,
+    flash_steps: Mutex<Vec<i32>>,
+    audio: Mutex<Option<xen_sequencer::native_audio::NativeAudioHandle>>,
 }
 
 #[uniffi::export]
 impl XenFretApi {
     #[uniffi::constructor]
     pub fn new() -> Self {
+        let sf = xen_sequencer::native_audio::soundfont_from_bytes(SF2_BYTES);
+        let audio = xen_sequencer::native_audio::NativeAudioHandle::spawn(sf);
         Self {
             state: Mutex::new(storage::load()),
             usvg_opts: build_usvg_opts(),
+            layout: Mutex::new(None),
+            flash_steps: Mutex::new(Vec::new()),
+            audio: Mutex::new(audio),
         }
     }
 
@@ -334,7 +356,68 @@ impl XenFretApi {
 
     pub fn generate_diagram_png(&self) -> Option<Vec<u8>> {
         let state = self.state.lock().unwrap().clone();
-        let svg = build_svg(&state, "")?;
+        let flash = self.flash_steps.lock().unwrap().clone();
+        let (svg, diagram_layout) = build_svg_with_layout(&state, "", &[], &flash)?;
+        *self.layout.lock().unwrap() = Some(diagram_layout);
         rasterize_to_png(&svg, &self.usvg_opts)
+    }
+
+    pub fn hit_test_diagram(
+        &self,
+        elem_w: f64,
+        elem_h: f64,
+        x: f64,
+        y: f64,
+    ) -> Option<HitTargetRecord> {
+        let layout = self.layout.lock().unwrap();
+        let layout = layout.as_ref()?;
+        hit_test(layout, elem_w, elem_h, x, y).map(|h| HitTargetRecord {
+            string_idx: h.string_idx as u32,
+            fret: h.fret,
+            scale_degree: h.scale_degree as u32,
+            absolute_step: h.absolute_step,
+        })
+    }
+
+    pub fn push_flash_step(&self, step: i32) {
+        self.flash_steps.lock().unwrap().push(step);
+    }
+
+    pub fn pop_flash_step(&self, step: i32) {
+        let mut v = self.flash_steps.lock().unwrap();
+        if let Some(pos) = v.iter().position(|s| *s == step) {
+            v.remove(pos);
+        }
+    }
+
+    /// Play the pitch corresponding to `absolute_step` in the current temperament/tuning.
+    pub fn play_step(&self, absolute_step: i32) {
+        let state = self.state.lock().unwrap();
+        let Some(temp) = state.current_temperament().cloned() else { return };
+        let Some(tuning) = state.current_tuning().cloned() else { return };
+        let prefs = state.preferences.clone();
+        drop(state);
+
+        let root_hz = tuning.step0_hz(
+            prefs.concert_hz,
+            prefs.concert_octave,
+            temp.divisions,
+            (*temp.period.numer(), *temp.period.denom()),
+        );
+        let freq = xen_theory::theory::edo_step_to_hz(
+            absolute_step,
+            temp.divisions,
+            (*temp.period.numer(), *temp.period.denom()),
+            root_hz,
+        );
+
+        let mut guard = self.audio.lock().unwrap();
+        if guard.is_none() {
+            let sf = xen_sequencer::native_audio::soundfont_from_bytes(SF2_BYTES);
+            *guard = xen_sequencer::native_audio::NativeAudioHandle::spawn(sf);
+        }
+        if let Some(handle) = guard.as_ref() {
+            handle.play_chord(vec![freq]);
+        }
     }
 }

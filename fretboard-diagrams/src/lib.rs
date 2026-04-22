@@ -13,7 +13,7 @@
 //!   diagram scales uniformly when the user changes spacing.
 
 use hagoromo::{
-    circle, hrule, polygon, polyline, rect, render_svg, stroke_trail, strut_y, text, vcat, vrule,
+    circle, hrule, polygon, polyline, rect, render_svg, stroke_trail, text, vrule,
     Diagram, Point, RenderOptions, WHITE,
 };
 use xen_theory::fretboard::{fret_pos, get_notes, Note as TheoryNote};
@@ -114,6 +114,32 @@ pub enum DegreeLabel {
     NoteName,
 }
 
+// ── Layout output types ──────────────────────────────────────────────────────
+
+/// Hit-target for one rendered note dot, in SVG viewBox coordinates.
+#[derive(Debug, Clone)]
+pub struct NotePosition {
+    pub string_idx: usize,
+    /// Fret number as drawn (0 = open string). Already offset-adjusted.
+    pub fret: i32,
+    pub scale_degree: usize,
+    /// Absolute EDO step; matches `playing_steps` used for red highlighting.
+    pub absolute_step: i32,
+    /// Dot center, in the same coordinate space as the SVG viewBox.
+    pub cx: f64,
+    pub cy: f64,
+    pub radius: f64,
+}
+
+/// Structured output accompanying `render_board_with_layout`: the SVG's
+/// `viewBox` plus every interactive note dot's center and radius.
+#[derive(Debug, Clone)]
+pub struct DiagramLayout {
+    /// SVG `viewBox` tuple `(min_x, min_y, width, height)`.
+    pub view_box: (f64, f64, f64, f64),
+    pub notes: Vec<NotePosition>,
+}
+
 impl FretboardStyle {
     pub fn default(colors: DiagramColors) -> Self {
         FretboardStyle {
@@ -189,8 +215,9 @@ fn fretting_dot(
     original_offset: i32,
     vs: f64,
     note: &Note,
+    string_idx: usize,
     string_x: f64,
-) -> Diagram {
+) -> (Diagram, NotePosition) {
     let n = note.pitch as f64;
     let color = note_color(
         note.scale_degree,
@@ -212,7 +239,16 @@ fn fretting_dot(
             .bold()
             .font_family("sans-serif")
             .translate(string_x, dot_y + label_size * 0.06);
-        return dot + label;
+        let pos = NotePosition {
+            string_idx,
+            fret: note.pitch,
+            scale_degree: note.scale_degree,
+            absolute_step: note.absolute_step,
+            cx: string_x,
+            cy: dot_y,
+            radius,
+        };
+        return (dot + label, pos);
     }
 
     let offset_y = if scale_dot_style.display_markers_on_frets {
@@ -230,8 +266,17 @@ fn fretting_dot(
         .bold()
         .font_family("sans-serif")
         .translate(string_x, dot_y + label_size * 0.06);
+    let pos = NotePosition {
+        string_idx,
+        fret: note.pitch,
+        scale_degree: note.scale_degree,
+        absolute_step: note.absolute_step,
+        cx: string_x,
+        cy: dot_y,
+        radius,
+    };
 
-    dot + label
+    (dot + label, pos)
 }
 
 // ── emptyBoard ────────────────────────────────────────────────────────────────
@@ -298,8 +343,38 @@ pub fn render_board(
     playing_degrees: &[usize],
     playing_steps: &[i32],
 ) -> String {
+    let (svg, _layout) = render_board_with_layout(
+        key,
+        scale,
+        skip_frets,
+        tuning,
+        style,
+        note_names,
+        font_url,
+        playing_degrees,
+        playing_steps,
+    );
+    svg
+}
+
+/// Render the diagram and return the structured layout alongside the SVG.
+///
+/// The layout's `view_box` matches the SVG's `viewBox` attribute and its
+/// `notes` list contains each note dot's center and radius in viewBox
+/// coordinates — suitable for screen-space hit-testing.
+pub fn render_board_with_layout(
+    key: i32,
+    scale: &Scale,
+    skip_frets: u32,
+    tuning: &Tuning,
+    style: &FretboardStyle,
+    note_names: Option<&[String]>,
+    font_url: &str,
+    playing_degrees: &[usize],
+    playing_steps: &[i32],
+) -> (String, DiagramLayout) {
     let names = note_names.unwrap_or(&[]);
-    let diagram = if style.horizontal {
+    let (diagram, notes) = if style.horizontal {
         board_horizontal(
             scale.name.as_str(),
             key,
@@ -324,10 +399,24 @@ pub fn render_board(
             playing_steps,
         )
     };
+    // Derive the SVG viewBox from the diagram's bbox + the same padding we
+    // pass to render_svg below. This keeps note positions and hit areas in
+    // exactly the same coordinate frame as the rendered SVG.
+    const SVG_PAD: f64 = 0.05;
+    let view_box = match diagram.bbox().rect() {
+        Some(r) => (
+            r.x0 - SVG_PAD,
+            r.y0 - SVG_PAD,
+            r.width() + 2.0 * SVG_PAD,
+            r.height() + 2.0 * SVG_PAD,
+        ),
+        None => (0.0, 0.0, 100.0, 100.0),
+    };
+
     let svg = render_svg(
         &diagram,
         &RenderOptions {
-            padding: 0.05,
+            padding: SVG_PAD,
             background: None,
             default_stroke_width: hagoromo::style::THIN,
         },
@@ -338,11 +427,12 @@ pub fn render_board(
     // only a viewBox but no explicit width.  Adding width="100%" fixes both.
     let svg = svg.replacen("<svg ", "<svg width=\"100%\" ", 1);
     let needs_font = names.iter().any(|n| note_font(n) != "sans-serif");
-    if needs_font {
+    let svg = if needs_font {
         inject_bravura_font(svg, font_url)
     } else {
         svg
-    }
+    };
+    (svg, DiagramLayout { view_box, notes })
 }
 
 fn inject_bravura_font(svg: String, font_url: &str) -> String {
@@ -373,7 +463,7 @@ fn board_vertical(
     note_names: &[String],
     playing_degrees: &[usize],
     playing_steps: &[i32],
-) -> Diagram {
+) -> (Diagram, Vec<NotePosition>) {
     let vs = style.vertical_spacing;
     let hs = style.horizontal_spacing;
     let n_frets = style.num_frets as usize;
@@ -381,7 +471,7 @@ fn board_vertical(
     let n_str = tuning.string_tunings.len();
 
     if n_str == 0 || n_frets == 0 {
-        return Diagram::empty();
+        return (Diagram::empty(), Vec::new());
     }
 
     let root_color = style.colors.root;
@@ -419,6 +509,7 @@ fn board_vertical(
             .iter()
             .any(|notes| notes.iter().any(|n| n.pitch == 0));
 
+    let mut note_positions: Vec<NotePosition> = Vec::new();
     let dots: Diagram = positions
         .iter()
         .enumerate()
@@ -427,7 +518,7 @@ fn board_vertical(
             let j = if style.left_handed { n_str - 1 - i } else { i };
             let sx = pad + j as f64 * hs;
             notes.iter().fold(Diagram::empty(), |acc, note| {
-                acc + fretting_dot(
+                let (d, pos) = fretting_dot(
                     root_color,
                     scale_color,
                     playing_degrees,
@@ -436,8 +527,11 @@ fn board_vertical(
                     offset,
                     vs,
                     note,
+                    i,
                     sx,
-                )
+                );
+                note_positions.push(pos);
+                acc + d
             })
         })
         .fold(Diagram::empty(), |acc, d| acc + d);
@@ -539,15 +633,23 @@ fn board_vertical(
         .font_family(title_font)
         .translate(board_w / 2.0, title_y);
 
-    match style.title {
-        TitleStyle::None => string_markers + fret_markers + fretboard_body,
-        TitleStyle::AboveFretboard => vcat!(title, string_markers + fret_markers + fretboard_body),
-        TitleStyle::BelowFretboard => vcat!(
-            string_markers + fret_markers + fretboard_body,
-            strut_y(vs * 0.8),
-            title,
-        ),
-    }
+    let body = string_markers + fret_markers + fretboard_body;
+    let diagram = match style.title {
+        TitleStyle::None => body,
+        TitleStyle::AboveFretboard => {
+            // Title is already translated to (board_w/2, title_y) with title_y negative,
+            // sitting above the board. Plain superimposition preserves dot positions.
+            body + title
+        }
+        TitleStyle::BelowFretboard => {
+            // Move title from its (negative) initial y to sit just below the body.
+            let body_bottom = body.bbox().rect().map(|r| r.y1).unwrap_or(0.0);
+            let title_top = title.bbox().rect().map(|r| r.y0).unwrap_or(0.0);
+            let shift = body_bottom + vs * 0.8 - title_top;
+            body + title.translate_y(shift)
+        }
+    };
+    (diagram, note_positions)
 }
 
 // ── empty_board_h ─────────────────────────────────────────────────────────────
@@ -654,6 +756,7 @@ fn fretting_dot_h(
     vs: f64,
     hs: f64,
     note: &Note,
+    string_idx: usize,
     // y position of this string at the nut and body end (x=0 / x=board_w
     // before any left-handed flip), so the dot sits on the angled string.
     y_nut: f64,
@@ -662,7 +765,7 @@ fn fretting_dot_h(
     temperament: Temperament,
     board_w: f64,
     left_handed: bool,
-) -> Diagram {
+) -> (Diagram, NotePosition) {
     let color = note_color(
         note.scale_degree,
         note.absolute_step,
@@ -694,7 +797,16 @@ fn fretting_dot_h(
             .bold()
             .font_family("sans-serif")
             .translate(dot_x, sy + label_size * 0.06);
-        return dot + label;
+        let pos = NotePosition {
+            string_idx,
+            fret: note.pitch,
+            scale_degree: note.scale_degree,
+            absolute_step: note.absolute_step,
+            cx: dot_x,
+            cy: sy,
+            radius,
+        };
+        return (dot + label, pos);
     }
 
     let k = note.pitch as f64;
@@ -717,8 +829,17 @@ fn fretting_dot_h(
         .bold()
         .font_family("sans-serif")
         .translate(dot_x, sy + label_size * 0.06);
+    let pos = NotePosition {
+        string_idx,
+        fret: note.pitch,
+        scale_degree: note.scale_degree,
+        absolute_step: note.absolute_step,
+        cx: dot_x,
+        cy: sy,
+        radius,
+    };
 
-    dot + label
+    (dot + label, pos)
 }
 
 // ── fret_marker_dots ─────────────────────────────────────────────────────────
@@ -844,7 +965,7 @@ fn board_horizontal(
     note_names: &[String],
     playing_degrees: &[usize],
     playing_steps: &[i32],
-) -> Diagram {
+) -> (Diagram, Vec<NotePosition>) {
     // vs = fret pitch (now along the x-axis), hs = string pitch (along y-axis).
     let vs = style.vertical_spacing;
     let hs = style.horizontal_spacing;
@@ -854,7 +975,7 @@ fn board_horizontal(
     let left_handed = style.left_handed;
 
     if n_str == 0 || n_frets == 0 {
-        return Diagram::empty();
+        return (Diagram::empty(), Vec::new());
     }
 
     let root_color = style.colors.root;
@@ -892,6 +1013,7 @@ fn board_horizontal(
             .iter()
             .any(|notes| notes.iter().any(|n| n.pitch == 0));
 
+    let mut note_positions: Vec<NotePosition> = Vec::new();
     let dots: Diagram = positions
         .iter()
         .enumerate()
@@ -904,7 +1026,7 @@ fn board_horizontal(
                 pad - taper + j * (h_str + 2.0 * taper) / (n_str as f64 - 1.0)
             };
             notes.iter().fold(Diagram::empty(), |acc, note| {
-                acc + fretting_dot_h(
+                let (d, pos) = fretting_dot_h(
                     root_color,
                     scale_color,
                     playing_degrees,
@@ -914,13 +1036,16 @@ fn board_horizontal(
                     vs,
                     hs,
                     note,
+                    i,
                     y_nut,
                     y_body,
                     n_frets,
                     tuning.temperament.clone(),
                     board_w,
                     left_handed,
-                )
+                );
+                note_positions.push(pos);
+                acc + d
             })
         })
         .fold(Diagram::empty(), |acc, d| acc + d);
@@ -1042,13 +1167,20 @@ fn board_horizontal(
         .font_family(title_font)
         .translate(board_w / 2.0, title_y);
 
-    match style.title {
-        TitleStyle::None => string_markers + fret_markers + fretboard_body,
-        TitleStyle::AboveFretboard => vcat!(title, string_markers + fret_markers + fretboard_body),
-        TitleStyle::BelowFretboard => vcat!(
-            string_markers + fret_markers + fretboard_body,
-            strut_y(vs * 0.8),
-            title,
-        ),
-    }
+    let body = string_markers + fret_markers + fretboard_body;
+    let diagram = match style.title {
+        TitleStyle::None => body,
+        TitleStyle::AboveFretboard => {
+            // Title is already translated to (board_w/2, title_y) with title_y negative.
+            // Superimpose preserves dot positions (no vcat shift).
+            body + title
+        }
+        TitleStyle::BelowFretboard => {
+            let body_bottom = body.bbox().rect().map(|r| r.y1).unwrap_or(0.0);
+            let title_top = title.bbox().rect().map(|r| r.y0).unwrap_or(0.0);
+            let shift = body_bottom + vs * 0.8 - title_top;
+            body + title.translate_y(shift)
+        }
+    };
+    (diagram, note_positions)
 }

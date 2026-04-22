@@ -1,7 +1,8 @@
 use dioxus::prelude::*;
 
+use app_common::hit_test::{hit_test, HitTarget};
 use crate::state::{DiagramMode, APP_STATE};
-use fretboard_diagrams::{render_board, FretboardStyle};
+use fretboard_diagrams::{render_board_with_layout, FretboardStyle};
 use xen_theory::scale::Scale;
 
 // Ensure Bravura is bundled and served. asset!() registers the file with the
@@ -13,6 +14,7 @@ pub fn FretboardPreview(
     playing_degrees: ReadOnlySignal<Vec<usize>>,
     playing_steps: ReadOnlySignal<Vec<i32>>,
     horizontal_override: Option<bool>,
+    on_note_click: Option<EventHandler<HitTarget>>,
 ) -> Element {
     let playing_degs = playing_degrees.read().clone();
     let playing_stps = playing_steps.read().clone();
@@ -96,35 +98,69 @@ pub fn FretboardPreview(
     };
     let font_url = BRAVURA_FONT.to_string();
 
-    let svg = match (maybe_item, maybe_tuning) {
-        (Some(scale), Some(tuning)) => render_board(
-            diagram_settings.key as i32,
-            &scale,
-            tuning.skip_frets,
-            &tuning,
-            &fret_style,
-            note_names_ref,
-            &font_url,
-            &playing_degs,
-            &playing_stps,
+    let (svg, layout) = match (maybe_item, maybe_tuning) {
+        (Some(scale), Some(tuning)) => {
+            let (svg, layout) = render_board_with_layout(
+                diagram_settings.key as i32,
+                &scale,
+                tuning.skip_frets,
+                &tuning,
+                &fret_style,
+                note_names_ref,
+                &font_url,
+                &playing_degs,
+                &playing_stps,
+            );
+            (svg, Some(layout))
+        }
+        _ => (
+            String::from(concat!(
+                r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 30">"#,
+                r#"<text x="10" y="18" font-size="10" fill="currentColor">"#,
+                "No scale or tuning selected.",
+                "</text></svg>",
+            )),
+            None,
         ),
-        _ => String::from(concat!(
-            r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 30">"#,
-            r#"<text x="10" y="18" font-size="10" fill="currentColor">"#,
-            "No scale or tuning selected.",
-            "</text></svg>",
-        )),
     };
 
     rsx! {
         div {
             class: if is_horizontal { "fretboard-card horizontal" } else { "fretboard-card" },
             div {
+                id: "fretboard-hit-area",
                 class: "fretboard-container",
                 style: if is_horizontal {
                     "width: 100%;".to_string()
                 } else {
                     format!("width: {}px; max-width: 100%;", diagram_settings.display_size)
+                },
+                onpointerdown: move |evt: Event<PointerData>| {
+                    let Some(layout) = layout.clone() else { return };
+                    let Some(handler) = on_note_click else { return };
+                    let (cx, cy) = (evt.data().client_coordinates().x, evt.data().client_coordinates().y);
+                    spawn(async move {
+                        // elementFromPoint confirms the press landed inside the fretboard
+                        // (not on a dropdown overlay or other element on top). If it
+                        // didn't, we send nothing and return — no state change, no
+                        // interference with subsequent click events on other elements.
+                        let js = format!(
+                            "let el = document.getElementById('fretboard-hit-area'); \
+                             if (el) {{ \
+                               let t = document.elementFromPoint({cx}, {cy}); \
+                               if (el.contains(t)) {{ \
+                                 let r = el.getBoundingClientRect(); \
+                                 dioxus.send([r.left, r.top, r.width, r.height]); \
+                               }} \
+                             }}"
+                        );
+                        let mut ev = document::eval(&js);
+                        let Ok(rect) = ev.recv::<[f64; 4]>().await else { return };
+                        let [left, top, w, h] = rect;
+                        if let Some(hit) = hit_test(&layout, w, h, cx - left, cy - top) {
+                            handler.call(hit);
+                        }
+                    });
                 },
                 dangerous_inner_html: "{svg}"
             }

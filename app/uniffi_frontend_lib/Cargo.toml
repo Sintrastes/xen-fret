@@ -11,6 +11,7 @@ crate-type = ["cdylib", "staticlib"]
 uniffi = { version = "0.29", features = ["cli"] }
 app-common = { path = "../common" }
 xen-theory = { path = "../../xen-theory", features = ["serde"] }
+xen-sequencer = { path = "../../xen-sequencer", features = ["native"] }
 fretboard-diagrams = { path = "../../fretboard-diagrams", features = ["serde"] }
 resvg = "0.45"
 usvg = "0.45"

@@ -12,7 +12,7 @@ path = "src/main.rs"
 app-common = { path = "../common" }
 xen-theory = { path = "../../xen-theory", features = ["serde"] }
 xen-dsp = { path = "../../xen-dsp" }
-xen-sequencer = { path = "../../xen-sequencer" }
+xen-sequencer = { path = "../../xen-sequencer", features = ["web"] }
 fretboard-diagrams = { path = "../../fretboard-diagrams", features = ["serde"] }
 dioxus = { version = "0.7.5", features = ["web", "router", "document"] }
 num = { version = "0.4.3", features = ["serde"] }

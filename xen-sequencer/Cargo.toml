@@ -5,4 +5,23 @@ edition = "2021"
 
 [dependencies]
 xen-theory = { path = "../xen-theory", features = ["serde"] }
-dioxus = { version = "0.7", features = ["document"] }
+
+[features]
+default = []
+web    = ["dep:dioxus"]
+native = ["dep:rodio", "dep:rustysynth"]
+
+[dependencies.dioxus]
+version = "0.7"
+features = ["document"]
+optional = true
+
+[dependencies.rodio]
+version = "0.20"
+default-features = false
+features = ["wav"]
+optional = true
+
+[dependencies.rustysynth]
+version = "1.3"
+optional = true

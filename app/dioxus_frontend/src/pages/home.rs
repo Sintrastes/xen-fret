@@ -236,6 +236,8 @@ pub fn Home() -> Element {
     let mut is_playing = use_signal(|| false);
     let mut playing_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
     let mut playing_steps: Signal<Vec<i32>> = use_signal(Vec::new);
+    // Transient red-flash steps from clicking individual note dots.
+    let mut flash_steps: Signal<Vec<i32>> = use_signal(Vec::new);
     let mut mic_active = use_signal(|| false);
     let mut mic_degrees: Signal<Vec<usize>> = use_signal(Vec::new);
     let mut mic_steps: Signal<Vec<i32>> = use_signal(Vec::new);
@@ -661,7 +663,50 @@ pub fn Home() -> Element {
     let effective_steps = {
         let mut steps = playing_steps.read().clone();
         steps.extend(mic_steps.read().iter().copied());
+        steps.extend(flash_steps.read().iter().copied());
         steps
+    };
+
+    // Called when the user clicks a note dot on the fretboard.
+    let on_note_click = move |hit: app_common::hit_test::HitTarget| {
+        // ── Visual flash ──────────────────────────────────────────────────
+        let step = hit.absolute_step;
+        flash_steps.write().push(step);
+        spawn({
+            let mut fs = flash_steps.clone();
+            async move {
+                // setTimeout-based 180ms delay via JS eval.
+                let mut ev = document::eval(
+                    "setTimeout(() => dioxus.send('done'), 180);"
+                );
+                let _ = ev.recv::<String>().await;
+                let mut v = fs.write();
+                if let Some(pos) = v.iter().position(|&s| s == step) {
+                    v.remove(pos);
+                }
+            }
+        });
+
+        // ── Audio playback (web only) ─────────────────────────────────────
+        let state = APP_STATE.read();
+        let Some(temp) = state.current_temperament().cloned() else { return };
+        let Some(tuning) = state.current_tuning().cloned() else { return };
+        let concert_hz = state.preferences.concert_hz;
+        let concert_octave = state.preferences.concert_octave;
+        drop(state);
+        let root_hz = tuning.step0_hz(
+            concert_hz,
+            concert_octave,
+            temp.divisions,
+            (*temp.period.numer(), *temp.period.denom()),
+        );
+        let freq = xen_theory::theory::edo_step_to_hz(
+            hit.absolute_step,
+            temp.divisions,
+            (*temp.period.numer(), *temp.period.denom()),
+            root_hz,
+        );
+        spawn(async move { audio::play_chord(&[freq]).await; });
     };
 
     rsx! {
@@ -895,6 +940,7 @@ pub fn Home() -> Element {
                         playing_degrees: effective_degrees.clone(),
                         playing_steps: effective_steps.clone(),
                         horizontal_override: Some(effective_horizontal),
+                        on_note_click: on_note_click,
                     }
                 }
             }

@@ -1,7 +1,13 @@
 use app_common::{
+    hit_test::hit_test,
     state::{AppState, DiagramMode},
     storage,
 };
+
+static SF2_BYTES: &[u8] = include_bytes!(
+    "../../dioxus_frontend/assets/soundfont.sf2"
+);
+use fretboard_diagrams::DiagramLayout;
 use glib::SignalHandlerId;
 use relm4::{
     adw::{self, prelude::*},
@@ -17,7 +23,12 @@ pub struct AppModel {
     chord_names: Vec<String>,
     tuning_names: Vec<String>,
     pending_texture: Option<(Vec<u8>, u32, u32)>,
+    /// Layout from the last completed render; used for click hit-testing.
+    diagram_layout: Option<DiagramLayout>,
+    /// Absolute EDO steps currently flashing red from user clicks.
+    flash_steps: Vec<i32>,
     needs_render: std::cell::Cell<bool>,
+    audio: Option<xen_sequencer::native_audio::NativeAudioBackend>,
 }
 
 #[derive(Debug)]
@@ -28,8 +39,12 @@ pub enum AppMsg {
     ModeSet(DiagramMode),
     KeyChanged(f64),
     FretOffsetChanged(f64),
-    DiagramReady(Vec<u8>, u32, u32),
+    DiagramReady(Vec<u8>, u32, u32, DiagramLayout),
     AddInstrumentConfirmed(Instrument),
+    /// User clicked the diagram widget at widget-local (x, y); widget size given.
+    DiagramClicked { x: f64, y: f64, widget_w: f64, widget_h: f64 },
+    /// Flash timer expired for a specific absolute step.
+    DiagramFlashExpired(i32),
 }
 
 impl AppModel {
@@ -117,6 +132,8 @@ impl SimpleComponent for AppModel {
         if state.selected_instrument_idx.is_none() && !state.instruments.is_empty() {
             state.select_instrument(0);
         }
+        let sf = xen_sequencer::native_audio::soundfont_from_bytes(SF2_BYTES);
+        let audio = xen_sequencer::native_audio::NativeAudioBackend::new(sf).ok();
         let mut model = AppModel {
             state,
             instrument_names: vec![],
@@ -124,7 +141,10 @@ impl SimpleComponent for AppModel {
             chord_names: vec![],
             tuning_names: vec![],
             pending_texture: None,
+            diagram_layout: None,
+            flash_steps: vec![],
             needs_render: std::cell::Cell::new(false),
+            audio,
         };
         model.rebuild_derived();
 
@@ -277,6 +297,21 @@ impl SimpleComponent for AppModel {
             .can_shrink(true)
             .content_fit(gtk::ContentFit::Contain)
             .build();
+
+        // ── Diagram click handling ────────────────────────────────────────
+        let gesture = gtk::GestureClick::new();
+        gesture.connect_pressed(glib::clone!(
+            #[strong]
+            sender,
+            #[strong]
+            diagram,
+            move |_g, _n, x, y| {
+                let widget_w = diagram.width() as f64;
+                let widget_h = diagram.height() as f64;
+                sender.input(AppMsg::DiagramClicked { x, y, widget_w, widget_h });
+            }
+        ));
+        diagram.add_controller(gesture);
 
         let diagram_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -521,8 +556,8 @@ impl SimpleComponent for AppModel {
 
         {
             let s = sender.clone();
-            crate::render::submit_render(model.state.clone(), move |data, w, h| {
-                s.input(AppMsg::DiagramReady(data, w, h));
+            crate::render::submit_render(model.state.clone(), vec![], move |data, w, h, layout| {
+                s.input(AppMsg::DiagramReady(data, w, h, layout));
             });
         }
 
@@ -543,10 +578,74 @@ impl SimpleComponent for AppModel {
         ComponentParts { model, widgets }
     }
 
-    fn update(&mut self, msg: AppMsg, _sender: ComponentSender<Self>) {
+    fn update(&mut self, msg: AppMsg, sender: ComponentSender<Self>) {
         match msg {
-            AppMsg::DiagramReady(data, w, h) => {
+            AppMsg::DiagramReady(data, w, h, layout) => {
                 self.pending_texture = Some((data, w, h));
+                self.diagram_layout = Some(layout);
+                return;
+            }
+            AppMsg::DiagramClicked { x, y, widget_w, widget_h } => {
+                let Some(layout) = &self.diagram_layout else { return };
+                // The Picture uses ContentFit::Contain. The rasterized image is
+                // always 800px wide; use the stored texture dimensions.
+                let Some((_, img_w, img_h)) = &self.pending_texture else { return };
+                let img_w = *img_w as f64;
+                let img_h = *img_h as f64;
+                // Compute the displayed rect within the widget (letterbox).
+                let scale = (widget_w / img_w).min(widget_h / img_h);
+                let disp_w = img_w * scale;
+                let disp_h = img_h * scale;
+                let off_x = (widget_w - disp_w) / 2.0;
+                let off_y = (widget_h - disp_h) / 2.0;
+                let elem_x = x - off_x;
+                let elem_y = y - off_y;
+                let Some(hit) = hit_test(layout, disp_w, disp_h, elem_x, elem_y) else { return };
+
+                let step = hit.absolute_step;
+                self.flash_steps.push(step);
+                self.needs_render.set(true);
+
+                // Play audio for the tapped note.
+                if let Some(backend) = &self.audio {
+                    use xen_sequencer::backend::AudioBackend;
+                    if let (Some(temp), Some(tuning)) = (
+                        self.state.current_temperament().cloned(),
+                        self.state.current_tuning().cloned(),
+                    ) {
+                        let prefs = &self.state.preferences;
+                        let root_hz = tuning.step0_hz(
+                            prefs.concert_hz,
+                            prefs.concert_octave,
+                            temp.divisions,
+                            (*temp.period.numer(), *temp.period.denom()),
+                        );
+                        let freq = xen_theory::theory::edo_step_to_hz(
+                            hit.absolute_step,
+                            temp.divisions,
+                            (*temp.period.numer(), *temp.period.denom()),
+                            root_hz,
+                        );
+                        backend.play_chord(vec![freq], Box::new(|| {}));
+                    }
+                }
+
+                // Schedule expiry after 180 ms on the GTK main thread.
+                glib::timeout_add_local_once(
+                    std::time::Duration::from_millis(180),
+                    glib::clone!(
+                        #[strong]
+                        sender,
+                        move || { sender.input(AppMsg::DiagramFlashExpired(step)); }
+                    ),
+                );
+                // Trigger a re-render immediately to show the flash.
+            }
+            AppMsg::DiagramFlashExpired(step) => {
+                if let Some(pos) = self.flash_steps.iter().position(|&s| s == step) {
+                    self.flash_steps.remove(pos);
+                }
+                self.needs_render.set(true);
                 return;
             }
             AppMsg::InstrumentSelected(i) => {
@@ -636,8 +735,9 @@ impl SimpleComponent for AppModel {
         if self.needs_render.get() {
             self.needs_render.set(false);
             let s = sender.clone();
-            crate::render::submit_render(self.state.clone(), move |data, w, h| {
-                s.input(AppMsg::DiagramReady(data, w, h));
+            let flash = self.flash_steps.clone();
+            crate::render::submit_render(self.state.clone(), flash, move |data, w, h, layout| {
+                s.input(AppMsg::DiagramReady(data, w, h, layout));
             });
         }
 

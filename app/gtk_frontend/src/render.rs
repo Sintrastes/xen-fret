@@ -1,3 +1,4 @@
+use fretboard_diagrams::DiagramLayout;
 use relm4::gtk::gdk;
 use tiny_skia::Pixmap;
 use std::sync::{mpsc, OnceLock};
@@ -72,16 +73,20 @@ fn rasterize(svg: &str, opts: &usvg::Options) -> Option<(Vec<u8>, u32, u32)> {
 }
 
 /// Submit a state snapshot for rendering on the persistent render thread.
-/// Calls `callback` with the pixel data when done.
+/// Calls `callback` with the pixel data and diagram layout when done.
+/// `playing_steps` drives red highlighting (e.g. click flash).
 pub fn submit_render(
     state: app_common::state::AppState,
-    callback: impl FnOnce(Vec<u8>, u32, u32) + Send + 'static,
+    playing_steps: Vec<i32>,
+    callback: impl FnOnce(Vec<u8>, u32, u32, DiagramLayout) + Send + 'static,
 ) {
     let tx = render_tx();
     let _ = tx.send(Box::new(move |opts| {
-        if let Some(svg) = app_common::diagrams::build_svg(&state, "") {
+        if let Some((svg, layout)) =
+            app_common::diagrams::build_svg_with_layout(&state, "", &[], &playing_steps)
+        {
             if let Some((data, w, h)) = rasterize(&svg, opts) {
-                callback(data, w, h);
+                callback(data, w, h, layout);
             }
         }
     }));
