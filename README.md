@@ -17,19 +17,24 @@ Xen Fret is a appliation for players of microtonal (a.k.a. xenharmonic) fretted 
 
 Xen Fret uses data from the [xen wiki](https://en.xen.wiki/w/Main_Page), together with some of my own manually entered data for my own 22-EDO guitar. This application is developed in my free time, and will always be free and open source. If you see anything wrong / missing, or have a feature request, please either [file an issue](https://github.com/Sintrastes/xen-fret/issues/new) or submit a PR! 
 
+*Note*: The project's logo is a diagram showing the 8-edo subset of 16-edo, generated with a step size of 7. The outer edges of the diagram represent eod steps, while the inner edges represent the generator chain. This particular scale was chosen over other [MOS](https://en.xen.wiki/w/List_of_MOS_scales_in_16edo) scales because I thought this one looked the best as a logo.
+
+Getting started
+---------------
+
+The latest version of Xen Fret is currently hosted [here](https://sintrastes.github.io/xen_fret/) as a static page on github pages. Builds for other platforms (desktop / mobile versions) can be found in the CI artifacts, and will be included in future releases.
+
 Features
 --------
 
   - Manage scales and chords for different instruments. When you first open the app, you'll start by entering the exact configuration of your instrument, even if it's something exotic like a [Kite guitar](https://kiteguitar.com/).
   - Practice scales / chords.
-  - Export or print SVG fretboard diagrams.
+  - Export or print fretboard diagrams in svg and pdf format.
   - Customize the theme of the application and of the fretboard diagrams.
+  - Generate microtonal backing tracks / jam tracks to practice soloing. 
   - Real-time pitch detection / transcription for microtonal instruments. (WIP)
-
-Gettring started
-----------------
-
-Xen Fret is currently hosted [here](https://sintrastes.github.io/xen_fret/) as a static page on github pages. In the future, we may add desktop and mobile versions.
+  - Chord / scale detection. (WIP)
+  - Native clients for Web, Android, and Linux (GTK). Currently other platforms use just a web app deployed with Tauri.
 
 Building
 --------
