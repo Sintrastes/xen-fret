@@ -36,6 +36,17 @@ Features
   - Chord / scale detection. (WIP)
   - Native clients for Web, Android, and Linux (GTK). Currently other platforms use just a web app deployed with Tauri.
 
+Screenshots
+-----------
+
+**Web**:
+
+<img width="1018" height="758" alt="Xen Fret Web" src="https://github.com/user-attachments/assets/e2a33ff6-0a96-495d-9379-5af12edb77aa" />
+
+**GTK**:
+
+<img width="1016" height="812" alt="Xen Fret GTK" src="https://github.com/user-attachments/assets/7c971bc2-59eb-4228-8a6f-5bbcce833b0a" />
+
 Building
 --------
 
