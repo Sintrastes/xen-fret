@@ -1,11 +1,15 @@
 # Xen Fret
 
 <p align="center">
+  <img src="https://github.com/Sintrastes/xen-fret/blob/master/app/dioxus_frontend/assets/icons/icon-256.png?raw=true">
+</p>
+
+<p align="center">
   <a href="https://haskell.org/">
-    <img src="https://img.shields.io/badge/Language-Haskell-blue">
+    <img src="https://img.shields.io/badge/Language-Rust-orange">
   </a>
-  <a href="https://github.com/Sintrastes/xen-fret/actions/workflows/build.yml">
-    <img src="https://github.com/Sintrastes/xen-fret/actions/workflows/build.yml/badge.svg">
+  <a href="https://github.com/Sintrastes/xen-fret/actions/workflows/deploy.yml">
+    <img src="https://github.com/Sintrastes/xen-fret/actions/workflows/deploy.yml/badge.svg">
   </a>
 </p>
 
