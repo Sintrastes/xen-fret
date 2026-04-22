@@ -17,7 +17,7 @@ Xen Fret is a appliation for players of microtonal (a.k.a. xenharmonic) fretted 
 
 Xen Fret uses data from the [xen wiki](https://en.xen.wiki/w/Main_Page), together with some of my own manually entered data for my own 22-EDO guitar. This application is developed in my free time, and will always be free and open source. If you see anything wrong / missing, or have a feature request, please either [file an issue](https://github.com/Sintrastes/xen-fret/issues/new) or submit a PR! 
 
-*Note*: The project's logo is a diagram showing the 8-edo subset of 16-edo, generated with a step size of 7. The outer edges of the diagram represent edo steps, while the inner edges represent the generator chain. This particular scale was chosen over other [MOS](https://en.xen.wiki/w/List_of_MOS_scales_in_16edo) scales because I thought this one looked the best as a logo. Mathematically, the logo is a type of [star polygon](https://en.wikipedia.org/wiki/Star_polygon).
+*Note*: The project's logo is a diagram showing the 8-edo subset of 16-edo, generated with a step size of 7. The outer edges of the diagram represent edo steps, while the inner edges represent the generator chain. This particular scale was chosen over other [MOS](https://en.xen.wiki/w/List_of_MOS_scales_in_16edo) scales because I thought this one looked the best as a logo. Mathematically, the logo is a type of [star polygon](https://en.wikipedia.org/wiki/Star_polygon). The diagram was generated with the code in [icon-gen](https://github.com/Sintrastes/xen-fret/blob/master/icon-gen/src/lib.rs) using [hagoromo](https://github.com/Sintrastes/hagoromo).
 
 Getting started
 ---------------
