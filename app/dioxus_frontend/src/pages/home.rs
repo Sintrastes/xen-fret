@@ -521,53 +521,9 @@ pub fn Home() -> Element {
                         pitch_tracking::MicEvent::Samples { rate, data } => {
                             let pitches = detector.detect(&data, rate);
                             let state = APP_STATE.read();
-                            let concert_hz = state.preferences.concert_hz;
-
-                            let (fresh_degs, fresh_steps): (Vec<usize>, Vec<i32>) =
-                                if let (Some(temp), Some(scale), Some(tuning)) = (
-                                    state.current_temperament(),
-                                    state.current_scale(),
-                                    state.current_tuning(),
-                                ) {
-                                    let key = state.diagram_settings.key as i32;
-                                    let period_tuple = (*temp.period.numer(), *temp.period.denom());
-                                    let step0_hz = tuning.step0_hz(
-                                        concert_hz,
-                                        state.preferences.concert_octave,
-                                        temp.divisions,
-                                        period_tuple,
-                                    );
-                                    let period_ratio = temp.period_f64();
-                                    let lowest_step =
-                                        tuning.string_tunings.iter().min().copied().unwrap_or(0);
-                                    let lowest_hz = step0_hz
-                                        * period_ratio
-                                            .powf(lowest_step as f64 / temp.divisions as f64);
-                                    let lowest_abs =
-                                        (temp.divisions as f64 * (lowest_hz / concert_hz).ln()
-                                            / period_ratio.ln())
-                                        .round() as i32;
-                                    let offset = lowest_step - lowest_abs;
-                                    let steps = pitches
-                                        .iter()
-                                        .filter(|p| p.confidence > 0.1)
-                                        .filter_map(|p| {
-                                            pitch_tracking::hz_to_absolute_step(
-                                                p.hz,
-                                                temp.divisions,
-                                                period_tuple,
-                                                concert_hz,
-                                                key,
-                                                &scale.intervals,
-                                                50.0,
-                                            )
-                                            .map(|s| s + offset)
-                                        })
-                                        .collect();
-                                    (vec![], steps)
-                                } else {
-                                    (vec![], vec![])
-                                };
+                            let fresh_steps =
+                                app_common::pitch_map::detected_to_absolute_steps(&state, &pitches);
+                            let fresh_degs: Vec<usize> = vec![];
                             drop(state);
 
                             holdoff_degs.retain(|_, c| {

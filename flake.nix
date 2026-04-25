@@ -54,6 +54,9 @@
             graphene
 
             openssl
+
+            # cpal / rodio (native audio + mic capture on Linux)
+            alsa-lib
           ];
 
           packages = with pkgs; [
@@ -71,7 +74,7 @@
           ];
 
           env = {
-            PKG_CONFIG_PATH  = "${pkgs.openssl.dev}/lib/pkgconfig";
+            PKG_CONFIG_PATH  = "${pkgs.openssl.dev}/lib/pkgconfig:${pkgs.alsa-lib.dev}/lib/pkgconfig";
             XDG_DATA_DIRS    = "${pkgs.gtk4}/share:${pkgs.libadwaita}/share:$XDG_DATA_DIRS";
             ANDROID_HOME     = androidSdkPath;
             ANDROID_SDK_ROOT = androidSdkPath;

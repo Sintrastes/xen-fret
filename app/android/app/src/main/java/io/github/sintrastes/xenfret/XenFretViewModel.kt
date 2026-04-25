@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import uniffi.xen_fret_uniffi.InstrumentRecord
 import uniffi.xen_fret_uniffi.ScaleRecord
@@ -56,6 +57,10 @@ class XenFretViewModel(application: Application) : AndroidViewModel(application)
     val mode: StateFlow<DiagramMode> = _mode.asStateFlow()
 
     private var renderJob: Job? = null
+    private var micRefreshJob: Job? = null
+
+    private val _micActive = MutableStateFlow(false)
+    val micActive: StateFlow<Boolean> = _micActive.asStateFlow()
 
     // null = loading, empty = no instrument selected, non-empty = PNG bytes
     private val _diagramPng = MutableStateFlow<ByteArray?>(null)
@@ -151,6 +156,29 @@ class XenFretViewModel(application: Application) : AndroidViewModel(application)
             _selectedInstrumentIdx.value = newIdx
             api.save()
             refreshLists()
+            regenerateDiagram()
+        }
+    }
+
+    fun startMic() {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (!api.startMic()) return@launch
+            _micActive.value = true
+            micRefreshJob = viewModelScope.launch(Dispatchers.IO) {
+                while (isActive) {
+                    regenerateDiagram()
+                    delay(100)
+                }
+            }
+        }
+    }
+
+    fun stopMic() {
+        viewModelScope.launch(Dispatchers.IO) {
+            micRefreshJob?.cancel()
+            micRefreshJob = null
+            api.stopMic()
+            _micActive.value = false
             regenerateDiagram()
         }
     }

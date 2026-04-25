@@ -157,6 +157,7 @@ dependencies = [
  "serde",
  "serde_json",
  "web-sys",
+ "xen-dsp",
  "xen-theory",
 ]
 
@@ -7831,6 +7832,7 @@ dependencies = [
  "tiny-skia",
  "uniffi",
  "usvg",
+ "xen-dsp",
  "xen-sequencer",
  "xen-theory",
 ]
@@ -9146,6 +9148,7 @@ dependencies = [
  "resvg",
  "tiny-skia",
  "usvg",
+ "xen-dsp",
  "xen-sequencer",
  "xen-theory",
 ]
@@ -9154,6 +9157,7 @@ dependencies = [
 name = "xen-sequencer"
 version = "0.1.0"
 dependencies = [
+ "cpal",
  "dioxus",
  "rodio",
  "rustysynth",

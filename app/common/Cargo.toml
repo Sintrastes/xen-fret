@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 xen-theory = { path = "../../xen-theory", features = ["serde"] }
+xen-dsp = { path = "../../xen-dsp" }
 fretboard-diagrams = { path = "../../fretboard-diagrams", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

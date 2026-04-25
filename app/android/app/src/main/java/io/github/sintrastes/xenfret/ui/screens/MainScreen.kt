@@ -1,7 +1,10 @@
 package io.github.sintrastes.xenfret.ui.screens
 
+import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -14,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -53,6 +58,11 @@ fun MainScreen(vm: XenFretViewModel = viewModel()) {
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
+    val micActive by vm.micActive.collectAsState()
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) vm.startMic() }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -61,6 +71,17 @@ fun MainScreen(vm: XenFretViewModel = viewModel()) {
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
+                actions = {
+                    IconButton(onClick = {
+                        if (micActive) vm.stopMic()
+                        else micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }) {
+                        Icon(
+                            imageVector = if (micActive) Icons.Default.MicOff else Icons.Default.Mic,
+                            contentDescription = if (micActive) "Stop listening" else "Listen to mic",
+                        )
+                    }
+                },
             )
         },
         floatingActionButton = {

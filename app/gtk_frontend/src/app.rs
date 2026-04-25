@@ -22,13 +22,19 @@ pub struct AppModel {
     scale_names: Vec<String>,
     chord_names: Vec<String>,
     tuning_names: Vec<String>,
-    pending_texture: Option<(Vec<u8>, u32, u32)>,
+    pending_texture: std::cell::RefCell<Option<(Vec<u8>, u32, u32)>>,
     /// Layout from the last completed render; used for click hit-testing.
     diagram_layout: Option<DiagramLayout>,
     /// Absolute EDO steps currently flashing red from user clicks.
     flash_steps: Vec<i32>,
     needs_render: std::cell::Cell<bool>,
+    /// Set when instrument/scale/tuning/key state changes so update_view repopulates
+    /// dropdowns and spinners.  Not set for mic/flash/render-only updates so that
+    /// those never call set_model on open dropdowns and steal focus.
+    needs_ui_sync: std::cell::Cell<bool>,
     audio: Option<xen_sequencer::native_audio::NativeAudioBackend>,
+    mic_handle: Option<std::sync::Arc<xen_sequencer::native_mic::NativeMicHandle>>,
+    mic_steps: Vec<i32>,
 }
 
 #[derive(Debug)]
@@ -45,6 +51,12 @@ pub enum AppMsg {
     DiagramClicked { x: f64, y: f64, widget_w: f64, widget_h: f64 },
     /// Flash timer expired for a specific absolute step.
     DiagramFlashExpired(i32),
+    /// Mic listen toggle button clicked.
+    MicToggle,
+    /// Detector thread emitted new matched steps.
+    MicPitchesChanged(Vec<i32>),
+    /// Mic stream stopped or errored.
+    MicStopped,
 }
 
 impl AppModel {
@@ -108,6 +120,8 @@ pub struct AppWidgets {
     key_spin: gtk::SpinButton,
     fret_spin: gtk::SpinButton,
     diagram: gtk::Picture,
+    mic_btn: gtk::ToggleButton,
+    mic_sig: SignalHandlerId,
 }
 
 // ── SimpleComponent impl ──────────────────────────────────────────────────────
@@ -140,11 +154,14 @@ impl SimpleComponent for AppModel {
             scale_names: vec![],
             chord_names: vec![],
             tuning_names: vec![],
-            pending_texture: None,
+            pending_texture: std::cell::RefCell::new(None),
             diagram_layout: None,
             flash_steps: vec![],
             needs_render: std::cell::Cell::new(false),
+            needs_ui_sync: std::cell::Cell::new(true),
             audio,
+            mic_handle: None,
+            mic_steps: vec![],
         };
         model.rebuild_derived();
 
@@ -165,6 +182,17 @@ impl SimpleComponent for AppModel {
             .visible(false) // breakpoint will make it visible
             .build();
         header.pack_end(&controls_btn);
+
+        // Mic listen toggle (always visible)
+        let mic_btn = gtk::ToggleButton::builder()
+            .icon_name("audio-input-microphone-symbolic")
+            .tooltip_text("Listen to mic")
+            .build();
+        let mic_sig = {
+            let s = sender.clone();
+            mic_btn.connect_toggled(move |_| { s.input(AppMsg::MicToggle); })
+        };
+        header.pack_start(&mic_btn);
 
         // ── Sidebar widgets ───────────────────────────────────────────────
 
@@ -573,6 +601,8 @@ impl SimpleComponent for AppModel {
             key_spin,
             fret_spin,
             diagram,
+            mic_btn,
+            mic_sig,
         };
 
         ComponentParts { model, widgets }
@@ -581,7 +611,7 @@ impl SimpleComponent for AppModel {
     fn update(&mut self, msg: AppMsg, sender: ComponentSender<Self>) {
         match msg {
             AppMsg::DiagramReady(data, w, h, layout) => {
-                self.pending_texture = Some((data, w, h));
+                *self.pending_texture.borrow_mut() = Some((data, w, h));
                 self.diagram_layout = Some(layout);
                 return;
             }
@@ -589,7 +619,8 @@ impl SimpleComponent for AppModel {
                 let Some(layout) = &self.diagram_layout else { return };
                 // The Picture uses ContentFit::Contain. The rasterized image is
                 // always 800px wide; use the stored texture dimensions.
-                let Some((_, img_w, img_h)) = &self.pending_texture else { return };
+                let tex = self.pending_texture.borrow();
+                let Some((_, img_w, img_h)) = tex.as_ref() else { return };
                 let img_w = *img_w as f64;
                 let img_h = *img_h as f64;
                 // Compute the displayed rect within the widget (letterbox).
@@ -676,74 +707,161 @@ impl SimpleComponent for AppModel {
                     Some(self.state.instruments.len() - 1);
                 self.rebuild_derived();
             }
+            AppMsg::MicToggle => {
+                if let Some(h) = self.mic_handle.take() {
+                    // Already listening — stop.
+                    h.stop();
+                    self.mic_steps.clear();
+                    self.needs_render.set(true);
+                    return;
+                }
+                // Start listening.
+                if let Some(h) = xen_sequencer::native_mic::NativeMicHandle::spawn(4096) {
+                    let handle = std::sync::Arc::new(h);
+                    self.mic_handle = Some(handle.clone());
+                    let sender_worker = sender.clone();
+                    let state_snapshot = self.state.clone();
+                    let detector_kind = state_snapshot.preferences.pitch_detector.clone();
+                    std::thread::Builder::new()
+                        .name("xen-mic-detect".into())
+                        .spawn(move || {
+                            use xen_dsp::detector::PitchDetector;
+                            use app_common::preferences::PitchDetectorKind;
+                            let mut detector: Box<dyn PitchDetector> = match detector_kind {
+                                PitchDetectorKind::Yin => Box::new(
+                                    xen_dsp::yin::YinDetector::new(0.15, 50.0, 4000.0),
+                                ),
+                                PitchDetectorKind::IterF0 => Box::new(
+                                    xen_dsp::iterf0::IterF0Detector::new(6, 8, 70.0, 2000.0, 0.15),
+                                ),
+                            };
+                            let mut holdoff: std::collections::HashMap<i32, u8> =
+                                Default::default();
+                            const HOLDOFF_FRAMES: u8 = 12;
+                            while let Some(ev) = handle.next_event_blocking() {
+                                match ev {
+                                    xen_sequencer::mic::MicEvent::Samples { rate, data } => {
+                                        let pitches = detector.detect(&data, rate);
+                                        let fresh =
+                                            app_common::pitch_map::detected_to_absolute_steps(
+                                                &state_snapshot,
+                                                &pitches,
+                                            );
+                                        holdoff.retain(|_, c| {
+                                            if *c == 0 { false } else { *c -= 1; true }
+                                        });
+                                        for s in fresh {
+                                            holdoff.insert(s, HOLDOFF_FRAMES);
+                                        }
+                                        sender_worker.input(AppMsg::MicPitchesChanged(
+                                            holdoff.keys().copied().collect(),
+                                        ));
+                                    }
+                                    xen_sequencer::mic::MicEvent::Stopped
+                                    | xen_sequencer::mic::MicEvent::Error(_) => {
+                                        sender_worker.input(AppMsg::MicStopped);
+                                        break;
+                                    }
+                                    xen_sequencer::mic::MicEvent::Started { .. } => {}
+                                }
+                            }
+                        })
+                        .ok();
+                }
+                return;
+            }
+            AppMsg::MicPitchesChanged(steps) => {
+                self.mic_steps = steps;
+                self.needs_render.set(true);
+                return;
+            }
+            AppMsg::MicStopped => {
+                self.mic_handle = None;
+                self.mic_steps.clear();
+                self.needs_render.set(true);
+                return;
+            }
         }
         storage::save(&self.state);
         self.needs_render.set(true);
+        self.needs_ui_sync.set(true);
     }
 
     fn update_view(&self, widgets: &mut Self::Widgets, sender: ComponentSender<Self>) {
-        // Repopulate instrument dropdown
-        Self::repopulate(
-            &widgets.instrument_dd,
-            &widgets.instrument_sig,
-            &self.instrument_names,
-            self.state.selected_instrument_idx.unwrap_or(0),
-        );
+        // Only repopulate dropdowns and sync spinners when instrument/scale/tuning/key
+        // state has actually changed.  Skipping this for mic/flash/render-only updates
+        // prevents set_model from closing open popups and stealing focus.
+        if self.needs_ui_sync.get() {
+            self.needs_ui_sync.set(false);
 
-        // Sync mode label
-        widgets
-            .sc_label
-            .set_label(match self.state.diagram_settings.mode {
-                DiagramMode::Scale => "Scale",
-                DiagramMode::Chord => "Chord",
-            });
+            Self::repopulate(
+                &widgets.instrument_dd,
+                &widgets.instrument_sig,
+                &self.instrument_names,
+                self.state.selected_instrument_idx.unwrap_or(0),
+            );
 
-        // Repopulate scale/chord dropdown
-        let (sc_names, sc_sel) = match self.state.diagram_settings.mode {
-            DiagramMode::Scale => (&self.scale_names, self.state.selected_scale_idx),
-            DiagramMode::Chord => (&self.chord_names, self.state.selected_chord_idx),
-        };
-        Self::repopulate(&widgets.sc_dd, &widgets.sc_sig, sc_names, sc_sel);
+            widgets
+                .sc_label
+                .set_label(match self.state.diagram_settings.mode {
+                    DiagramMode::Scale => "Scale",
+                    DiagramMode::Chord => "Chord",
+                });
 
-        // Repopulate tuning dropdown
-        Self::repopulate(
-            &widgets.tuning_dd,
-            &widgets.tuning_sig,
-            &self.tuning_names,
-            self.state.selected_tuning_idx,
-        );
+            let (sc_names, sc_sel) = match self.state.diagram_settings.mode {
+                DiagramMode::Scale => (&self.scale_names, self.state.selected_scale_idx),
+                DiagramMode::Chord => (&self.chord_names, self.state.selected_chord_idx),
+            };
+            Self::repopulate(&widgets.sc_dd, &widgets.sc_sig, sc_names, sc_sel);
 
-        // Sync key SpinButton range (EDO may have changed with instrument)
-        let edo = self
-            .state
-            .current_temperament()
-            .map(|t| t.divisions as f64)
-            .unwrap_or(12.0);
-        let cur_key = self.state.diagram_settings.key as f64;
-        widgets.key_spin.set_range(0.0, (edo - 1.0).max(0.0));
-        if (widgets.key_spin.value() - cur_key).abs() > 0.5 {
-            widgets.key_spin.set_value(cur_key);
+            Self::repopulate(
+                &widgets.tuning_dd,
+                &widgets.tuning_sig,
+                &self.tuning_names,
+                self.state.selected_tuning_idx,
+            );
+
+            let edo = self
+                .state
+                .current_temperament()
+                .map(|t| t.divisions as f64)
+                .unwrap_or(12.0);
+            let cur_key = self.state.diagram_settings.key as f64;
+            widgets.key_spin.set_range(0.0, (edo - 1.0).max(0.0));
+            if (widgets.key_spin.value() - cur_key).abs() > 0.5 {
+                widgets.key_spin.set_value(cur_key);
+            }
+
+            let cur_fret = self.state.diagram_settings.fret_offset as f64;
+            if (widgets.fret_spin.value() - cur_fret).abs() > 0.5 {
+                widgets.fret_spin.set_value(cur_fret);
+            }
         }
 
-        // Sync fret offset
-        let cur_fret = self.state.diagram_settings.fret_offset as f64;
-        if (widgets.fret_spin.value() - cur_fret).abs() > 0.5 {
-            widgets.fret_spin.set_value(cur_fret);
+        // Sync mic button active state (in case of external stop via error/device loss).
+        // Block the toggled signal while changing active state so we don't re-enter MicToggle.
+        let listening = self.mic_handle.is_some();
+        if widgets.mic_btn.is_active() != listening {
+            widgets.mic_btn.block_signal(&widgets.mic_sig);
+            widgets.mic_btn.set_active(listening);
+            widgets.mic_btn.unblock_signal(&widgets.mic_sig);
         }
 
         // Spawn a background render when state has changed
         if self.needs_render.get() {
             self.needs_render.set(false);
             let s = sender.clone();
-            let flash = self.flash_steps.clone();
+            let mut flash = self.flash_steps.clone();
+            flash.extend(self.mic_steps.iter().copied());
             crate::render::submit_render(self.state.clone(), flash, move |data, w, h, layout| {
                 s.input(AppMsg::DiagramReady(data, w, h, layout));
             });
         }
 
-        // Apply completed render
-        if let Some((data, w, h)) = &self.pending_texture {
-            let tex = crate::render::bytes_to_texture(data.clone(), *w, *h);
+        // Apply completed render — take() so set_paintable is only called when
+        // fresh data arrives, never on repeated update_view calls with stale data.
+        if let Some((data, w, h)) = self.pending_texture.borrow_mut().take() {
+            let tex = crate::render::bytes_to_texture(data, w, h);
             widgets.diagram.set_paintable(Some(&tex));
         }
     }

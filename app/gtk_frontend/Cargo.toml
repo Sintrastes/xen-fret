@@ -12,6 +12,7 @@ app-common = { path = "../common" }
 fretboard-diagrams = { path = "../../fretboard-diagrams" }
 xen-theory  = { path = "../../xen-theory", features = ["serde"] }
 xen-sequencer = { path = "../../xen-sequencer", features = ["native"] }
+xen-dsp = { path = "../../xen-dsp" }
 
 relm4      = { version = "0.9", features = ["macros", "libadwaita", "gnome_44"] }
 libadwaita = { version = "0.7", features = ["v1_6"] }

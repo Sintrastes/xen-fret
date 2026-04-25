@@ -209,6 +209,8 @@ pub struct XenFretApi {
     layout: Mutex<Option<DiagramLayout>>,
     flash_steps: Mutex<Vec<i32>>,
     audio: Mutex<Option<xen_sequencer::native_audio::NativeAudioHandle>>,
+    mic: Mutex<Option<std::sync::Arc<xen_sequencer::native_mic::NativeMicHandle>>>,
+    mic_steps: std::sync::Arc<Mutex<Vec<i32>>>,
 }
 
 #[uniffi::export]
@@ -223,6 +225,8 @@ impl XenFretApi {
             layout: Mutex::new(None),
             flash_steps: Mutex::new(Vec::new()),
             audio: Mutex::new(audio),
+            mic: Mutex::new(None),
+            mic_steps: std::sync::Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -356,7 +360,8 @@ impl XenFretApi {
 
     pub fn generate_diagram_png(&self) -> Option<Vec<u8>> {
         let state = self.state.lock().unwrap().clone();
-        let flash = self.flash_steps.lock().unwrap().clone();
+        let mut flash = self.flash_steps.lock().unwrap().clone();
+        flash.extend(self.mic_steps.lock().unwrap().iter().copied());
         let (svg, diagram_layout) = build_svg_with_layout(&state, "", &[], &flash)?;
         *self.layout.lock().unwrap() = Some(diagram_layout);
         rasterize_to_png(&svg, &self.usvg_opts)
@@ -388,6 +393,70 @@ impl XenFretApi {
         if let Some(pos) = v.iter().position(|s| *s == step) {
             v.remove(pos);
         }
+    }
+
+    /// Start microphone pitch detection. Returns `true` if started successfully.
+    /// Detected steps are automatically included in subsequent `generate_diagram_png` calls.
+    pub fn start_mic(&self) -> bool {
+        let mut g = self.mic.lock().unwrap();
+        if g.is_some() { return true; }
+        let Some(h) = xen_sequencer::native_mic::NativeMicHandle::spawn(4096) else { return false; };
+        let handle = std::sync::Arc::new(h);
+        *g = Some(handle.clone());
+        drop(g);
+
+        let state_snapshot = self.state.lock().unwrap().clone();
+        let detector_kind = state_snapshot.preferences.pitch_detector.clone();
+        let mic_steps = self.mic_steps.clone();
+        std::thread::Builder::new()
+            .name("xen-mic-detect".into())
+            .spawn(move || {
+                use xen_dsp::detector::PitchDetector;
+                use app_common::preferences::PitchDetectorKind;
+                let mut detector: Box<dyn PitchDetector> = match detector_kind {
+                    PitchDetectorKind::Yin => {
+                        Box::new(xen_dsp::yin::YinDetector::new(0.15, 50.0, 4000.0))
+                    }
+                    PitchDetectorKind::IterF0 => Box::new(
+                        xen_dsp::iterf0::IterF0Detector::new(6, 8, 70.0, 2000.0, 0.15),
+                    ),
+                };
+                let mut holdoff: std::collections::HashMap<i32, u8> = Default::default();
+                const HOLDOFF_FRAMES: u8 = 12;
+                while let Some(ev) = handle.next_event_blocking() {
+                    match ev {
+                        xen_sequencer::mic::MicEvent::Samples { rate, data } => {
+                            let pitches = detector.detect(&data, rate);
+                            let fresh = app_common::pitch_map::detected_to_absolute_steps(
+                                &state_snapshot,
+                                &pitches,
+                            );
+                            holdoff.retain(|_, c| {
+                                if *c == 0 { false } else { *c -= 1; true }
+                            });
+                            for s in fresh {
+                                holdoff.insert(s, HOLDOFF_FRAMES);
+                            }
+                            *mic_steps.lock().unwrap() = holdoff.keys().copied().collect();
+                        }
+                        xen_sequencer::mic::MicEvent::Stopped
+                        | xen_sequencer::mic::MicEvent::Error(_) => {
+                            mic_steps.lock().unwrap().clear();
+                            break;
+                        }
+                        xen_sequencer::mic::MicEvent::Started { .. } => {}
+                    }
+                }
+            })
+            .is_ok()
+    }
+
+    /// Stop microphone pitch detection and clear detected steps.
+    pub fn stop_mic(&self) {
+        if let Some(h) = self.mic.lock().unwrap().take() {
+            h.stop();
+        }
+        self.mic_steps.lock().unwrap().clear();
     }
 
     /// Play the pitch corresponding to `absolute_step` in the current temperament/tuning.

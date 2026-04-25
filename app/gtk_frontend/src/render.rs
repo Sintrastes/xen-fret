@@ -1,7 +1,7 @@
 use fretboard_diagrams::DiagramLayout;
 use relm4::gtk::gdk;
 use tiny_skia::Pixmap;
-use std::sync::{mpsc, OnceLock};
+use std::sync::{Arc, Condvar, Mutex, OnceLock};
 
 static BRAVURA_BYTES: &[u8] =
     include_bytes!("../../../app/dioxus_frontend/assets/Bravura.woff");
@@ -9,22 +9,33 @@ static BRAVURA_BYTES: &[u8] =
 // A closure the persistent render thread executes with pre-built Options.
 type RenderTask = Box<dyn FnOnce(&usvg::Options) + Send + 'static>;
 
-fn render_tx() -> &'static mpsc::SyncSender<RenderTask> {
-    static TX: OnceLock<mpsc::SyncSender<RenderTask>> = OnceLock::new();
-    TX.get_or_init(|| {
-        let (tx, rx) = mpsc::sync_channel::<RenderTask>(8);
+// Last-write-wins slot: the caller always overwrites whatever was pending,
+// so a state-change render immediately displaces any queued mic render.
+fn render_slot() -> &'static Arc<(Mutex<Option<RenderTask>>, Condvar)> {
+    static SLOT: OnceLock<Arc<(Mutex<Option<RenderTask>>, Condvar)>> = OnceLock::new();
+    SLOT.get_or_init(|| {
+        let slot: Arc<(Mutex<Option<RenderTask>>, Condvar)> =
+            Arc::new((Mutex::new(None), Condvar::new()));
+        let slot2 = slot.clone();
         std::thread::spawn(move || {
-            // Build the Options (including full fontdb) exactly once.
             let mut opts = usvg::Options::default();
             opts.fontdb_mut().load_system_fonts();
             if let Some(sfnt) = app_common::font::woff1_to_sfnt(BRAVURA_BYTES) {
                 opts.fontdb_mut().load_font_data(sfnt);
             }
-            for task in rx {
+            loop {
+                let task = {
+                    let (lock, cvar) = &*slot2;
+                    let mut guard = lock.lock().unwrap();
+                    while guard.is_none() {
+                        guard = cvar.wait(guard).unwrap();
+                    }
+                    guard.take().unwrap()
+                };
                 task(&opts);
             }
         });
-        tx
+        slot
     })
 }
 
@@ -80,8 +91,8 @@ pub fn submit_render(
     playing_steps: Vec<i32>,
     callback: impl FnOnce(Vec<u8>, u32, u32, DiagramLayout) + Send + 'static,
 ) {
-    let tx = render_tx();
-    let _ = tx.send(Box::new(move |opts| {
+    let (lock, cvar) = &**render_slot();
+    *lock.lock().unwrap() = Some(Box::new(move |opts| {
         if let Some((svg, layout)) =
             app_common::diagrams::build_svg_with_layout(&state, "", &[], &playing_steps)
         {
@@ -90,6 +101,7 @@ pub fn submit_render(
             }
         }
     }));
+    cvar.notify_one();
 }
 
 /// Wrap raw pixel bytes in a GDK MemoryTexture. Must be called on the GTK main thread.

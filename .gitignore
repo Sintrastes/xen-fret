@@ -16,3 +16,5 @@ target
 node_modules
 
 .claude/
+
+.idea
