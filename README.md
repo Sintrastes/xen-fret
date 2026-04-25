@@ -17,7 +17,7 @@ Xen Fret is a appliation for players of microtonal (a.k.a. xenharmonic) fretted 
 
 Xen Fret uses data from the [xen wiki](https://en.xen.wiki/w/Main_Page), together with some of my own manually entered data for my own 22-EDO guitar. This application is developed in my free time, and will always be free and open source. If you see anything wrong / missing, or have a feature request, please either [file an issue](https://github.com/Sintrastes/xen-fret/issues/new) or submit a PR! 
 
-*Note*: The project's logo is a diagram showing the 8-edo subset of 16-edo, generated with a step size of 7. The outer edges of the diagram represent eod steps, while the inner edges represent the generator chain. This particular scale was chosen over other [MOS](https://en.xen.wiki/w/List_of_MOS_scales_in_16edo) scales because I thought this one looked the best as a logo.
+*Note*: The project's logo is a diagram showing the 8-edo subset of 16-edo, generated with a step size of 7. The outer edges of the diagram represent edo steps, while the inner edges represent the generator chain. This particular scale was chosen over other [MOS](https://en.xen.wiki/w/List_of_MOS_scales_in_16edo) scales because I thought this one looked the best as a logo. Mathematically, the logo is a type of [star polygon](https://en.wikipedia.org/wiki/Star_polygon). The diagram was generated with the code in [icon-gen](https://github.com/Sintrastes/xen-fret/blob/master/icon-gen/src/lib.rs) using [hagoromo](https://github.com/Sintrastes/hagoromo).
 
 Getting started
 ---------------
@@ -35,6 +35,17 @@ Features
   - Real-time pitch detection / transcription for microtonal instruments. (WIP)
   - Chord / scale detection. (WIP)
   - Native clients for Web, Android, and Linux (GTK). Currently other platforms use just a web app deployed with Tauri.
+
+Screenshots
+-----------
+
+**Web**:
+
+<img width="1018" height="758" alt="Xen Fret Web" src="https://github.com/user-attachments/assets/e2a33ff6-0a96-495d-9379-5af12edb77aa" />
+
+**GTK**:
+
+<img width="1016" height="812" alt="Xen Fret GTK" src="https://github.com/user-attachments/assets/7c971bc2-59eb-4228-8a6f-5bbcce833b0a" />
 
 Building
 --------
